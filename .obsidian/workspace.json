@@ -210,6 +210,7 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Database/ACID/Atomicity.md",
     "MessageBrokers/Rabbit MQ.md",
     "Database/ACID/Transaction.md",
     "Network in GO--Book/Reliable TCP data streams.md",
@@ -246,7 +247,6 @@
     "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
     "books/concurrency/Note.md",
     "DSA/Tree/Tree.md",
-    "DSA/Graphs.md",
     "Untitled.canvas",
     "kubernetes/assets/controll-plane.png",
     "DSA/Heap/assets/GIWwdou92B.avif",
