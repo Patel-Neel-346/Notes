@@ -44,13 +44,13 @@ activate app
 activate db
 app->>db: BEGIN TRANSACTION
 app->>db: SELECT quantity FROM products
-db->>app: quantity = 5 ✅
+db->>app: quantity = 5, OK
 app->>db: UPDATE products SET quantity = quantity - 1
-app->>db: INSERT INTO orders (...)
+app->>db: INSERT INTO orders
 app->>db: UPDATE wallets SET balance = balance - 599
-db->>app: ERROR: insufficient balance ❌
+db->>app: ERROR insufficient balance
 app->>db: ROLLBACK
-Note over app,db: All changes are undone. Stock remains 5.
+Note over app,db: All changes are undone, Stock remains 5
 deactivate app
 deactivate db
 ```
@@ -61,8 +61,8 @@ deactivate db
 ```mermaid
 flowchart TD
     A[Transaction BEGIN] --> B{Queries Execute}
-    B -->|All Succeed| C[COMMIT ✅]
-    B -->|Something Fails| D[ROLLBACK ❌]
+    B -->|All Succeed| C[COMMIT]
+    B -->|Something Fails| D[ROLLBACK]
     B -->|Crash / Power Failure| E[Unexpected Termination]
     E --> D
     C --> F[Transaction END]
@@ -124,12 +124,12 @@ activate db
 app->>db: BEGIN TRANSACTION
 app->>db: SELECT balance FROM accounts WHERE id = 1
 db->>app: balance = 500
-Note over app: 500 > 100 ✅ Proceed
+Note over app: 500 > 100 Proceed
 app->>db: UPDATE accounts SET balance = 400 WHERE id = 1
 app->>db: UPDATE accounts SET balance = balance + 100 WHERE id = 2
 app->>db: COMMIT
-db->>app: Transaction Committed ✅
-Note over app,db: Acc1: 500→400 | Acc2: balance+100
+db->>app: Transaction Committed
+Note over app,db: Acc1 500 to 400 and Acc2 balance+100
 deactivate app
 deactivate db
 ```
