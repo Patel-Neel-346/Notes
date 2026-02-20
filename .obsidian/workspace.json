@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "MessageBrokers/Kafka.md",
+                "file": "Database/ACID/Transaction.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Kafka"
+              "title": "Transaction"
             }
           }
         ],
@@ -211,10 +211,10 @@
   "active": "a96504618f299398",
   "lastOpenFiles": [
     "Database/ACID/Atomicity.md",
+    "MessageBrokers/Kafka.md",
     "MessageBrokers/Rabbit MQ.md",
     "Database/ACID/Transaction.md",
     "Network in GO--Book/Reliable TCP data streams.md",
-    "MessageBrokers/Kafka.md",
     "Postgres/Postgres with Go.md",
     "Postgres/postgres.md",
     "Postgres/joins.pdf",
