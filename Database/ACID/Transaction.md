@@ -15,3 +15,16 @@ COMMIT;
 ```
 
 
+another example read + update + insert + update + read commit 
+
+
+
+
+-Trandaction Lifefspan 
+ - transcation Begin 
+ - transcation Commited
+ - transcation Rollback
+ - transaction unexpected termination == Rollback(e.g crash) 
+ - transcation Aborted 
+ - transcation End
+ 
