@@ -118,3 +118,4 @@ But there will be a time when write is happened in master but it is not happen i
 - faster writes
 
 Ok so we scaled the master db vertically and we have read replicas which we scalled horizontally and we have many of them but if we started getting too many write request and our master db is not able to handle them. So here Sharding comes into play
+

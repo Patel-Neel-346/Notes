@@ -11,16 +11,14 @@
             "id": "a3ec600eb5f98e44",
             "type": "leaf",
             "state": {
-              "type": "pdf",
+              "type": "markdown",
               "state": {
-                "file": "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
-                "page": 1,
-                "left": -18,
-                "top": 688,
-                "zoom": 0.8524590163934426
+                "file": "Sys Design/Beginners.md",
+                "mode": "preview",
+                "source": true
               },
-              "icon": "lucide-file-text",
-              "title": "Effective Concurrency in Go by Burak Serdar"
+              "icon": "lucide-file",
+              "title": "Beginners"
             }
           }
         ]
@@ -80,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 304.01103591918945
+    "width": 327
   },
   "right": {
     "id": "a93dce0b73208406",
@@ -191,15 +189,22 @@
       "command-palette:Open command palette": false,
       "pdf-plus:PDF++: Toggle auto-copy": false,
       "pdf-plus:PDF++: Toggle auto-focus": false,
-      "pdf-plus:PDF++: Toggle auto-paste": false
+      "pdf-plus:PDF++: Toggle auto-paste": false,
+      "code-files:Create Code File": false
     }
   },
   "active": "a3ec600eb5f98e44",
   "lastOpenFiles": [
-    "books/concurrency/Note.md",
-    "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
-    "books/beyond effective go 1/beyond-effective-go-part-1-achieving-high-performance-code.pdf",
+    "Database/ACID/Transaction.md",
+    "Database/ACID",
+    "Database",
+    "Sys Design/arpit bhayani/todo.md",
+    "Sys Design/arpit bhayani/third video.md",
+    "Sys Design/arpit bhayani/first video(blog application).md",
     "books/beyond effective go 1/Note.md",
+    "books/beyond effective go 1/beyond-effective-go-part-1-achieving-high-performance-code.pdf",
+    "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
+    "books/concurrency/Note.md",
     "DSA/Tree/Tree.md",
     "DSA/Graphs.md",
     "DSA/Two  Pointer/Two Pointers.md",
@@ -221,16 +226,11 @@
     "DSA/Stack/Stack.md",
     "DSA/Array/Array.md",
     "DSA/Array/Questions.md",
-    "DSA/Array/2D arrays.md",
-    "DSA/TLE/Level 1/solutions.md",
-    "Golang/Cryptography.md",
     "books/let's go further/lets-go-further.pdf",
     "books/Efficient GO/efficient-go-data-driven-performance-optimization.pdf",
     "books/Go Testing/testing-in-go.pdf",
     "Sys Design/arpit bhayani",
     "Postgres/joins.pdf",
-    "books/let's go further",
-    "kubernetes/kuberntes.js.js",
     "Untitled.canvas",
     "kubernetes/assets/controll-plane.png",
     "DSA/Heap/assets/GIWwdou92B.avif",
