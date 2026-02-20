@@ -14,10 +14,10 @@
               "type": "pdf",
               "state": {
                 "file": "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
-                "page": 121,
-                "left": -9,
-                "top": 561,
-                "zoom": 1.848360655737705
+                "page": 1,
+                "left": -18,
+                "top": 688,
+                "zoom": 0.8524590163934426
               },
               "icon": "lucide-file-text",
               "title": "Effective Concurrency in Go by Burak Serdar"
@@ -168,8 +168,8 @@
             "state": {
               "type": "git-view",
               "state": {},
-              "icon": "git-pull-request",
-              "title": "Source Control"
+              "icon": "lucide-ghost",
+              "title": "git-view"
             }
           }
         ],
@@ -191,8 +191,7 @@
       "command-palette:Open command palette": false,
       "pdf-plus:PDF++: Toggle auto-copy": false,
       "pdf-plus:PDF++: Toggle auto-focus": false,
-      "pdf-plus:PDF++: Toggle auto-paste": false,
-      "code-files:Create Code File": false
+      "pdf-plus:PDF++: Toggle auto-paste": false
     }
   },
   "active": "a3ec600eb5f98e44",
