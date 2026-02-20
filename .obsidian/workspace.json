@@ -20,8 +20,23 @@
               "icon": "lucide-file",
               "title": "Beginners"
             }
+          },
+          {
+            "id": "a96504618f299398",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Database/ACID/Transaction.md",
+                "mode": "source",
+                "source": true
+              },
+              "icon": "lucide-file",
+              "title": "Transaction"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -53,7 +68,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "fan in",
+                "query": "database",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -78,7 +93,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 327
+    "width": 325
   },
   "right": {
     "id": "a93dce0b73208406",
@@ -193,8 +208,17 @@
       "code-files:Create Code File": false
     }
   },
-  "active": "a3ec600eb5f98e44",
+  "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Untitled 3.base",
+    "Untitled 2.base",
+    "2026-02-20.md",
+    "Untitled 1.base",
+    "Sys Design/Clean Architecture.md",
+    "Untitled.base",
+    "Untitled.md",
+    "Sys Design/Beginners.md",
+    "Untitled",
     "Database/ACID/Transaction.md",
     "Database/ACID",
     "Database",
@@ -221,16 +245,7 @@
     "Servers in GO.md",
     "Streams Node.js.md",
     "TODO & Info.md",
-    "Videos to watch.md",
-    "WebRTC.md",
-    "DSA/Stack/Stack.md",
-    "DSA/Array/Array.md",
-    "DSA/Array/Questions.md",
     "books/let's go further/lets-go-further.pdf",
-    "books/Efficient GO/efficient-go-data-driven-performance-optimization.pdf",
-    "books/Go Testing/testing-in-go.pdf",
-    "Sys Design/arpit bhayani",
-    "Postgres/joins.pdf",
     "Untitled.canvas",
     "kubernetes/assets/controll-plane.png",
     "DSA/Heap/assets/GIWwdou92B.avif",
