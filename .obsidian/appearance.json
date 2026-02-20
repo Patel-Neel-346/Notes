@@ -1,0 +1,12 @@
+{
+  "accentColor": "#e65719",
+  "cssTheme": "Encore",
+  "interfaceFontFamily": "MonoLisa",
+  "textFontFamily": "Inter",
+  "monospaceFontFamily": "Geist Mono",
+  "theme": "obsidian",
+  "baseFontSize": 18,
+  "enabledCssSnippets": [
+    "lists"
+  ]
+}

@@ -1,0 +1,17 @@
+- Spiral Matrix
+	- https://leetcode.com/problems/spiral-matrix/description/
+- Transpose Matrix
+	- https://www.geeksforgeeks.org/problems/transpose-of-matrix-1587115621/1
+- Rotate Image
+	- https://leetcode.com/problems/rotate-image/description/
+- Matrix Rotation by 180 degree
+	- https://www.geeksforgeeks.org/problems/c-matrix-rotation-by-180-degree0745/1
+- Rotate by 90 degree anticlockwise
+	- https://www.geeksforgeeks.org/problems/rotate-by-90-degree-1587115621/1
+- Search in a row-column sorted Matrix
+	- https://www.geeksforgeeks.org/problems/search-in-a-matrix-1587115621/1
+- Binary Search
+	- https://leetcode.com/problems/search-a-2d-matrix/description/
+- Search in a sorted row-col wise Matrix
+	- https://www.geeksforgeeks.org/problems/search-in-a-matrix-1587115621/1
+- Print matrix in Wave form -- do it on your own.

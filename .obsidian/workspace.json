@@ -1,0 +1,249 @@
+{
+  "main": {
+    "id": "81414484aacb84c6",
+    "type": "split",
+    "children": [
+      {
+        "id": "9415209e3e924ab1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a3ec600eb5f98e44",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
+                "page": 121,
+                "left": -9,
+                "top": 561,
+                "zoom": 1.848360655737705
+              },
+              "icon": "lucide-file-text",
+              "title": "Effective Concurrency in Go by Burak Serdar"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "a73f57c8f1e66c34",
+    "type": "split",
+    "children": [
+      {
+        "id": "3a80501814f23dc1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0bd3b0bf5b101287",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "3ece25786a03d205",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "fan in",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "e5822bc282fa05d1",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 304.01103591918945
+  },
+  "right": {
+    "id": "a93dce0b73208406",
+    "type": "split",
+    "children": [
+      {
+        "id": "a2f41110e182c3a1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "911fd523b9562546",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "TODO & Info.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for TODO & Info"
+            }
+          },
+          {
+            "id": "d961e5cb942cb658",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "TODO & Info.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from TODO & Info"
+            }
+          },
+          {
+            "id": "8b0bd6c6b3f8244b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "2a3b3863a9d3dcd7",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "TODO & Info.md"
+              },
+              "icon": "lucide-list",
+              "title": "Outline of TODO & Info"
+            }
+          },
+          {
+            "id": "d821e41bc17e0c93",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "2864b73a378848f9",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
+          }
+        ],
+        "currentTab": 5
+      }
+    ],
+    "direction": "horizontal",
+    "width": 668,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "bases:Create new base": false,
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "pdf-plus:PDF++: Toggle auto-copy": false,
+      "pdf-plus:PDF++: Toggle auto-focus": false,
+      "pdf-plus:PDF++: Toggle auto-paste": false,
+      "code-files:Create Code File": false
+    }
+  },
+  "active": "a3ec600eb5f98e44",
+  "lastOpenFiles": [
+    "books/concurrency/Note.md",
+    "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
+    "books/beyond effective go 1/beyond-effective-go-part-1-achieving-high-performance-code.pdf",
+    "books/beyond effective go 1/Note.md",
+    "DSA/Tree/Tree.md",
+    "DSA/Graphs.md",
+    "DSA/Two  Pointer/Two Pointers.md",
+    "DSA/Python for DSA.md",
+    "books/dsa/Elements of Programming Interviews in Python_ The Insiders’ Guide - PDF Room_compressed.pdf",
+    "DSA/GO for DSA.md",
+    "books/dsa/dsa.md",
+    "DSA/TLE/Level 1/Number Theory.md",
+    "DSA/Stack/TimeSheet.md",
+    "Postgres/postgres.md",
+    "DSA/Array/Sliding Window.md",
+    "DSA/Array/TimeSheet.md",
+    "pending things.md",
+    "Servers in GO.md",
+    "Streams Node.js.md",
+    "TODO & Info.md",
+    "Videos to watch.md",
+    "WebRTC.md",
+    "DSA/Stack/Stack.md",
+    "DSA/Array/Array.md",
+    "DSA/Array/Questions.md",
+    "DSA/Array/2D arrays.md",
+    "DSA/TLE/Level 1/solutions.md",
+    "Golang/Cryptography.md",
+    "books/let's go further/lets-go-further.pdf",
+    "books/Efficient GO/efficient-go-data-driven-performance-optimization.pdf",
+    "books/Go Testing/testing-in-go.pdf",
+    "Sys Design/arpit bhayani",
+    "Postgres/joins.pdf",
+    "books/let's go further",
+    "kubernetes/kuberntes.js.js",
+    "Untitled.canvas",
+    "kubernetes/assets/controll-plane.png",
+    "DSA/Heap/assets/GIWwdou92B.avif",
+    "DSA/Heap/assets/5sFKHAcSi.avif",
+    "kafka/assets/Pasted image 20240630184107.png",
+    "MessageBrokers/assets/Pasted image 20250109201323.png",
+    "MessageBrokers/assets/Pasted image 20250109200500.png",
+    "MessageBrokers/assets/Pasted image 20250109195534.png",
+    "MessageBrokers/assets/Pasted image 20250109194851.png",
+    "MessageBrokers/assets/Pasted image 20250109193825.png",
+    "MessageBrokers/assets/Pasted image 20250109193526.png",
+    "Untitled 2.canvas",
+    "Untitled 1.canvas"
+  ]
+}

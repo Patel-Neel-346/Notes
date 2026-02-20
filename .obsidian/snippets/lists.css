@@ -1,0 +1,33 @@
+:root {
+    --bullet-new-color: rgb(89, 89, 89);
+    --bullet-size: 10px; /* Set bullet size to 10px */
+}
+
+.markdown-source-view.mod-cm6 .HyperMD-list-line-1 .list-bullet:after {
+    /* Disk Bullet */
+    height: var(--bullet-size);
+    width: var(--bullet-size);
+    border-radius: 50%;
+    background-color: var(--bullet-new-color);
+} 
+
+.markdown-source-view.mod-cm6 .HyperMD-list-line-2 .list-bullet:after {
+    /* Circle Bullet */
+    height: var(--bullet-size);
+    width: var(--bullet-size);
+    background-color: Transparent;
+    border-color: var(--bullet-new-color);
+    border-style: solid;
+    border-radius: 50%;
+    border-width: 2px;
+}
+
+.markdown-source-view.mod-cm6 .HyperMD-list-line-3 .list-bullet:after {
+    /* Square Bullet */
+    height: var(--bullet-size);
+    width: var(--bullet-size);
+    border-radius: 0%;
+    background-color: var(--bullet-new-color);
+}
+
+

@@ -1,0 +1,13 @@
+{
+  "spellcheck": false,
+  "promptDelete": false,
+  "vimMode": true,
+  "livePreview": false,
+  "showIndentGuide": false,
+  "showLineNumber": true,
+  "strictLineBreaks": false,
+  "readableLineLength": false,
+  "useTab": true,
+  "tabSize": 2,
+  "alwaysUpdateLinks": true
+}

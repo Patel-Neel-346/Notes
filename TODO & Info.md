@@ -1,0 +1,21 @@
+### Todo
+- [ ] Design Microservices Architecture with Patterns & Principles (Udemy course)
+- [ ] GraphQL with microservices add a bookmark in the browser
+### Info
+- [ ] How internet works in 21 min just checkout once. https://www.youtube.com/watch?v=jjKFXlFNR4E
+- [ ] Watch this video in order to understand concurrency. https://www.youtube.com/watch?v=ibxUIL_-LlA
+- [ ] Complete this video: The Secret Weapon Behind Resilient Distributed Systems (SDD)
+- [ ] Just checkout  this video https://www.youtube.com/watch?v=ZWMiKQXmh9s&t=223s and try if you can get something more from the playlist
+- [ ] System Design course https://www.youtube.com/watch?v=0e7yQ43bUtg&list=PL_c9BZzLwBRLSs6x50D5WIH76VCUxJs9E
+- [ ] AI agent and webrtc. https://www.youtube.com/watch?v=vG215N-mIs0
+- [ ] Video on abort controllers. https://www.youtube.com/watch?v=2sdXSczmvNc
+- [ ] Next.js PPR https://www.youtube.com/watch?v=VMDydLUCLtE
+- [ ] Linux and TCP/IP videos on youtube. https://www.youtube.com/@elithecomputerguy
+- [ ] Create a server from scratch using file descriptors. https://www.youtube.com/watch?v=9jKqwEpilNE&t=181s
+- [ ] A course on web rtc. https://tutflix.org/threads/build-webrtc-application.13505/. https://webrtccourse.com/available-courses/
+- [ ] A guide to networking. https://beej.us/guide/bgnet/html/split/index.html
+- [ ] Nextjs fetching and performance. https://www.youtube.com/watch?v=Eywzqiv29Zk
+- [ ] Streaming json and react trees from the backend. https://www.youtube.com/watch?v=MaMQLNBZz64&t=606s
+- [ ] For distribured computing in GO. https://weread.qq.com/web/reader/b3632c10722ffffcb36abe2kc81322c012c81e728d9d180
+- [ ] Mat Pockocks ai course is released in tutflix
+- [ ] https://www.youtube.com/watch?v=JepwOrjeLnk. Sharding strategies

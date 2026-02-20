@@ -1,0 +1,2 @@
+These keys are usefull when server failed to send the response to the client but the update has been applied in the backend.
+eg. We are creating a order but the server failed to send the response back to the client, so in this situation client will retry and now we have two orders.

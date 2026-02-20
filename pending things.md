@@ -1,0 +1,12 @@
+- [ ] practicing saga
+- [ ] practicing outbox
+- [ ] practicing di using fx and do
+- [ ] practicing di in nestjs
+- [ ] practicing message brokers
+- [ ] practicing
+- [ ] CDC event sourcing
+- [ ] concurrency 
+- [ ] locking in db
+- [ ] docker & k8s
+- [ ] practicing concurrrency in beyond effecctive go the whole sync package
+- [ ] DSA

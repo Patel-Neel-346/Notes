@@ -1,0 +1,3 @@
+- Ring buffer and other shit.
+	- source: https://www.reddit.com/r/golang/comments/16qvzts/spinlocks_in_go_are_they_a_thing/
+	-  https://zhen.org/blog/ring-buffer-variable-length-low-latency-disruptor-style/
