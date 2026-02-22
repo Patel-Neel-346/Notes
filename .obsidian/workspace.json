@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/ACID/Isolation.md",
+                "file": "Database/ACID/Durability.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Isolation"
+              "title": "Durability"
             }
           }
         ],
@@ -210,8 +210,10 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
-    "Database/ACID/Transaction.md",
+    "Database/ACID/Consistency.md",
     "Database/ACID/Isolation.md",
+    "Database/ACID/Durability.md",
+    "Database/ACID/Transaction.md",
     "Database/ACID/Atomicity.md",
     "MessageBrokers/Kafka.md",
     "MessageBrokers/Rabbit MQ.md",
@@ -243,10 +245,8 @@
     "Untitled",
     "Database/ACID",
     "Database",
-    "books/beyond effective go 1/Note.md",
     "books/beyond effective go 1/beyond-effective-go-part-1-achieving-high-performance-code.pdf",
     "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
-    "books/concurrency/Note.md",
     "Untitled.canvas",
     "kubernetes/assets/controll-plane.png",
     "DSA/Heap/assets/GIWwdou92B.avif",
