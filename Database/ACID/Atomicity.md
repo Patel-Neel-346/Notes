@@ -162,4 +162,4 @@ When a database crashes mid-transaction and restarts:
 - If the database crashes mid-transaction → on restart, the database **automatically rolls back** uncommitted changes
 - Lack of atomicity → **data inconsistency**
 - Long transactions = bad idea because rollback can take very long
-- Databases either write to **disk** (fast commit) or **memory** (fast rollback) — always a trade-off
+- Databases either write to **disk** (fast commit) or **memory** (fast rollback) — always a trade-off .
