@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/ACID/Transaction.md",
+                "file": "Database/ACID/Isolation.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Transaction"
+              "title": "Isolation"
             }
           }
         ],
@@ -210,10 +210,11 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Database/ACID/Transaction.md",
+    "Database/ACID/Isolation.md",
     "Database/ACID/Atomicity.md",
     "MessageBrokers/Kafka.md",
     "MessageBrokers/Rabbit MQ.md",
-    "Database/ACID/Transaction.md",
     "Network in GO--Book/Reliable TCP data streams.md",
     "Postgres/Postgres with Go.md",
     "Postgres/postgres.md",
@@ -246,7 +247,6 @@
     "books/beyond effective go 1/beyond-effective-go-part-1-achieving-high-performance-code.pdf",
     "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
     "books/concurrency/Note.md",
-    "DSA/Tree/Tree.md",
     "Untitled.canvas",
     "kubernetes/assets/controll-plane.png",
     "DSA/Heap/assets/GIWwdou92B.avif",
