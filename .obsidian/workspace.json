@@ -210,8 +210,9 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
-    "Database/ACID/Eventual_Consistency.md",
+    "Database/Database Internals/Row vs Column Oriented.md",
     "Database/Database Internals/Storage & Indexing.md",
+    "Database/ACID/Eventual_Consistency.md",
     "Database/Database Internals",
     "Database/ACID/Consistency.md",
     "Database/ACID/Isolation.md",
@@ -244,7 +245,6 @@
     "Golang/Cryptography.md",
     "DSA/Recursion/Recursion.md",
     "DSA/Recursion/TimeSheet.md",
-    "DSA/Recursion/Questions.md",
     "docker/images/closer_look_master_node.png",
     "Softerware Dev Diaries/assets/Pasted image 20240628070044.png",
     "Untitled",
