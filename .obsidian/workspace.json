@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/ACID/Isolation.md",
+                "file": "Database/ACID/Consistency.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Isolation"
+              "title": "Consistency"
             }
           }
         ],
@@ -210,6 +210,8 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Database/ACID/Isolation.md",
+    "Database/ACID/Eventual_Consistency.md",
     "books/Event Driven Architecture/Note.md",
     "books/dsa/Elements of Programming Interviews in Python_ The Insiders’ Guide - PDF Room_compressed.pdf",
     "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
@@ -242,8 +244,6 @@
     "DSA/Recursion/Questions.md",
     "DSA/Array/TimeSheet.md",
     "DSA/Array/Sliding Window.md",
-    "DSA/Array/Questions.md",
-    "DSA/Array/Array.md",
     "docker/images/closer_look_master_node.png",
     "Softerware Dev Diaries/assets/Pasted image 20240628070044.png",
     "Untitled",
