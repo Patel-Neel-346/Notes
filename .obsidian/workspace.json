@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Blogs to read.md",
+                "file": "Database/ACID/Isolation.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Blogs to read"
+              "title": "Isolation"
             }
           }
         ],
@@ -210,6 +210,12 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "books/Event Driven Architecture/Note.md",
+    "books/dsa/Elements of Programming Interviews in Python_ The Insiders’ Guide - PDF Room_compressed.pdf",
+    "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
+    "books/beyond effective go 1/beyond-effective-go-part-1-achieving-high-performance-code.pdf",
+    "concurrency and  networking.md",
+    "Blogs to read.md",
     "2026-02-20.md",
     "Streams Node.js.md",
     "TODO & Info.md",
@@ -238,16 +244,10 @@
     "DSA/Array/Sliding Window.md",
     "DSA/Array/Questions.md",
     "DSA/Array/Array.md",
-    "DSA/Array/2D arrays.md",
-    "drizzle/Drizzle.md",
-    "docker/Kubernetes.md",
     "docker/images/closer_look_master_node.png",
     "Softerware Dev Diaries/assets/Pasted image 20240628070044.png",
     "Untitled",
     "Database/ACID",
-    "Database",
-    "books/beyond effective go 1/beyond-effective-go-part-1-achieving-high-performance-code.pdf",
-    "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
     "Untitled.canvas",
     "kubernetes/assets/controll-plane.png",
     "DSA/Heap/assets/GIWwdou92B.avif",
