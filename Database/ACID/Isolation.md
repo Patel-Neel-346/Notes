@@ -201,6 +201,344 @@ Isolation levels were invented to **control which read phenomena** a transaction
 
 ---
 
+### Isolation Level Examples
+
+All examples use the same **`accounts` table:**
+
+| id | name  | balance |
+|----|-------|---------|
+| 1  | Alice | 1000    |
+| 2  | Bob   | 500     |
+
+---
+
+##### Example — Read Uncommitted
+
+At this level, a transaction **can see uncommitted writes** from other transactions (dirty reads).
+
+```sql
+-- Setup
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+-- Transaction 1 (T1)                    -- Transaction 2 (T2)
+BEGIN;                                    BEGIN;
+                                          UPDATE accounts
+                                          SET balance = 800
+                                          WHERE id = 1;
+                                          -- (NOT committed yet)
+
+SELECT balance FROM accounts
+WHERE id = 1;
+-- Returns 800 ← DIRTY READ!
+                                          ROLLBACK;
+                                          -- balance reverts to 1000
+
+COMMIT;
+-- T1 used a value (800) that NEVER existed
+```
+
+```mermaid
+sequenceDiagram
+    participant T1 as T1 (Read Uncommitted)
+    participant DB as Database
+    participant T2 as T2
+
+    T1->>DB: BEGIN
+    T2->>DB: BEGIN
+    T2->>DB: UPDATE balance = 800 WHERE id = 1
+    Note over DB: balance = 800 (uncommitted)
+
+    T1->>DB: SELECT balance WHERE id = 1
+    DB->>T1: 800 ← dirty read!
+
+    T2->>DB: ROLLBACK
+    Note over DB: balance reverts to 1000
+    T1->>DB: COMMIT
+    Note over T1: Used a value that NEVER existed
+```
+
+- **Problem:** T1 reads `800` which T2 never committed — the data is **garbage**
+- **Use case:** Almost never. Only for rough approximations where accuracy doesn't matter
+
+---
+
+##### Example — Read Committed
+
+Each query in a transaction only sees data that was **committed before that query started**. Dirty reads are gone, but non-repeatable reads can happen.
+
+```sql
+-- Setup
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+-- Transaction 1 (T1)                    -- Transaction 2 (T2)
+BEGIN;                                    BEGIN;
+
+SELECT balance FROM accounts
+WHERE id = 1;
+-- Returns 1000 ✓
+
+                                          UPDATE accounts
+                                          SET balance = 800
+                                          WHERE id = 1;
+                                          COMMIT;
+                                          -- balance is now 800 (committed)
+
+SELECT balance FROM accounts
+WHERE id = 1;
+-- Returns 800 ← NON-REPEATABLE READ!
+-- Same query, same transaction, different result
+
+COMMIT;
+```
+
+```mermaid
+sequenceDiagram
+    participant T1 as T1 (Read Committed)
+    participant DB as Database
+    participant T2 as T2
+
+    T1->>DB: BEGIN
+    T2->>DB: BEGIN
+
+    T1->>DB: SELECT balance WHERE id = 1
+    DB->>T1: 1000 ✓
+
+    T2->>DB: UPDATE balance = 800 WHERE id = 1
+    T2->>DB: COMMIT
+    Note over DB: balance = 800 (committed)
+
+    T1->>DB: SELECT balance WHERE id = 1
+    DB->>T1: 800 ← non-repeatable read!
+    Note over T1: Same query, different result
+
+    T1->>DB: COMMIT
+```
+
+- **Fixed:** Dirty reads — T1 would NOT see `800` until T2 commits
+- **Problem:** The same `SELECT` returned `1000` then `800` within the **same transaction**
+- **Default in:** PostgreSQL, Oracle, SQL Server
+
+---
+
+##### Example — Repeatable Read
+
+Any row you read is **locked/versioned** so it stays the same for the entire transaction. But **new rows** (phantoms) can still appear.
+
+```sql
+-- Setup
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- Transaction 1 (T1)                    -- Transaction 2 (T2)
+BEGIN;                                    BEGIN;
+
+SELECT balance FROM accounts
+WHERE id = 1;
+-- Returns 1000
+
+                                          UPDATE accounts
+                                          SET balance = 800
+                                          WHERE id = 1;
+                                          COMMIT;
+                                          -- committed, but T1 won't see it
+
+SELECT balance FROM accounts
+WHERE id = 1;
+-- Still returns 1000 ✓ (repeatable!)
+
+                                          -- Transaction 3 (T3)
+                                          BEGIN;
+                                          INSERT INTO accounts VALUES
+                                          (3, 'Charlie', 300);
+                                          COMMIT;
+
+SELECT SUM(balance) FROM accounts;
+-- Returns 2800 ← PHANTOM READ!
+-- (1000 + 500 + 300) includes the new row
+
+COMMIT;
+```
+
+```mermaid
+sequenceDiagram
+    participant T1 as T1 (Repeatable Read)
+    participant DB as Database
+    participant T2 as T2
+    participant T3 as T3
+
+    T1->>DB: BEGIN
+    T1->>DB: SELECT balance WHERE id = 1
+    DB->>T1: 1000
+
+    T2->>DB: BEGIN
+    T2->>DB: UPDATE balance = 800 WHERE id = 1
+    T2->>DB: COMMIT
+
+    T1->>DB: SELECT balance WHERE id = 1
+    DB->>T1: 1000 ✓ (repeatable!)
+
+    T3->>DB: BEGIN
+    T3->>DB: INSERT (3, Charlie, 300)
+    T3->>DB: COMMIT
+
+    T1->>DB: SELECT SUM(balance)
+    DB->>T1: 2800 ← phantom read!
+    Note over T1: New row sneaked in
+
+    T1->>DB: COMMIT
+```
+
+- **Fixed:** Non-repeatable reads — re-reading `id = 1` always returns `1000`
+- **Problem:** Charlie's row appeared mid-transaction — it's a **phantom**
+- **Note:** In Postgres, `REPEATABLE READ` = snapshot isolation, so phantoms are also prevented
+
+---
+
+##### Example — Snapshot Isolation
+
+A **frozen snapshot** of the entire database is taken at `BEGIN`. Every query sees the world **as it was** at that moment.
+
+```sql
+-- Setup (Postgres: REPEATABLE READ gives snapshot isolation)
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ; -- Postgres
+-- or: SET TRANSACTION ISOLATION LEVEL SNAPSHOT;  -- SQL Server
+
+-- Transaction 1 (T1)                    -- Transaction 2 (T2)
+BEGIN;                                    BEGIN;
+-- snapshot taken at this moment
+
+SELECT balance FROM accounts
+WHERE id = 1;
+-- Returns 1000
+
+                                          UPDATE accounts
+                                          SET balance = 800
+                                          WHERE id = 1;
+                                          COMMIT;
+
+                                          -- Transaction 3 (T3)
+                                          BEGIN;
+                                          INSERT INTO accounts VALUES
+                                          (3, 'Charlie', 300);
+                                          COMMIT;
+
+SELECT balance FROM accounts
+WHERE id = 1;
+-- Returns 1000 ✓ (snapshot!)
+
+SELECT SUM(balance) FROM accounts;
+-- Returns 1500 ✓ (1000 + 500)
+-- Charlie's row is INVISIBLE — it didn't exist at snapshot time
+
+COMMIT;
+```
+
+```mermaid
+sequenceDiagram
+    participant T1 as T1 (Snapshot)
+    participant DB as Database
+    participant T2 as T2
+    participant T3 as T3
+
+    T1->>DB: BEGIN
+    Note over T1,DB: Snapshot taken here
+
+    T1->>DB: SELECT balance WHERE id = 1
+    DB->>T1: 1000
+
+    T2->>DB: UPDATE balance = 800 WHERE id = 1
+    T2->>DB: COMMIT
+
+    T3->>DB: INSERT (3, Charlie, 300)
+    T3->>DB: COMMIT
+
+    T1->>DB: SELECT balance WHERE id = 1
+    DB->>T1: 1000 ✓ (from snapshot)
+
+    T1->>DB: SELECT SUM(balance)
+    DB->>T1: 1500 ✓ (only snapshot data)
+    Note over T1: No dirty/non-repeatable/phantom reads
+
+    T1->>DB: COMMIT
+```
+
+- **Fixed:** All read phenomena — T1 sees a **perfectly consistent** view of the database
+- **Trade-off:** If T1 also tries to write to `id = 1`, it will get a **serialization error** (write-write conflict)
+
+---
+
+##### Example — Serializable
+
+Transactions behave **as if they ran one at a time**. The database detects dependency cycles and aborts conflicting transactions.
+
+```sql
+-- Setup
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+
+-- Transaction 1 (T1)                    -- Transaction 2 (T2)
+BEGIN;                                    BEGIN;
+
+SELECT SUM(balance) FROM accounts;
+-- Returns 1500
+
+                                          SELECT SUM(balance) FROM accounts;
+                                          -- Returns 1500
+
+INSERT INTO accounts VALUES
+(3, 'Charlie', 1500);
+-- total would be 3000
+
+                                          INSERT INTO accounts VALUES
+                                          (4, 'Dave', 1500);
+                                          -- total would be 3000
+
+COMMIT; -- ✓ succeeds
+                                          COMMIT;
+                                          -- ✗ ERROR: could not serialize access
+                                          -- T2 must RETRY
+```
+
+```mermaid
+sequenceDiagram
+    participant T1 as T1 (Serializable)
+    participant DB as Database
+    participant T2 as T2
+
+    T1->>DB: BEGIN
+    T2->>DB: BEGIN
+
+    T1->>DB: SELECT SUM(balance)
+    DB->>T1: 1500
+
+    T2->>DB: SELECT SUM(balance)
+    DB->>T2: 1500
+
+    T1->>DB: INSERT (3, Charlie, 1500)
+    T2->>DB: INSERT (4, Dave, 1500)
+
+    T1->>DB: COMMIT ✓
+    T2->>DB: COMMIT
+    DB->>T2: ✗ Serialization Error!
+    Note over T2: Must RETRY the entire transaction
+```
+
+- **How it works:** The database detects that T1 and T2 both read the `SUM` and then inserted rows that would change each other's `SUM` → **dependency cycle**
+- **Result:** One transaction succeeds, the other is **aborted** and must retry
+- **Trade-off:** Safest level but the **slowest** — high contention means lots of retries
+
+---
+
+### Isolation Levels — When to Use What?
+
+| Level | Use When… | Avoid When… |
+|-------|-----------|-------------|
+| **Read Uncommitted** | Quick dirty aggregations, monitoring dashboards | Anything that needs correctness |
+| **Read Committed** | General OLTP, most web apps | Financial calculations, reports needing consistency |
+| **Repeatable Read** | Reports that re-read same rows, balance checks | Write-heavy workloads (lock contention) |
+| **Snapshot** | Long-running reports, analytics on consistent data | Write-write conflicts are frequent |
+| **Serializable** | Financial systems, booking systems, critical correctness | High-throughput OLTP (too many retries) |
+
+---
+
 ### How Databases Implement Isolation
 
 ##### Pessimistic Concurrency Control (Locks)
