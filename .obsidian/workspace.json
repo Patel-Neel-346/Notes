@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/Database Internals/Storage & Indexing.md",
+                "file": "Database/Database Internals/Primary Key vs Secondary Key.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Storage & Indexing"
+              "title": "Primary Key vs Secondary Key"
             }
           }
         ],
@@ -211,6 +211,7 @@
   "active": "a96504618f299398",
   "lastOpenFiles": [
     "Database/Database Internals/Row vs Column Oriented.md",
+    "Database/Database Internals/Primary Key vs Secondary Key.md",
     "Database/Database Internals/Storage & Indexing.md",
     "Database/ACID/Eventual_Consistency.md",
     "Database/Database Internals",
@@ -244,7 +245,6 @@
     "Golang/http GO.md",
     "Golang/Cryptography.md",
     "DSA/Recursion/Recursion.md",
-    "DSA/Recursion/TimeSheet.md",
     "docker/images/closer_look_master_node.png",
     "Softerware Dev Diaries/assets/Pasted image 20240628070044.png",
     "Untitled",
