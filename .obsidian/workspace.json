@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/Database Indexing/Index.md",
+                "file": "DSA/Linked List/TimeSheet.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Index"
+              "title": "TimeSheet"
             }
           }
         ],
@@ -201,11 +201,18 @@
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
-      "command-palette:Open command palette": false
+      "command-palette:Open command palette": false,
+      "pdf-plus:PDF++: Toggle auto-copy": false,
+      "pdf-plus:PDF++: Toggle auto-focus": false,
+      "pdf-plus:PDF++: Toggle auto-paste": false,
+      "code-files:Create Code File": false
     }
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "DSA/Linked List/Questions.md",
+    "DSA/Linked List/Linked List.md",
+    "Database/Database Indexing/Index.md",
     "Database/Database Indexing/images/index_vs_full_scan.png",
     "Database/Database Indexing/images/btree_index_diagram.png",
     "Database/Database Indexing/images",
@@ -242,8 +249,6 @@
     "MessageBrokers/Kafka.md",
     "Golang/streams.md",
     "Golang/Some Networking Stuff.md",
-    "Golang/Questions.md",
-    "Golang/Key Concepts.md",
     "docker/images/closer_look_master_node.png",
     "Softerware Dev Diaries/assets/Pasted image 20240628070044.png",
     "Untitled.canvas",
@@ -252,7 +257,6 @@
     "DSA/Heap/assets/5sFKHAcSi.avif",
     "kafka/assets/Pasted image 20240630184107.png",
     "MessageBrokers/assets/Pasted image 20250109201323.png",
-    "MessageBrokers/assets/Pasted image 20250109200500.png",
     "Untitled 2.canvas",
     "Untitled 1.canvas"
   ]
