@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/B-tree And B+tree/B+tree.md",
+                "file": "Database/Database Internals/Storage & Indexing.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "B+tree"
+              "title": "Storage & Indexing"
             }
           }
         ],
@@ -210,9 +210,10 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
-    "Database/B-tree And B+tree/B-tree.md",
-    "Database/B-tree And B+tree/B+tree.md",
+    "Database/Database Internals/Row vs Column Oriented.md",
     "Database/Database Internals/Primary Key vs Secondary Key.md",
+    "Database/B-tree And B+tree/B+tree.md",
+    "Database/B-tree And B+tree/B-tree.md",
     "Database/B-tree And B+tree",
     "Notes.md",
     "DSA.zip",
@@ -227,7 +228,6 @@
     "docker/Kubernetes.md",
     "docker/Docker.md",
     "docker/images/closer_look_worker_node.png",
-    "Database/Database Internals/Row vs Column Oriented.md",
     "Database/Database Internals/Storage & Indexing.md",
     "Database/ACID/Eventual_Consistency.md",
     "Database/Database Internals",
