@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/Database Internals/Storage & Indexing.md",
+                "file": "Database/Database Indexing/Index.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Storage & Indexing"
+              "title": "Index"
             }
           }
         ],
@@ -210,6 +210,11 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Database/ACID/Isolation.md",
+    "Database/ACID/Eventual_Consistency.md",
+    "Database/ACID/Atomicity.md",
+    "Database/ACID/Consistency.md",
+    "Database/Database Internals/Storage & Indexing.md",
     "Database/Database Internals/Row vs Column Oriented.md",
     "Database/Database Internals/Primary Key vs Secondary Key.md",
     "Database/B-tree And B+tree/B+tree.md",
@@ -228,11 +233,7 @@
     "docker/Kubernetes.md",
     "docker/Docker.md",
     "docker/images/closer_look_worker_node.png",
-    "Database/Database Internals/Storage & Indexing.md",
-    "Database/ACID/Eventual_Consistency.md",
     "Database/Database Internals",
-    "Database/ACID/Consistency.md",
-    "Database/ACID/Isolation.md",
     "books/Event Driven Architecture/Note.md",
     "books/dsa/Elements of Programming Interviews in Python_ The Insiders’ Guide - PDF Room_compressed.pdf",
     "books/concurrency/Effective Concurrency in Go by Burak Serdar.pdf",
@@ -248,7 +249,6 @@
     "Untitled 2.base",
     "WebRTC.md",
     "Videos to watch.md",
-    "Postgres/Postgres with Go.md",
     "docker/images/closer_look_master_node.png",
     "Softerware Dev Diaries/assets/Pasted image 20240628070044.png",
     "Untitled.canvas",
