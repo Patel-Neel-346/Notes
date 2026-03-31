@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
+                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Chapter-2"
+              "title": "FileFormat"
             }
           }
         ],
@@ -210,8 +210,8 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
-    "conflict-files-obsidian-git.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
+    "conflict-files-obsidian-git.md",
     "Database/Database Internal Book version/1-Storage Engine/Storage Engine.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/tree_balance.png.tmp",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/simple_rotations.png.tmp",
