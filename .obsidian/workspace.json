@@ -14,7 +14,7 @@
               "type": "markdown",
               "state": {
                 "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
-                "mode": "source",
+                "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
@@ -189,7 +189,8 @@
       "pdf-plus:PDF++: Toggle auto-copy": false,
       "pdf-plus:PDF++: Toggle auto-focus": false,
       "pdf-plus:PDF++: Toggle auto-paste": false,
-      "code-files:Create Code File": false
+      "code-files:Create Code File": false,
+      "obsidian-shellcommands:Shell commands: Custom variables": false
     }
   },
   "active": "a3ec600eb5f98e44",
