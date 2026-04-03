@@ -8,5 +8,6 @@
   "dataview",
   "obsidian-local-rest-api",
   "obsidian-html-plugin",
-  "surfing"
+  "surfing",
+  "obsidian-shellcommands"
 ]
