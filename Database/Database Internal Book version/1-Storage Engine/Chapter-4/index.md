@@ -1,1 +1,1 @@
-[Open Visualizer](b-tree.html)
+<iframe src="http://localhost:8080/b-tree.html" width="100%" height="850px" style="border:none;"></iframe>

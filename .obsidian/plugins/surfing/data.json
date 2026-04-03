@@ -1,5 +1,5 @@
 {
-  "defaultSearchEngine": "duckduckgo",
+  "defaultSearchEngine": "google",
   "customSearchEngine": [
     {
       "name": "duckduckgo",
