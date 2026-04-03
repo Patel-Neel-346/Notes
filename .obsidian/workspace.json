@@ -211,6 +211,7 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-4",
     "DSA/BinarySearch/Binary Search.md",
     "DSA/Array/TimeSheet.md",
     "DSA/Array/Sliding Window.md",
@@ -246,7 +247,6 @@
     "Database/B-tree And B+tree/B+tree.md",
     "Database/B-tree And B+tree/B-tree.md",
     "Notes.md",
-    "DSA/Linked List/Questions.md",
     "Database/Database Indexing/images/index_vs_full_scan.png",
     "Database/Database Indexing/images/btree_index_diagram.png",
     "docker/images/closer_look_worker_node.png",
