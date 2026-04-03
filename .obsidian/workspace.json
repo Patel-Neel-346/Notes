@@ -11,32 +11,15 @@
             "id": "a3ec600eb5f98e44",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "html-view",
               "state": {
-                "file": "Sys Design/Beginners.md",
-                "mode": "preview",
-                "source": true
+                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html"
               },
-              "icon": "lucide-file",
-              "title": "Beginners"
-            }
-          },
-          {
-            "id": "a96504618f299398",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
-                "mode": "source",
-                "source": true
-              },
-              "icon": "lucide-file",
-              "title": "index"
+              "icon": "code-glyph",
+              "title": "b-tree"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -109,7 +92,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "TODO & Info.md",
+                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -119,7 +102,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for TODO & Info"
+              "title": "Backlinks for b-tree"
             }
           },
           {
@@ -185,8 +168,7 @@
               "title": "git-view"
             }
           }
-        ],
-        "currentTab": 5
+        ]
       }
     ],
     "direction": "horizontal",
@@ -208,14 +190,15 @@
       "code-files:Create Code File": false
     }
   },
-  "active": "a96504618f299398",
+  "active": "a3ec600eb5f98e44",
   "lastOpenFiles": [
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
+    "Sys Design/Beginners.md",
     "Untitled 9.base",
     "Untitled 8.base",
     "Untitled 7.base",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4",
     "DSA/BinarySearch/Binary Search.md",
     "DSA/Array/TimeSheet.md",
@@ -238,14 +221,12 @@
     "conflict-files-obsidian-git.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/tree_balance.png.tmp",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/simple_rotations.png.tmp",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/right_rotation.png.tmp",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-1-Introduction/Chapter-1.md",
     "Database/Database Indexing/Index.md",
     "Database/Database Internals/Storage & Indexing.md",
     "Database/Database Internals/Row vs Column Oriented.md",
     "Database/Database Internals/Primary Key vs Secondary Key.md",
     "Database/B-tree And B+tree/B+tree.md",
-    "Database/B-tree And B+tree/B-tree.md",
     "Database/Database Indexing/images/index_vs_full_scan.png",
     "Database/Database Indexing/images/btree_index_diagram.png",
     "docker/images/closer_look_worker_node.png",

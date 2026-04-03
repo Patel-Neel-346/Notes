@@ -5,5 +5,8 @@
   "codeblock-customizer",
   "pdf-plus",
   "code-files",
-  "dataview"
+  "dataview",
+  "obsidian-local-rest-api",
+  "obsidian-html-plugin",
+  "surfing"
 ]
