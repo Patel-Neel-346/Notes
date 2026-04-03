@@ -8,5 +8,6 @@
   "baseFontSize": 18,
   "enabledCssSnippets": [
     "lists"
-  ]
+  ],
+  "showRibbon": false
 }
