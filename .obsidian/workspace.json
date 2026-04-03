@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
+                "file": "Database/Database Internal Book version/1-Storage Engine/Storage Engine.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "FileFormat"
+              "title": "Storage Engine"
             }
           }
         ],
@@ -210,6 +210,7 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
     "conflict-files-obsidian-git.md",
     "Database/Database Internal Book version/1-Storage Engine/Storage Engine.md",
@@ -248,7 +249,6 @@
     "concurrency and  networking.md",
     "Blogs to read.md",
     "2026-02-20.md",
-    "Streams Node.js.md",
     "docker/images/closer_look_master_node.png",
     "Softerware Dev Diaries/assets/Pasted image 20240628070044.png",
     "Untitled.canvas",
