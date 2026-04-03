@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
-                "mode": "preview",
+                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
+                "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "FileFormat"
+              "title": "index"
             }
           }
         ],
@@ -93,8 +93,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 304,
-    "collapsed": true
+    "width": 304
   },
   "right": {
     "id": "a93dce0b73208406",
@@ -211,6 +210,12 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Untitled 9.base",
+    "Untitled 8.base",
+    "Untitled 7.base",
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4",
     "DSA/BinarySearch/Binary Search.md",
     "DSA/Array/TimeSheet.md",
@@ -226,7 +231,6 @@
     "Database/ACID/Atomicity.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-1 Introduction/Chapter-1.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
     "Untitled 6.base",
     "Untitled 5.base",
     "Untitled 4.base",
@@ -235,18 +239,13 @@
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/tree_balance.png.tmp",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/simple_rotations.png.tmp",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/right_rotation.png.tmp",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/left_rotation.png.tmp",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/binarysearchTree.png.tmp",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/img/add_white_bg.ps1",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-1-Introduction/Chapter-1.md",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-1-Introduction",
     "Database/Database Indexing/Index.md",
     "Database/Database Internals/Storage & Indexing.md",
     "Database/Database Internals/Row vs Column Oriented.md",
     "Database/Database Internals/Primary Key vs Secondary Key.md",
     "Database/B-tree And B+tree/B+tree.md",
     "Database/B-tree And B+tree/B-tree.md",
-    "Notes.md",
     "Database/Database Indexing/images/index_vs_full_scan.png",
     "Database/Database Indexing/images/btree_index_diagram.png",
     "docker/images/closer_look_worker_node.png",

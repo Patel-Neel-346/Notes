@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>B-Tree Internals — Interactive Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #14171c;
+    --surface2: #1c2028;
+    --border: #2a2f3a;
+    --border2: #363d4d;
+    --text: #e8eaf0;
+    --muted: #7a8299;
+    --dim: #4a5168;
+    --blue: #4d9fff;
+    --blue-bg: #1a2a40;
+    --green: #3ecf74;
+    --green-bg: #0f2a1a;
+    --amber: #f5a623;
+    --amber-bg: #2a1f0a;
+    --red: #f56060;
+    --red-bg: #2a0f0f;
+    --teal: #2dd4bf;
+    --teal-bg: #0a2422;
+    --accent: #4d9fff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header-badge {
+    background: var(--blue-bg);
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  header h1 { font-size: 20px; font-weight: 700; color: var(--text); }
+  header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .layout { display: flex; min-height: calc(100vh - 73px); }
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+  }
+  .sidebar-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    padding: 0 16px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .nav-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .nav-btn:hover { background: var(--surface2); color: var(--text); }
+  .nav-btn.active { color: var(--blue); border-left-color: var(--blue); background: var(--blue-bg); }
+  .nav-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--dim);
+    margin-right: 8px;
+  }
+  .nav-btn.active .nav-num { color: var(--blue); }
+  .main { flex: 1; padding: 32px; overflow-x: auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .panel-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .panel-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    line-height: 1.6;
+    max-width: 700px;
+  }
+  .controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .controls span { font-size: 13px; color: var(--muted); }
+  .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { border-color: var(--blue); color: var(--blue); }
+  .btn.primary { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    overflow: hidden;
+  }
+  svg { width: 100%; display: block; }
+  .info {
+    margin-top: 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .info b { color: var(--blue); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-badge">Chapter 4</div>
+  </div>
+  <div>
+    <h1>B-Tree Internals — Interactive Visualizer</h1>
+    <p>Click any topic in the sidebar to explore the concept visually</p>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-label">Topics</div>
+    <button class="nav-btn active" onclick="show('page-header', this)"><span class="nav-num">01</span>Page header</button>
+    <button class="nav-btn" onclick="show('sibling-links', this)"><span class="nav-num">02</span>Sibling links</button>
+    <button class="nav-btn" onclick="show('rightmost-ptr', this)"><span class="nav-num">03</span>Rightmost pointer</button>
+    <button class="nav-btn" onclick="show('overflow', this)"><span class="nav-num">04</span>Overflow pages</button>
+    <button class="nav-btn" onclick="show('binary-search', this)"><span class="nav-num">05</span>Binary search</button>
+    <button class="nav-btn" onclick="show('breadcrumbs', this)"><span class="nav-num">06</span>Breadcrumbs</button>
+    <button class="nav-btn" onclick="show('rebalancing', this)"><span class="nav-num">07</span>Rebalancing</button>
+    <button class="nav-btn" onclick="show('vacuum', this)"><span class="nav-num">08</span>Vacuum</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- PAGE HEADER -->
+    <div class="panel active" id="panel-page-header">
+      <div class="panel-title">Page Header</div>
+      <div class="panel-desc">Every B-Tree page starts with a header containing metadata. The cell offset array keeps pointers in sorted key order, while cells themselves are stored in insertion order.</div>
+      <div class="svg-card">
+        <svg viewBox="0 0 680 320">
+          <defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <rect x="140" y="16" width="400" height="288" rx="10" fill="none" stroke="#2a2f3a" stroke-width="1"/>
+          <!-- Header -->
+          <rect x="140" y="16" width="400" height="72" rx="10" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.8"/>
+          <rect x="140" y="72" width="400" height="16" fill="#1a2a40"/>
+          <text x="340" y="40" text-anchor="middle" font-size="13" font-weight="600" fill="#4d9fff" font-family="Syne,sans-serif">Page Header</text>
+          <rect x="155" y="50" width="74" height="26" rx="4" fill="#0d1c2e" stroke="#4d9fff" stroke-width="0.5"/>
+          <text x="192" y="67" text-anchor="middle" font-size="11" fill="#4d9fff" font-family="IBM Plex Mono,monospace">magic</text>
+          <rect x="237" y="50" width="74" height="26" rx="4" fill="#0d1c2e" stroke="#4d9fff" stroke-width="0.5"/>
+          <text x="274" y="67" text-anchor="middle" font-size="11" fill="#4d9fff" font-family="IBM Plex Mono,monospace">cell_count</text>
+          <rect x="319" y="50" width="74" height="26" rx="4" fill="#0d1c2e" stroke="#4d9fff" stroke-width="0.5"/>
+          <text x="356" y="67" text-anchor="middle" font-size="11" fill="#4d9fff" font-family="IBM Plex Mono,monospace">free_start</text>
+          <rect x="401" y="50" width="74" height="26" rx="4" fill="#0d1c2e" stroke="#4d9fff" stroke-width="0.5"/>
+          <rect x="483" y="50" width="46" height="26" rx="4" fill="#0d1c2e" stroke="#4d9fff" stroke-width="0.5"/>
+          <text x="438" y="67" text-anchor="middle" font-size="11" fill="#4d9fff" font-family="IBM Plex Mono,monospace">free_end</text>
+          <text x="506" y="67" text-anchor="middle" font-size="11" fill="#4d9fff" font-family="IBM Plex Mono,monospace">...</text>
+          <!-- Offset array -->
+          <rect x="140" y="88" width="400" height="38" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/>
+          <text x="340" y="111" text-anchor="middle" font-size="11" font-weight="500" fill="#3ecf74" font-family="IBM Plex Mono,monospace">offsets: [ptr→C0, ptr→C1, ptr→C2, ptr→C3]  ← sorted by key</text>
+          <!-- Free space -->
+          <rect x="140" y="126" width="400" height="60" fill="#14171c" stroke="#2a2f3a" stroke-width="0.5" stroke-dasharray="4 3"/>
+          <text x="340" y="160" text-anchor="middle" font-size="12" fill="#4a5168" font-family="Syne,sans-serif">— free space —</text>
+          <!-- Cells (insertion order) -->
+          <rect x="180" y="196" width="100" height="34" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/>
+          <text x="230" y="217" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C2  key=30</text>
+          <rect x="300" y="196" width="100" height="34" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/>
+          <text x="350" y="217" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C0  key=10</text>
+          <rect x="180" y="248" width="100" height="34" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/>
+          <text x="230" y="269" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C3  key=40</text>
+          <rect x="300" y="248" width="100" height="34" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/>
+          <text x="350" y="269" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C1  key=20</text>
+          <!-- Magic callout -->
+          <line x1="192" y1="50" x2="100" y2="30" stroke="#4a5168" stroke-width="0.5" stroke-dasharray="3 2"/>
+          <text x="95" y="24" text-anchor="end" font-size="11" fill="#7a8299" font-family="IBM Plex Mono,monospace">50 41 47 45</text>
+          <text x="95" y="38" text-anchor="end" font-size="10" fill="#4a5168" font-family="IBM Plex Mono,monospace">"PAGE"</text>
+        </svg>
+      </div>
+      <div class="info">
+        <b>Key insight:</b> Cells are written in insertion order (messy), but the offset array keeps their pointers in sorted key order. Binary search runs on the offset array — it never needs to rearrange the actual cells.
+      </div>
+    </div>
+
+    <!-- SIBLING LINKS -->
+    <div class="panel" id="panel-sibling-links">
+      <div class="panel-title">Sibling Links</div>
+      <div class="panel-desc">Nodes at the same level can store direct pointers to their left and right neighbors. This avoids the costly round-trip up to the parent and back down when traversing siblings.</div>
+      <div class="controls">
+        <span>Navigation mode:</span>
+        <button class="btn primary" id="btn-parent" onclick="setSibling('parent')">Via parent  (slow)</button>
+        <button class="btn" id="btn-sibling" onclick="setSibling('sibling')">Via sibling link  (fast)</button>
+      </div>
+      <div class="svg-card">
+        <svg viewBox="0 0 680 280">
+          <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <!-- Root -->
+          <rect x="255" y="20" width="170" height="44" rx="8" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.8"/>
+          <text x="340" y="46" text-anchor="middle" font-size="13" font-weight="600" fill="#4d9fff" font-family="Syne,sans-serif">root  [30]</text>
+          <!-- Path via parent (red) -->
+          <line id="sl-up1" x1="200" y1="116" x2="280" y2="64" stroke="#f56060" stroke-width="2" marker-end="url(#a2)" opacity="0" style="transition:opacity 0.3s"/>
+          <line id="sl-up2" x1="480" y1="116" x2="380" y2="64" stroke="#f56060" stroke-width="2" opacity="0" style="transition:opacity 0.3s"/>
+          <line id="sl-dn" x1="370" y1="64" x2="460" y2="116" stroke="#f56060" stroke-width="2" marker-end="url(#a2)" opacity="0" style="transition:opacity 0.3s"/>
+          <!-- Sibling link -->
+          <path id="sl-link" d="M295 138 Q340 168 385 138" fill="none" stroke="#3ecf74" stroke-width="2.5" marker-end="url(#a2)" opacity="0" style="transition:opacity 0.3s"/>
+          <!-- Node A -->
+          <rect x="100" y="116" width="160" height="44" rx="8" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.8"/>
+          <text x="180" y="142" text-anchor="middle" font-size="13" font-weight="600" fill="#3ecf74" font-family="Syne,sans-serif">node A  [10, 20]</text>
+          <!-- Node B (current) -->
+          <rect x="310" y="116" width="160" height="44" rx="8" fill="#2a1f0a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="390" y="132" text-anchor="middle" font-size="12" font-weight="600" fill="#f5a623" font-family="Syne,sans-serif">node B  [40, 50]</text>
+          <text x="390" y="150" text-anchor="middle" font-size="10" fill="#f5a623" font-family="IBM Plex Mono,monospace">← you are here</text>
+          <!-- Node C -->
+          <rect x="530" y="116" width="130" height="44" rx="8" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.8"/>
+          <text x="595" y="142" text-anchor="middle" font-size="13" font-weight="600" fill="#4d9fff" font-family="Syne,sans-serif">node C  [60]</text>
+          <!-- Normal tree edges -->
+          <line x1="300" y1="64" x2="210" y2="116" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a2)"/>
+          <line x1="340" y1="64" x2="360" y2="116" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a2)"/>
+          <line x1="400" y1="64" x2="550" y2="116" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a2)"/>
+          <!-- Labels -->
+          <text x="340" y="210" text-anchor="middle" font-size="14" font-weight="600" fill="#e8eaf0" font-family="Syne,sans-serif">Goal: from node B, reach node C</text>
+          <text id="sl-desc" x="340" y="232" text-anchor="middle" font-size="12" fill="#7a8299" font-family="IBM Plex Mono,monospace">Via parent: B → root → C  (2 page reads)</text>
+          <text id="sl-cost" x="340" y="255" text-anchor="middle" font-size="13" font-weight="600" fill="#f56060" font-family="Syne,sans-serif">Cost: 2 page reads</text>
+        </svg>
+      </div>
+      <div class="info" id="sl-info"><b>Without sibling links:</b> must go up to parent then back down — potentially all the way to root if the sibling shares a higher-level ancestor.</div>
+    </div>
+
+    <!-- RIGHTMOST POINTER -->
+    <div class="panel" id="panel-rightmost-ptr">
+      <div class="panel-title">Rightmost Pointer</div>
+      <div class="panel-desc">In a B-Tree node, there is always one more pointer than keys. The last pointer has no paired key — it points to everything greater than the last key. Watch what happens when that rightmost child splits.</div>
+      <div class="controls">
+        <button class="btn primary" id="btn-split" onclick="doSplit()">Simulate split of rightmost child ▶</button>
+        <button class="btn" onclick="resetSplit()">Reset</button>
+      </div>
+      <div class="svg-card">
+        <svg viewBox="0 0 680 300" id="svg-rmp">
+          <defs><marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <!-- Parent -->
+          <rect x="80" y="20" width="440" height="56" rx="8" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.8"/>
+          <rect x="80" y="20" width="102" height="56" rx="8" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.5"/>
+          <text x="131" y="46" text-anchor="middle" font-size="11" fill="#7a8299" font-family="IBM Plex Mono,monospace">key=20</text>
+          <text x="131" y="62" text-anchor="middle" font-size="10" fill="#4d9fff" font-family="IBM Plex Mono,monospace">ptr→L</text>
+          <rect x="200" y="20" width="102" height="56" rx="0" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.5"/>
+          <text x="251" y="46" text-anchor="middle" font-size="11" fill="#7a8299" font-family="IBM Plex Mono,monospace">key=40</text>
+          <text x="251" y="62" text-anchor="middle" font-size="10" fill="#4d9fff" font-family="IBM Plex Mono,monospace">ptr→M</text>
+          <rect x="320" y="20" width="102" height="56" rx="0" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.5"/>
+          <text x="371" y="46" text-anchor="middle" font-size="11" fill="#7a8299" font-family="IBM Plex Mono,monospace">key=60</text>
+          <text x="371" y="62" text-anchor="middle" font-size="10" fill="#4d9fff" font-family="IBM Plex Mono,monospace">ptr→R</text>
+          <!-- Rightmost box -->
+          <rect id="rmp-box" x="438" y="24" width="76" height="48" rx="6" fill="#2a1f0a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="476" y="44" text-anchor="middle" font-size="11" font-weight="600" fill="#f5a623" font-family="IBM Plex Mono,monospace">rightmost</text>
+          <text id="rmp-lbl" x="476" y="61" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">ptr→R2</text>
+          <!-- Leaves -->
+          <rect x="40" y="160" width="100" height="40" rx="6" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/>
+          <text x="90" y="184" text-anchor="middle" font-size="12" fill="#3ecf74" font-family="IBM Plex Mono,monospace">L [5,15]</text>
+          <rect x="170" y="160" width="100" height="40" rx="6" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/>
+          <text x="220" y="184" text-anchor="middle" font-size="12" fill="#3ecf74" font-family="IBM Plex Mono,monospace">M [25,35]</text>
+          <rect x="300" y="160" width="100" height="40" rx="6" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/>
+          <text x="350" y="184" text-anchor="middle" font-size="12" fill="#3ecf74" font-family="IBM Plex Mono,monospace">R [45,55]</text>
+          <!-- Rightmost child -->
+          <rect id="r2b" x="430" y="160" width="110" height="40" rx="6" fill="#2a1f0a" stroke="#f5a623" stroke-width="1.5"/>
+          <text id="r2l" x="485" y="184" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">R2 [65,75,85]</text>
+          <!-- New node -->
+          <rect id="r3b" x="560" y="160" width="100" height="40" rx="6" fill="#2a0f0f" stroke="#f56060" stroke-width="1.5" opacity="0" style="transition:opacity 0.4s"/>
+          <text id="r3l" x="610" y="184" text-anchor="middle" font-size="11" fill="#f56060" font-family="IBM Plex Mono,monospace" opacity="0" style="transition:opacity 0.4s">R3 [80,85]</text>
+          <!-- Arrows -->
+          <line x1="150" y1="76" x2="90" y2="160" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a3)"/>
+          <line x1="260" y1="76" x2="220" y2="160" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a3)"/>
+          <line x1="370" y1="76" x2="350" y2="160" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a3)"/>
+          <line id="rmp-arr" x1="476" y1="72" x2="485" y2="160" stroke="#f5a623" stroke-width="1.5" marker-end="url(#a3)" style="transition:all 0.4s"/>
+          <text id="rmp-d1" x="340" y="240" text-anchor="middle" font-size="12" fill="#7a8299" font-family="IBM Plex Mono,monospace">Rightmost pointer (amber) — no paired key, points to all keys &gt; 60</text>
+          <text id="rmp-d2" x="340" y="262" text-anchor="middle" font-size="12" fill="#4a5168" font-family="IBM Plex Mono,monospace">Click "Simulate split" to see how it gets updated</text>
+        </svg>
+      </div>
+      <div class="info" id="rmp-info"><b>Why special?</b> Every other pointer is paired with a separator key. The rightmost pointer covers the open-ended range (last_key, +∞) and must be stored separately — e.g. in the page header as SQLite does.</div>
+    </div>
+
+    <!-- OVERFLOW PAGES -->
+    <div class="panel" id="panel-overflow">
+      <div class="panel-title">Overflow Pages</div>
+      <div class="panel-desc">Pages are fixed-size (e.g. 4 KB). When a record is too large to fit, the first N bytes stay on the primary page and the rest spill into linked overflow pages.</div>
+      <div class="svg-card">
+        <svg viewBox="0 0 680 300">
+          <defs><marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <!-- Primary page -->
+          <rect x="20" y="16" width="240" height="264" rx="10" fill="#1c2028" stroke="#2a2f3a" stroke-width="1"/>
+          <rect x="20" y="16" width="240" height="34" rx="10" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.5"/>
+          <rect x="20" y="40" width="240" height="10" fill="#1a2a40"/>
+          <text x="140" y="38" text-anchor="middle" font-size="12" font-weight="600" fill="#4d9fff" font-family="Syne,sans-serif">Primary page</text>
+          <!-- Normal cell -->
+          <rect x="34" y="62" width="212" height="40" rx="5" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/>
+          <text x="140" y="77" text-anchor="middle" font-size="11" font-weight="600" fill="#3ecf74" font-family="Syne,sans-serif">cell A — small payload</text>
+          <text x="140" y="93" text-anchor="middle" font-size="10" fill="#3ecf74" font-family="IBM Plex Mono,monospace">fits entirely here</text>
+          <!-- Large cell -->
+          <rect x="34" y="116" width="212" height="40" rx="5" fill="#2a1f0a" stroke="#f5a623" stroke-width="1"/>
+          <text x="140" y="131" text-anchor="middle" font-size="11" font-weight="600" fill="#f5a623" font-family="Syne,sans-serif">cell B — large payload</text>
+          <text x="140" y="147" text-anchor="middle" font-size="10" fill="#f5a623" font-family="IBM Plex Mono,monospace">first N bytes…  → OVF #1</text>
+          <!-- Huge cell -->
+          <rect x="34" y="170" width="212" height="40" rx="5" fill="#2a0f0f" stroke="#f56060" stroke-width="1"/>
+          <text x="140" y="185" text-anchor="middle" font-size="11" font-weight="600" fill="#f56060" font-family="Syne,sans-serif">cell C — huge payload</text>
+          <text x="140" y="201" text-anchor="middle" font-size="10" fill="#f56060" font-family="IBM Plex Mono,monospace">first bytes…  → OVF #2</text>
+          <!-- Free -->
+          <rect x="34" y="224" width="212" height="44" rx="5" fill="#14171c" stroke="#2a2f3a" stroke-width="0.5" stroke-dasharray="4 3"/>
+          <text x="140" y="250" text-anchor="middle" font-size="11" fill="#4a5168" font-family="Syne,sans-serif">free space</text>
+          <!-- Arrows to overflow -->
+          <line x1="262" y1="136" x2="330" y2="100" stroke="#f5a623" stroke-width="1.5" stroke-dasharray="5 2" marker-end="url(#a4)"/>
+          <line x1="262" y1="190" x2="330" y2="190" stroke="#f56060" stroke-width="1.5" stroke-dasharray="5 2" marker-end="url(#a4)"/>
+          <!-- OVF 1 -->
+          <rect x="330" y="60" width="150" height="70" rx="8" fill="#1c2028" stroke="#f5a623" stroke-width="1.5" stroke-dasharray="5 3"/>
+          <text x="405" y="84" text-anchor="middle" font-size="11" font-weight="600" fill="#f5a623" font-family="Syne,sans-serif">overflow page #1</text>
+          <text x="405" y="102" text-anchor="middle" font-size="10" fill="#7a8299" font-family="IBM Plex Mono,monospace">…rest of cell B</text>
+          <text x="405" y="118" text-anchor="middle" font-size="10" fill="#4a5168" font-family="IBM Plex Mono,monospace">next_ovf: none</text>
+          <!-- OVF 2 -->
+          <rect x="330" y="160" width="150" height="56" rx="8" fill="#1c2028" stroke="#f56060" stroke-width="1.5" stroke-dasharray="5 3"/>
+          <text x="405" y="181" text-anchor="middle" font-size="11" font-weight="600" fill="#f56060" font-family="Syne,sans-serif">overflow page #2</text>
+          <text x="405" y="201" text-anchor="middle" font-size="10" fill="#7a8299" font-family="IBM Plex Mono,monospace">…cell C part 1  → OVF #3</text>
+          <!-- Arrow to OVF 3 -->
+          <line x1="480" y1="188" x2="510" y2="188" stroke="#f56060" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#a4)"/>
+          <!-- OVF 3 -->
+          <rect x="510" y="160" width="150" height="56" rx="8" fill="#1c2028" stroke="#f56060" stroke-width="1.5" stroke-dasharray="5 3"/>
+          <text x="585" y="181" text-anchor="middle" font-size="11" font-weight="600" fill="#f56060" font-family="Syne,sans-serif">overflow page #3</text>
+          <text x="585" y="201" text-anchor="middle" font-size="10" fill="#7a8299" font-family="IBM Plex Mono,monospace">…cell C part 2</text>
+          <text x="400" y="268" text-anchor="middle" font-size="12" fill="#4a5168" font-family="IBM Plex Mono,monospace">overflow pages are chained via page IDs stored in each header</text>
+        </svg>
+      </div>
+      <div class="info"><b>Rule:</b> max_payload_size = page_size / fanout. Any payload exceeding this spills to overflow pages. Keys rarely overflow (comparisons work on trimmed keys); data records may, but full retrieval is infrequent.</div>
+    </div>
+
+    <!-- BINARY SEARCH -->
+    <div class="panel" id="panel-binary-search">
+      <div class="panel-title">Binary Search with Indirection Pointers</div>
+      <div class="panel-desc">Cells are stored in insertion order, but the offset array is sorted. Binary search runs on the offset array — each step picks the middle pointer, follows it to the cell, and compares the key.</div>
+      <div class="controls">
+        <span>Search for key:</span>
+        <button class="btn" onclick="bsRun(35)">35</button>
+        <button class="btn" onclick="bsRun(15)">15</button>
+        <button class="btn" onclick="bsRun(55)">55</button>
+        <button class="btn" onclick="bsReset()">Reset</button>
+      </div>
+      <div class="svg-card">
+        <svg viewBox="0 0 680 290" id="svg-bs">
+          <defs><marker id="a5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <text x="30" y="34" font-size="12" font-weight="600" fill="#7a8299" font-family="Syne,sans-serif">Offset array (sorted by key):</text>
+          <rect id="bso0" x="30" y="44" width="90" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/><text x="75" y="66" text-anchor="middle" font-size="11" fill="#3ecf74" font-family="IBM Plex Mono,monospace">ptr→C0</text>
+          <rect id="bso1" x="128" y="44" width="90" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/><text x="173" y="66" text-anchor="middle" font-size="11" fill="#3ecf74" font-family="IBM Plex Mono,monospace">ptr→C1</text>
+          <rect id="bso2" x="226" y="44" width="90" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/><text x="271" y="66" text-anchor="middle" font-size="11" fill="#3ecf74" font-family="IBM Plex Mono,monospace">ptr→C2</text>
+          <rect id="bso3" x="324" y="44" width="90" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/><text x="369" y="66" text-anchor="middle" font-size="11" fill="#3ecf74" font-family="IBM Plex Mono,monospace">ptr→C3</text>
+          <rect id="bso4" x="422" y="44" width="90" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/><text x="467" y="66" text-anchor="middle" font-size="11" fill="#3ecf74" font-family="IBM Plex Mono,monospace">ptr→C4</text>
+          <rect id="bso5" x="520" y="44" width="90" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/><text x="565" y="66" text-anchor="middle" font-size="11" fill="#3ecf74" font-family="IBM Plex Mono,monospace">ptr→C5</text>
+          <text x="30" y="130" font-size="12" font-weight="600" fill="#7a8299" font-family="Syne,sans-serif">Cells (insertion order):</text>
+          <rect id="bsc2" x="30" y="140" width="90" height="36" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/><text x="75" y="162" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C2  k=30</text>
+          <rect id="bsc0" x="128" y="140" width="90" height="36" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/><text x="173" y="162" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C0  k=10</text>
+          <rect id="bsc4" x="226" y="140" width="90" height="36" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/><text x="271" y="162" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C4  k=50</text>
+          <rect id="bsc1" x="324" y="140" width="90" height="36" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/><text x="369" y="162" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C1  k=20</text>
+          <rect id="bsc5" x="422" y="140" width="90" height="36" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/><text x="467" y="162" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C5  k=60</text>
+          <rect id="bsc3" x="520" y="140" width="90" height="36" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.5"/><text x="565" y="162" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">C3  k=40</text>
+          <!-- Follow arrows -->
+          <line id="bsa1" x1="271" y1="80" x2="75" y2="140" stroke="#f56060" stroke-width="1.5" marker-end="url(#a5)" opacity="0" style="transition:opacity 0.3s"/>
+          <line id="bsa2" x1="369" y1="80" x2="369" y2="140" stroke="#f56060" stroke-width="1.5" marker-end="url(#a5)" opacity="0" style="transition:opacity 0.3s"/>
+          <line id="bsa3" x1="467" y1="80" x2="467" y2="140" stroke="#3ecf74" stroke-width="2" marker-end="url(#a5)" opacity="0" style="transition:opacity 0.3s"/>
+          <text id="bsmsg" x="340" y="220" text-anchor="middle" font-size="13" font-weight="600" fill="#7a8299" font-family="Syne,sans-serif">Pick a key above to animate the search</text>
+          <text id="bsmsg2" x="340" y="244" text-anchor="middle" font-size="11" fill="#4a5168" font-family="IBM Plex Mono,monospace">red = checked and missed   green = found / insert point</text>
+        </svg>
+      </div>
+      <div class="info"><b>Why not just sort the cells?</b> Inserting a new cell in sorted position would require shifting all subsequent cells — expensive. The offset array is much smaller (just pointers), so re-sorting that is cheap.</div>
+    </div>
+
+    <!-- BREADCRUMBS -->
+    <div class="panel" id="panel-breadcrumbs">
+      <div class="panel-title">Breadcrumbs (BTStack)</div>
+      <div class="panel-desc">During a root-to-leaf traversal, each visited node is pushed onto a stack. If the target leaf needs to split, the stack is popped to find the parent and propagate changes upward.</div>
+      <div class="controls">
+        <button class="btn primary" id="bc-btn" onclick="bcStep()">Start traversal ▶</button>
+        <button class="btn" onclick="bcReset()">Reset</button>
+      </div>
+      <div class="svg-card">
+        <svg viewBox="0 0 680 320" id="svg-bc">
+          <defs><marker id="a6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <!-- Root -->
+          <rect id="bcr" x="225" y="20" width="200" height="44" rx="8" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.8" style="transition:all 0.4s"/>
+          <text x="325" y="46" text-anchor="middle" font-size="13" font-weight="600" fill="#7a8299" font-family="Syne,sans-serif">root  [50]</text>
+          <!-- Left internal -->
+          <rect id="bcl" x="70" y="120" width="190" height="44" rx="8" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.8" style="transition:all 0.4s"/>
+          <text x="165" y="146" text-anchor="middle" font-size="13" font-weight="600" fill="#7a8299" font-family="Syne,sans-serif">internal  [20, 35]</text>
+          <!-- Right internal -->
+          <rect x="390" y="120" width="190" height="44" rx="8" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.5"/>
+          <text x="485" y="146" text-anchor="middle" font-size="13" font-weight="600" fill="#4a5168" font-family="Syne,sans-serif">internal  [65, 80]</text>
+          <!-- Target leaf -->
+          <rect id="bcleaf" x="50" y="220" width="150" height="44" rx="8" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.8" style="transition:all 0.4s"/>
+          <text x="125" y="238" text-anchor="middle" font-size="12" font-weight="600" fill="#7a8299" font-family="Syne,sans-serif">leaf  [25, 28]</text>
+          <text id="bcleaf-sub" x="125" y="256" text-anchor="middle" font-size="10" fill="#4a5168" font-family="IBM Plex Mono,monospace">insert 27 here</text>
+          <!-- Other leaves -->
+          <rect x="230" y="220" width="110" height="44" rx="8" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.5"/>
+          <text x="285" y="246" text-anchor="middle" font-size="12" fill="#4a5168" font-family="Syne,sans-serif">[38, 45]</text>
+          <rect x="370" y="220" width="110" height="44" rx="8" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.5"/>
+          <text x="425" y="246" text-anchor="middle" font-size="12" fill="#4a5168" font-family="Syne,sans-serif">[55, 60]</text>
+          <rect x="510" y="220" width="110" height="44" rx="8" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.5"/>
+          <text x="565" y="246" text-anchor="middle" font-size="12" fill="#4a5168" font-family="Syne,sans-serif">[70, 75]</text>
+          <!-- Tree edges -->
+          <line x1="295" y1="64" x2="210" y2="120" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a6)"/>
+          <line x1="355" y1="64" x2="440" y2="120" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a6)"/>
+          <line x1="130" y1="164" x2="110" y2="220" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a6)"/>
+          <line x1="185" y1="164" x2="285" y2="220" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a6)"/>
+          <line x1="445" y1="164" x2="425" y2="220" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a6)"/>
+          <line x1="520" y1="164" x2="565" y2="220" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a6)"/>
+          <!-- Stack -->
+          <text x="620" y="36" text-anchor="middle" font-size="12" font-weight="600" fill="#7a8299" font-family="Syne,sans-serif">Stack</text>
+          <rect id="bcs0" x="578" y="46" width="84" height="28" rx="4" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.8" opacity="0" style="transition:opacity 0.4s"/>
+          <text id="bcs0t" x="620" y="64" text-anchor="middle" font-size="10" fill="#4d9fff" font-family="IBM Plex Mono,monospace" opacity="0" style="transition:opacity 0.4s">root, ptr0</text>
+          <rect id="bcs1" x="578" y="80" width="84" height="28" rx="4" fill="#2a1f0a" stroke="#f5a623" stroke-width="0.8" opacity="0" style="transition:opacity 0.4s"/>
+          <text id="bcs1t" x="620" y="98" text-anchor="middle" font-size="10" fill="#f5a623" font-family="IBM Plex Mono,monospace" opacity="0" style="transition:opacity 0.4s">intrnl, ptr0</text>
+          <text id="bcmsg" x="310" y="292" text-anchor="middle" font-size="12" fill="#7a8299" font-family="IBM Plex Mono,monospace">Click "Start traversal" — watch the stack fill as we descend</text>
+        </svg>
+      </div>
+      <div class="info" id="bc-info"><b>PostgreSQL</b> calls this stack BTStack. Each entry stores the node reference + the child pointer index followed. On split, pop the stack to locate the parent instantly — no tree re-traversal needed.</div>
+    </div>
+
+    <!-- REBALANCING -->
+    <div class="panel" id="panel-rebalancing">
+      <div class="panel-title">Rebalancing</div>
+      <div class="panel-desc">Instead of immediately splitting an overfull node, elements can be redistributed to a sibling. This postpones expensive splits, improves node occupancy, and keeps the tree shallower.</div>
+      <div class="controls">
+        <button class="btn primary" id="btn-reb" onclick="doRebalance()">Rebalance ▶</button>
+        <button class="btn" onclick="resetRebalance()">Reset</button>
+      </div>
+      <div class="svg-card">
+        <svg viewBox="0 0 680 300" id="svg-reb">
+          <defs><marker id="a7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <!-- Parent -->
+          <rect x="200" y="20" width="280" height="52" rx="8" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.8"/>
+          <text x="340" y="40" text-anchor="middle" font-size="12" font-weight="600" fill="#4d9fff" font-family="Syne,sans-serif">parent node</text>
+          <text id="reb-pk" x="340" y="60" text-anchor="middle" font-size="12" fill="#4d9fff" font-family="IBM Plex Mono,monospace">separator key = 40</text>
+          <!-- Left (overfull) -->
+          <rect x="40" y="130" width="240" height="64" rx="8" fill="#2a1f0a" stroke="#f5a623" stroke-width="1.5"/>
+          <text x="160" y="150" text-anchor="middle" font-size="12" font-weight="600" fill="#f5a623" font-family="Syne,sans-serif">left node — overfull</text>
+          <text id="reb-lk" x="160" y="168" text-anchor="middle" font-size="11" fill="#f5a623" font-family="IBM Plex Mono,monospace">[10, 20, 30, 35, 38]</text>
+          <text x="160" y="184" text-anchor="middle" font-size="10" fill="#f5a623" font-family="IBM Plex Mono,monospace">5 keys — too many</text>
+          <!-- Right (sparse) -->
+          <rect x="400" y="130" width="240" height="64" rx="8" fill="#0a2422" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="520" y="150" text-anchor="middle" font-size="12" font-weight="600" fill="#2dd4bf" font-family="Syne,sans-serif">right node — sparse</text>
+          <text id="reb-rk" x="520" y="168" text-anchor="middle" font-size="11" fill="#2dd4bf" font-family="IBM Plex Mono,monospace">[45, 50]</text>
+          <text x="520" y="184" text-anchor="middle" font-size="10" fill="#2dd4bf" font-family="IBM Plex Mono,monospace">2 keys — has room</text>
+          <!-- Move arrow -->
+          <path id="reb-arr" d="M282 162 Q340 210 398 162" fill="none" stroke="#f56060" stroke-width="2.5" marker-end="url(#a7)" opacity="0" style="transition:opacity 0.4s"/>
+          <text id="reb-arrl" x="340" y="220" text-anchor="middle" font-size="12" font-weight="600" fill="#f56060" font-family="Syne,sans-serif" opacity="0" style="transition:opacity 0.4s">move 38 →</text>
+          <!-- Tree edges -->
+          <line x1="270" y1="72" x2="200" y2="130" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a7)"/>
+          <line x1="410" y1="72" x2="480" y2="130" stroke="#2a2f3a" stroke-width="0.8" marker-end="url(#a7)"/>
+          <text id="reb-msg" x="340" y="252" text-anchor="middle" font-size="13" font-weight="600" fill="#7a8299" font-family="Syne,sans-serif">Left: 5 keys, Right: 2 keys — unbalanced</text>
+          <text id="reb-msg2" x="340" y="274" text-anchor="middle" font-size="12" fill="#4a5168" font-family="IBM Plex Mono,monospace">Click Rebalance to redistribute without splitting</text>
+        </svg>
+      </div>
+      <div class="info"><b>B*-Trees</b> (used by SQLite) push this further: keep distributing until both siblings are full, then split two nodes into three (each ⅔ full) rather than one into two (each ½ full).</div>
+    </div>
+
+    <!-- VACUUM -->
+    <div class="panel" id="panel-vacuum">
+      <div class="panel-title">Vacuum & Garbage Collection</div>
+      <div class="panel-desc">Deletes only remove a cell's offset pointer — the cell data stays in place as unreachable garbage. Over time, pages become fragmented with no contiguous free space. Vacuum reclaims it.</div>
+      <div class="controls">
+        <button class="btn primary" id="btn-vac" onclick="doVacuum()">Run vacuum ▶</button>
+        <button class="btn" onclick="resetVacuum()">Reset</button>
+      </div>
+      <div class="svg-card">
+        <svg viewBox="0 0 680 300" id="svg-vac">
+          <defs><marker id="a8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <text x="140" y="22" text-anchor="middle" font-size="13" font-weight="600" fill="#f56060" font-family="Syne,sans-serif">Before vacuum</text>
+          <text id="vac-al" x="510" y="22" text-anchor="middle" font-size="13" font-weight="600" fill="#3ecf74" font-family="Syne,sans-serif" opacity="0.2" style="transition:opacity 0.5s">After vacuum</text>
+          <!-- Before page -->
+          <rect x="20" y="30" width="240" height="256" rx="10" fill="#1c2028" stroke="#2a2f3a" stroke-width="1"/>
+          <rect x="20" y="30" width="240" height="34" rx="10" fill="#1a2a40" stroke="#4d9fff" stroke-width="0.5"/>
+          <rect x="20" y="54" width="240" height="10" fill="#1a2a40"/>
+          <text x="140" y="52" text-anchor="middle" font-size="11" fill="#4d9fff" font-family="IBM Plex Mono,monospace">header  offsets: [A, C, E]</text>
+          <rect x="34" y="74" width="212" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/>
+          <text x="140" y="96" text-anchor="middle" font-size="12" fill="#3ecf74" font-family="Syne,sans-serif">cell A  key=10  ✓ live</text>
+          <rect x="34" y="118" width="212" height="36" rx="4" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.5" stroke-dasharray="3 2"/>
+          <text x="140" y="140" text-anchor="middle" font-size="12" fill="#4a5168" font-family="Syne,sans-serif">cell B  DELETED  ✗ garbage</text>
+          <rect x="34" y="162" width="212" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/>
+          <text x="140" y="184" text-anchor="middle" font-size="12" fill="#3ecf74" font-family="Syne,sans-serif">cell C  key=30  ✓ live</text>
+          <rect x="34" y="206" width="212" height="36" rx="4" fill="#1c2028" stroke="#2a2f3a" stroke-width="0.5" stroke-dasharray="3 2"/>
+          <text x="140" y="228" text-anchor="middle" font-size="12" fill="#4a5168" font-family="Syne,sans-serif">cell D  DELETED  ✗ garbage</text>
+          <rect x="34" y="250" width="110" height="28" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5"/>
+          <text x="89" y="268" text-anchor="middle" font-size="11" fill="#3ecf74" font-family="Syne,sans-serif">cell E  key=50</text>
+          <!-- Vacuum arrow -->
+          <line id="vac-arr" x1="265" y1="158" x2="355" y2="158" stroke="#3ecf74" stroke-width="2.5" marker-end="url(#a8)" opacity="0" style="transition:opacity 0.4s"/>
+          <text id="vac-arrl" x="310" y="148" text-anchor="middle" font-size="11" font-weight="600" fill="#3ecf74" font-family="Syne,sans-serif" opacity="0" style="transition:opacity 0.4s">vacuum</text>
+          <!-- After page -->
+          <rect id="vac-page" x="370" y="30" width="240" height="256" rx="10" fill="#1c2028" stroke="#3ecf74" stroke-width="1" opacity="0.15" style="transition:opacity 0.5s"/>
+          <rect id="vac-hdr" x="370" y="30" width="240" height="34" rx="10" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5" opacity="0.15" style="transition:opacity 0.5s"/>
+          <rect id="vac-hdr2" x="370" y="54" width="240" height="10" fill="#0f2a1a" opacity="0.15" style="transition:opacity 0.5s"/>
+          <text id="vac-hdrt" x="490" y="52" text-anchor="middle" font-size="11" fill="#3ecf74" font-family="IBM Plex Mono,monospace" opacity="0.15" style="transition:opacity 0.5s">header  offsets: [A, C, E]</text>
+          <rect id="vac-ca" x="384" y="74" width="212" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5" opacity="0.15" style="transition:opacity 0.5s"/>
+          <text id="vac-cat" x="490" y="96" text-anchor="middle" font-size="12" fill="#3ecf74" font-family="Syne,sans-serif" opacity="0.15" style="transition:opacity 0.5s">cell A  key=10  ✓ live</text>
+          <rect id="vac-cc" x="384" y="118" width="212" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5" opacity="0.15" style="transition:opacity 0.5s"/>
+          <text id="vac-cct" x="490" y="140" text-anchor="middle" font-size="12" fill="#3ecf74" font-family="Syne,sans-serif" opacity="0.15" style="transition:opacity 0.5s">cell C  key=30  ✓ live</text>
+          <rect id="vac-ce" x="384" y="162" width="212" height="36" rx="4" fill="#0f2a1a" stroke="#3ecf74" stroke-width="0.5" opacity="0.15" style="transition:opacity 0.5s"/>
+          <text id="vac-cet" x="490" y="184" text-anchor="middle" font-size="12" fill="#3ecf74" font-family="Syne,sans-serif" opacity="0.15" style="transition:opacity 0.5s">cell E  key=50  ✓ live</text>
+          <rect id="vac-free" x="384" y="206" width="212" height="72" rx="4" fill="#14171c" stroke="#2a2f3a" stroke-width="0.5" stroke-dasharray="4 3" opacity="0.15" style="transition:opacity 0.5s"/>
+          <text id="vac-freet" x="490" y="246" text-anchor="middle" font-size="12" fill="#4a5168" font-family="Syne,sans-serif" opacity="0.15" style="transition:opacity 0.5s">reclaimed free space</text>
+          <text id="vac-msg" x="340" y="298" text-anchor="middle" font-size="12" fill="#7a8299" font-family="IBM Plex Mono,monospace">Fragmented: deleted cells leave non-contiguous gaps</text>
+        </svg>
+      </div>
+      <div class="info"><b>After vacuum:</b> dead cells are removed, live cells are rewritten in sorted key order, and the freed space is consolidated into a single contiguous block. IDs of fully freed pages are added to a <b>freelist</b> for reuse.</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Sibling links
+function setSibling(mode) {
+  var up1=document.getElementById('sl-up1'), up2=document.getElementById('sl-up2'),
+      dn=document.getElementById('sl-dn'), lnk=document.getElementById('sl-link'),
+      desc=document.getElementById('sl-desc'), cost=document.getElementById('sl-cost'),
+      info=document.getElementById('sl-info'),
+      bp=document.getElementById('btn-parent'), bs=document.getElementById('btn-sibling');
+  if (mode==='parent') {
+    up1.style.opacity='1'; up2.style.opacity='1'; dn.style.opacity='1'; lnk.style.opacity='0';
+    desc.textContent='Via parent: B → root → C  (2 page reads)';
+    cost.textContent='Cost: 2 page reads'; cost.style.fill='#f56060';
+    bp.classList.add('primary'); bs.classList.remove('primary');
+    info.innerHTML='<b>Without sibling links:</b> must go up to parent then back down — potentially traversing all the way to root if siblings share a higher-level ancestor.';
+  } else {
+    up1.style.opacity='0'; up2.style.opacity='0'; dn.style.opacity='0'; lnk.style.opacity='1';
+    desc.textContent='Via sibling link: B → C directly  (1 page read)';
+    cost.textContent='Cost: 1 page read'; cost.style.fill='#3ecf74';
+    bs.classList.add('primary'); bp.classList.remove('primary');
+    info.innerHTML='<b>With sibling links:</b> a direct pointer in the header takes you straight to the neighbor. Trade-off: sibling pointers must be updated during every split and merge.';
+  }
+}
+
+// Rightmost pointer split
+var splitDone=false;
+function doSplit() {
+  if (splitDone) return; splitDone=true;
+  document.getElementById('r2l').textContent='R2 [65,70]';
+  document.getElementById('r3b').style.opacity='1';
+  document.getElementById('r3l').style.opacity='1';
+  document.getElementById('rmp-lbl').textContent='ptr→R3';
+  document.getElementById('rmp-arr').setAttribute('x2','610');
+  document.getElementById('rmp-d1').textContent='R2 split → promoted key 75 added to parent. Rightmost pointer now → R3';
+  document.getElementById('rmp-d2').textContent='R2 keeps [65,70]  |  new node R3 gets [80,85]';
+  document.getElementById('rmp-info').innerHTML='<b>After split:</b> the new rightmost node (R3) is almost empty, but since keys are monotonically increasing it will fill up quickly. This is the basis of the right-only append optimization.';
+  document.getElementById('btn-split').disabled=true;
+}
+function resetSplit() {
+  splitDone=false;
+  document.getElementById('r2l').textContent='R2 [65,75,85]';
+  document.getElementById('r3b').style.opacity='0'; document.getElementById('r3l').style.opacity='0';
+  document.getElementById('rmp-lbl').textContent='ptr→R2';
+  document.getElementById('rmp-arr').setAttribute('x2','485');
+  document.getElementById('rmp-d1').textContent='Rightmost pointer (amber) — no paired key, points to all keys > 60';
+  document.getElementById('rmp-d2').textContent='Click "Simulate split" to see how it gets updated';
+  document.getElementById('btn-split').disabled=false;
+}
+
+// Binary search
+function bsReset() {
+  ['bso0','bso1','bso2','bso3','bso4','bso5'].forEach(id => {
+    document.getElementById(id).style.fill='#0f2a1a';
+    document.getElementById(id).style.stroke='#3ecf74';
+    document.getElementById(id).style.strokeWidth='0.5';
+  });
+  ['bsc0','bsc1','bsc2','bsc3','bsc4','bsc5'].forEach(id => {
+    document.getElementById(id).style.fill='#2a1f0a';
+    document.getElementById(id).style.stroke='#f5a623';
+    document.getElementById(id).style.strokeWidth='0.5';
+  });
+  ['bsa1','bsa2','bsa3'].forEach(id => { document.getElementById(id).style.opacity='0'; });
+  document.getElementById('bsmsg').textContent='Pick a key above to animate the search';
+}
+function hlOff(id) { document.getElementById(id).style.fill='#2a0f0f'; document.getElementById(id).style.stroke='#f56060'; document.getElementById(id).style.strokeWidth='1.5'; }
+function hlOn(id) { document.getElementById(id).style.fill='#0f2a1a'; document.getElementById(id).style.stroke='#3ecf74'; document.getElementById(id).style.strokeWidth='2'; }
+function bsRun(key) {
+  bsReset();
+  if (key===35) {
+    hlOff('bso2'); hlOff('bso4'); hlOff('bso3');
+    document.getElementById('bsa1').style.opacity='1';
+    document.getElementById('bsa2').style.opacity='1';
+    document.getElementById('bsmsg').textContent='Search 35: mid=C2(30) ✗ → mid=C4(50) ✗ → mid=C3(40) ✗ → insert between C2 and C3';
+  } else if (key===15) {
+    hlOff('bso2'); hlOff('bso0');
+    hlOn('bso1'); document.getElementById('bsc1').style.fill='#0f2a1a'; document.getElementById('bsc1').style.stroke='#3ecf74';
+    document.getElementById('bsa1').style.opacity='1'; document.getElementById('bsa3').style.opacity='1';
+    document.getElementById('bsmsg').textContent='Search 15: mid=C2(30) ✗ → mid=C0(10) ✗ → 15 goes after 10, insert between C0 and C1';
+  } else if (key===55) {
+    hlOff('bso2');
+    hlOn('bso4'); document.getElementById('bsc4').style.fill='#0f2a1a'; document.getElementById('bsc4').style.stroke='#3ecf74';
+    document.getElementById('bsa1').style.opacity='1'; document.getElementById('bsa3').style.opacity='1';
+    document.getElementById('bsmsg').textContent='Search 55: mid=C2(30) ✗ → right half → C4(50) ✗ → insert between C4 and C5';
+  }
+}
+
+// Breadcrumbs
+var bcPhase=0;
+function bcReset() {
+  bcPhase=0;
+  ['bcr','bcl','bcleaf'].forEach(id => {
+    var el=document.getElementById(id);
+    el.style.fill='#1c2028'; el.style.stroke='#2a2f3a'; el.style.strokeWidth='0.8';
+  });
+  ['bcs0','bcs1','bcs0t','bcs1t'].forEach(id => { document.getElementById(id).style.opacity='0'; });
+  document.getElementById('bcleaf-sub').textContent='insert 27 here';
+  document.getElementById('bcmsg').textContent='Click "Start traversal" — watch the stack fill as we descend';
+  document.getElementById('bc-btn').textContent='Start traversal ▶';
+}
+function bcStep() {
+  if (bcPhase===0) {
+    var el=document.getElementById('bcr'); el.style.fill='#1a2a40'; el.style.stroke='#4d9fff'; el.style.strokeWidth='1.5';
+    document.getElementById('bcs0').style.opacity='1'; document.getElementById('bcs0t').style.opacity='1';
+    document.getElementById('bcmsg').textContent='Step 1: visit root [50] → push to stack.  27 < 50 → go left';
+    bcPhase=1; document.getElementById('bc-btn').textContent='Next step ▶';
+  } else if (bcPhase===1) {
+    var el=document.getElementById('bcl'); el.style.fill='#2a1f0a'; el.style.stroke='#f5a623'; el.style.strokeWidth='1.5';
+    document.getElementById('bcs1').style.opacity='1'; document.getElementById('bcs1t').style.opacity='1';
+    document.getElementById('bcmsg').textContent='Step 2: visit internal [20,35] → push to stack.  20 < 27 < 35 → go left child';
+    bcPhase=2;
+  } else if (bcPhase===2) {
+    var el=document.getElementById('bcleaf'); el.style.fill='#0f2a1a'; el.style.stroke='#3ecf74'; el.style.strokeWidth='1.5';
+    document.getElementById('bcleaf-sub').textContent='✓ insert 27 here!';
+    document.getElementById('bcmsg').textContent='Step 3: found leaf [25,28] — insert 27. If leaf overflows → pop stack → propagate split up!';
+    bcPhase=3; document.getElementById('bc-btn').textContent='Reset';
+  } else { bcReset(); }
+}
+
+// Rebalancing
+var rebDone=false;
+function doRebalance() {
+  if (rebDone) return; rebDone=true;
+  document.getElementById('reb-arr').style.opacity='1'; document.getElementById('reb-arrl').style.opacity='1';
+  document.getElementById('reb-lk').textContent='[10, 20, 30, 35]';
+  document.getElementById('reb-rk').textContent='[38, 45, 50]';
+  document.getElementById('reb-pk').textContent='separator key = 38';
+  document.getElementById('reb-msg').textContent='38 moved left → right. Parent separator key updated to 38.';
+  document.getElementById('reb-msg2').textContent='Both nodes now balanced — no split needed!';
+  document.getElementById('btn-reb').disabled=true;
+}
+function resetRebalance() {
+  rebDone=false;
+  document.getElementById('reb-arr').style.opacity='0'; document.getElementById('reb-arrl').style.opacity='0';
+  document.getElementById('reb-lk').textContent='[10, 20, 30, 35, 38]';
+  document.getElementById('reb-rk').textContent='[45, 50]';
+  document.getElementById('reb-pk').textContent='separator key = 40';
+  document.getElementById('reb-msg').textContent='Left: 5 keys, Right: 2 keys — unbalanced';
+  document.getElementById('reb-msg2').textContent='Click Rebalance to redistribute without splitting';
+  document.getElementById('btn-reb').disabled=false;
+}
+
+// Vacuum
+var vacDone=false;
+var vacIds=['vac-page','vac-hdr','vac-hdr2','vac-hdrt','vac-ca','vac-cat','vac-cc','vac-cct','vac-ce','vac-cet','vac-free','vac-freet','vac-al'];
+function doVacuum() {
+  if (vacDone) return; vacDone=true;
+  vacIds.forEach(id => { document.getElementById(id).style.opacity='1'; });
+  document.getElementById('vac-arr').style.opacity='1'; document.getElementById('vac-arrl').style.opacity='1';
+  document.getElementById('vac-msg').textContent='After vacuum: dead cells gone, live cells sorted, free space contiguous and reclaimed';
+  document.getElementById('btn-vac').disabled=true;
+}
+function resetVacuum() {
+  vacDone=false;
+  vacIds.forEach(id => {
+    document.getElementById(id).style.opacity = id==='vac-al' ? '0.2' : '0.15';
+  });
+  document.getElementById('vac-arr').style.opacity='0'; document.getElementById('vac-arrl').style.opacity='0';
+  document.getElementById('vac-msg').textContent='Fragmented: deleted cells leave non-contiguous gaps';
+  document.getElementById('btn-vac').disabled=false;
+}
+</script>
+</body>
+</html>
