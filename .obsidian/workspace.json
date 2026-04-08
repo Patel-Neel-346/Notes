@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docker/Docker.md",
+                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Docker"
+              "title": "Chapter-2"
             }
           }
         ]
@@ -195,6 +195,17 @@
   },
   "active": "a3ec600eb5f98e44",
   "lastOpenFiles": [
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-1 Introduction/Chapter-1.md",
+    "Database/B-tree And B+tree/B+tree.md",
+    "Database/B-tree And B+tree/B-tree.md",
+    "Database/ACID/Transaction.md",
+    "Network in GO--Book/A overview  of networked systems.md",
+    "Network in GO--Book/Reliable TCP data streams.md",
+    "DSA/Bit Manipulation/Bit Manipulation.md",
+    "DSA/Array/Questions.md",
+    "Database/Database Internal Book version/1-Storage Engine/Storage Engine.md",
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
+    "docker/Docker.md",
     "Untitled 8.base",
     "Untitled 9.base",
     "WebRTC.md",
@@ -212,24 +223,14 @@
     "Sys Design/arpit bhayani/todo.md",
     "Sys Design/arpit bhayani/third video.md",
     "Sys Design/arpit bhayani/first video(blog application).md",
-    "Network in GO--Book/A overview  of networked systems.md",
     "DSA/TLE/Level 1/Number Theory.md",
     "Database/ACID/Isolation.md",
     "Database/ACID/Eventual_Consistency.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/start-notes-server.vbs",
-    "Database/Database Internal Book version/1-Storage Engine/Storage Engine.md",
     "Untitled 7.base",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4",
-    "DSA/BinarySearch/Binary Search.md",
-    "DSA/Array/TimeSheet.md",
-    "DSA/Array/Sliding Window.md",
-    "DSA/Array/Questions.md",
-    "DSA/Array/Array.md",
-    "DSA/Array/2D arrays.md",
-    "Database/ACID/Transaction.md",
     "Untitled 6.base",
     "Database/Database Indexing/images/index_vs_full_scan.png",
     "Database/Database Indexing/images/btree_index_diagram.png",
