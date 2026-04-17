@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
+                "file": "DSA(NeelPatel)/Time&Space_Complexity.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Chapter-2"
+              "title": "Time&Space_Complexity"
             }
           }
         ]
@@ -195,6 +195,7 @@
   },
   "active": "a3ec600eb5f98e44",
   "lastOpenFiles": [
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-1 Introduction/Chapter-1.md",
     "Database/B-tree And B+tree/B+tree.md",
     "Database/B-tree And B+tree/B-tree.md",
@@ -226,7 +227,6 @@
     "DSA/TLE/Level 1/Number Theory.md",
     "Database/ACID/Isolation.md",
     "Database/ACID/Eventual_Consistency.md",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/start-notes-server.vbs",
     "Untitled 7.base",
