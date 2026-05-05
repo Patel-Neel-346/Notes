@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
-                "mode": "preview",
+                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
+                "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "#01 - Relational Model & Algebra"
+              "title": "#02 - Modern SQL"
             }
           }
         ]
@@ -195,9 +195,9 @@
   },
   "active": "9d29d628a2f35064",
   "lastOpenFiles": [
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)",
     "docker/images/closer_look_master_node.png",
     "docker/Docker.md",
