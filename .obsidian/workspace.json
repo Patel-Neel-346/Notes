@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
+                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "#01 - Relational Model & Algebra"
+              "title": "#02 - Modern SQL"
             }
           }
         ]
@@ -195,9 +195,9 @@
   },
   "active": "9d29d628a2f35064",
   "lastOpenFiles": [
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
     "docker/images/closer_look_master_node.png",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
     "docker/Docker.md",
     "DSA(NeelPatel)/Time&Space_Complexity.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
