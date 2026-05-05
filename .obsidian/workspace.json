@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
+                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "#02 - Modern SQL"
+              "title": "#01 - Relational Model & Algebra"
             }
           }
         ]
@@ -195,8 +195,10 @@
   },
   "active": "9d29d628a2f35064",
   "lastOpenFiles": [
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)",
     "docker/images/closer_look_master_node.png",
     "docker/Docker.md",
     "DSA(NeelPatel)/Time&Space_Complexity.md",
@@ -227,12 +229,9 @@
     "Sys Design/assets/Pasted image 20240709191934.png",
     "Sys Design/arpit bhayani/todo.md",
     "Sys Design/arpit bhayani/third video.md",
-    "Sys Design/arpit bhayani/first video(blog application).md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/start-notes-server.vbs",
     "Untitled 7.base",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-4",
-    "Untitled 6.base",
     "Database/Database Indexing/images/index_vs_full_scan.png",
     "Database/Database Indexing/images/btree_index_diagram.png",
     "docker/images/closer_look_worker_node.png",
