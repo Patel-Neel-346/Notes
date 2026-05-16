@@ -1,4 +1,3 @@
-
 **Course:** 15-445/645 Database Systems (Fall 2025) · Carnegie Mellon University · Andy Pavlo
 
 ---
@@ -347,40 +346,98 @@ LIMIT / OFFSET     ← results are trimmed
 
 ```sql
 -- 1. Count the total number of students in the database.
+SELECT COUNT(*) AS total_students FROM student;
 
 -- 2. Find the highest GPA among all students.
+SELECT MAX(gpa) AS highest_gpa FROM student;
 
 -- 3. Find the lowest GPA among all students.
+SELECT MIN(gpa) AS lowest_gpa FROM student;
 
 -- 4. Find the average age of all students.
+SELECT AVG(age) AS avg_age FROM student;
 
 -- 5. Count the number of distinct courses that have at least one enrollment.
+SELECT COUNT(DISTINCT cid) AS active_courses FROM enrolled;
 
 -- 6. For each student, count how many courses they are enrolled in.
 --    Show sid and the count. Order by count descending.
+SELECT sid, COUNT(*) AS course_count
+FROM enrolled
+GROUP BY sid
+ORDER BY course_count DESC;
 
 -- 7. Find the average GPA of students enrolled in course '15-445'.
+SELECT AVG(s.gpa) AS avg_gpa
+FROM student AS s
+JOIN enrolled AS e ON s.sid = e.sid
+WHERE e.cid = '15-445';
 
 -- 8. List all courses where the number of enrolled students is greater than 1.
 --    Show cid and the student count.
+SELECT cid, COUNT(*) AS student_count
+FROM enrolled
+GROUP BY cid
+HAVING COUNT(*) > 1;
 
 -- 9. Find the course with the highest average student GPA.
 --    Show cid and avg_gpa.
+SELECT e.cid, AVG(s.gpa) AS avg_gpa
+FROM enrolled AS e
+JOIN student AS s ON e.sid = s.sid
+GROUP BY e.cid
+ORDER BY avg_gpa DESC
+LIMIT 1;
 
 -- 10. Count the number of students per grade (A, B, C) across all enrollments.
+SELECT grade, COUNT(*) AS student_count
+FROM enrolled
+GROUP BY grade
+ORDER BY grade;
 
 -- 11. For each course, show the count of students per grade using GROUPING SETS
 --     to also include per-course subtotals and a grand total.
+SELECT e.cid, e.grade, COUNT(*) AS num_students
+FROM enrolled AS e
+GROUP BY GROUPING SETS (
+    (e.cid, e.grade),
+    (e.cid),
+    ()
+);
 
 -- 12. Find courses where ALL enrolled students have a GPA above 3.5.
 --     (Hint: use HAVING with MIN)
+SELECT e.cid
+FROM enrolled AS e
+JOIN student AS s ON e.sid = s.sid
+GROUP BY e.cid
+HAVING MIN(s.gpa) > 3.5;
 
 -- 13. Find the course with the most enrolled students. Show just that one course.
+SELECT cid, COUNT(*) AS student_count
+FROM enrolled
+GROUP BY cid
+ORDER BY student_count DESC
+LIMIT 1;
 
 -- 14. Get the number of students and average GPA grouped by age bracket:
 --     age < 30, 30-40, > 40. (Hint: use CASE inside GROUP BY)
+SELECT
+    CASE
+        WHEN age < 30  THEN 'Under 30'
+        WHEN age <= 40 THEN '30-40'
+        ELSE                'Over 40'
+    END AS age_bracket,
+    COUNT(*)    AS student_count,
+    AVG(gpa)    AS avg_gpa
+FROM student
+GROUP BY age_bracket;
 
 -- 15. Find students whose GPA is above the overall average GPA of all students.
+SELECT name, gpa
+FROM student
+WHERE gpa > (SELECT AVG(gpa) FROM student)
+ORDER BY gpa DESC;
 ```
 
 ---
@@ -452,28 +509,47 @@ SELECT name FROM student WHERE login = CONCAT(LOWER(name), '@cs');
 
 ```sql
 -- 1. Find all students whose name starts with the letter 'T'.
+SELECT * FROM student WHERE name LIKE 'T%';
 
 -- 2. Find all students whose login ends in '@cs'.
+SELECT * FROM student WHERE login LIKE '%@cs';
 
 -- 3. Find all students whose name is exactly 5 characters long.
 --    (Hint: use LIKE with '_')
+SELECT * FROM student WHERE name LIKE '_____';
 
 -- 4. Select each student's name converted to uppercase.
+SELECT UPPER(name) AS name_upper FROM student;
 
 -- 5. Find all students where the login starts with exactly 3 lowercase letters
 --    followed by '@cs'. Use SIMILAR TO or LIKE.
+-- PostgreSQL SIMILAR TO:
+SELECT * FROM student WHERE login SIMILAR TO '[a-z]{3}@cs';
+-- LIKE fallback:
+SELECT * FROM student WHERE login LIKE '___@cs';
 
 -- 6. Select the first 3 characters of every student's name as an abbreviation.
+SELECT SUBSTRING(name, 1, 3) AS abbr FROM student;
 
 -- 7. Construct a full label for each student as "name (login)".
 --    Example: "Taylor (swift@cs)" using concatenation.
+SELECT name || ' (' || login || ')' AS label FROM student;
+-- MySQL: SELECT CONCAT(name, ' (', login, ')') AS label FROM student;
 
 -- 8. Find students whose name, when lowercased, matches their login prefix
 --    (the part before '@'). (Hint: LOWER and SUBSTRING or SPLIT_PART)
+-- PostgreSQL:
+SELECT * FROM student
+WHERE LOWER(name) = SPLIT_PART(login, '@', 1);
+-- SQLite:
+SELECT * FROM student
+WHERE LOWER(name) = SUBSTR(login, 1, INSTR(login, '@') - 1);
 
 -- 9. List all course names that contain the word 'Database' (case-insensitive).
+SELECT name FROM course WHERE UPPER(name) LIKE '%DATABASE%';
 
 -- 10. Find all enrollments where the course id contains a dash '-'.
+SELECT * FROM enrolled WHERE cid LIKE '%-%';
 ```
 
 ---
@@ -598,27 +674,38 @@ SELECT TOP 10 sid, name FROM student WHERE login LIKE '%@cs';
 
 ```sql
 -- 1. List all students ordered by GPA from highest to lowest.
+SELECT * FROM student ORDER BY gpa DESC;
 
 -- 2. List the top 3 students by GPA.
+SELECT * FROM student ORDER BY gpa DESC LIMIT 3;
 
 -- 3. List all enrolled courses for student 53688, ordered by grade A to C.
+SELECT * FROM enrolled WHERE sid = 53688 ORDER BY grade ASC;
 
 -- 4. Find the 2nd and 3rd highest GPA students.
 --    (Hint: LIMIT 2 OFFSET 1)
+SELECT * FROM student ORDER BY gpa DESC LIMIT 2 OFFSET 1;
 
 -- 5. List all students sorted by name alphabetically, then by age descending
 --    if names are equal.
+SELECT * FROM student ORDER BY name ASC, age DESC;
 
 -- 6. List all courses ordered by course id descending.
+SELECT * FROM course ORDER BY cid DESC;
 
 -- 7. Find the student with the lowest GPA. Show only that one row.
+SELECT * FROM student ORDER BY gpa ASC LIMIT 1;
 
 -- 8. Paginate students: show students 6 through 10 when sorted by sid ascending.
+SELECT * FROM student ORDER BY sid ASC LIMIT 5 OFFSET 5;
 
 -- 9. List all enrollments sorted first by grade (A before B before C),
 --    then by course id alphabetically.
+SELECT * FROM enrolled ORDER BY grade ASC, cid ASC;
 
 -- 10. Create a new table TopStudents containing students with GPA >= 3.9.
+CREATE TABLE TopStudents AS
+SELECT * FROM student WHERE gpa >= 3.9;
 ```
 
 ---
@@ -729,45 +816,120 @@ The `NOT EXISTS` pattern is generally preferred over `NOT IN` because `NOT IN` h
 
 ```sql
 -- 1. Find the names of all students who are enrolled in at least one course.
+SELECT name FROM student
+WHERE sid IN (SELECT sid FROM enrolled);
 
 -- 2. Find the names of all students who are NOT enrolled in any course.
 --    (Use NOT EXISTS)
+SELECT name FROM student AS s
+WHERE NOT EXISTS (
+    SELECT 1 FROM enrolled AS e WHERE e.sid = s.sid
+);
 
 -- 3. Find all courses that have at least one enrolled student.
 --    (Use EXISTS)
+SELECT * FROM course AS c
+WHERE EXISTS (
+    SELECT 1 FROM enrolled AS e WHERE e.cid = c.cid
+);
 
 -- 4. Find the name of the student with the highest GPA.
 --    (Use a subquery with MAX)
+SELECT name FROM student
+WHERE gpa = (SELECT MAX(gpa) FROM student);
 
 -- 5. Find all students whose GPA is above the average GPA of all students.
+SELECT name, gpa FROM student
+WHERE gpa > (SELECT AVG(gpa) FROM student);
 
 -- 6. Find all students enrolled in both '15-445' AND '15-721'.
 --    (Hint: nested IN or intersect)
+SELECT sid FROM enrolled WHERE cid = '15-445'
+INTERSECT
+SELECT sid FROM enrolled WHERE cid = '15-721';
 
 -- 7. Find all courses where every enrolled student has a grade of 'A'.
 --    (Hint: NOT EXISTS with a NOT = 'A' inner query)
+SELECT * FROM course AS c
+WHERE NOT EXISTS (
+    SELECT 1 FROM enrolled AS e
+    WHERE e.cid = c.cid AND e.grade <> 'A'
+);
 
 -- 8. Using a subquery in the FROM clause, find the average GPA
 --    of students who are enrolled in at least one course.
+SELECT AVG(gpa) AS avg_gpa
+FROM (
+    SELECT DISTINCT s.sid, s.gpa
+    FROM student AS s
+    JOIN enrolled AS e ON s.sid = e.sid
+) AS enrolled_students;
 
 -- 9. Find students who are enrolled in more courses than student 53688.
 --    (Hint: correlated subquery with COUNT)
+SELECT s.name FROM student AS s
+WHERE (
+    SELECT COUNT(*) FROM enrolled AS e WHERE e.sid = s.sid
+) > (
+    SELECT COUNT(*) FROM enrolled AS e WHERE e.sid = 53688
+);
 
 -- 10. Find the course(s) with the lowest number of enrolled students
 --     (could be 0). Show cid and count.
+SELECT c.cid, COUNT(e.sid) AS student_count
+FROM course AS c
+LEFT JOIN enrolled AS e ON c.cid = e.cid
+GROUP BY c.cid
+HAVING COUNT(e.sid) = (
+    SELECT MIN(cnt) FROM (
+        SELECT c2.cid, COUNT(e2.sid) AS cnt
+        FROM course AS c2
+        LEFT JOIN enrolled AS e2 ON c2.cid = e2.cid
+        GROUP BY c2.cid
+    ) AS counts
+);
 
 -- 11. Find all students enrolled in '15-445' but NOT in '15-721'.
+SELECT sid FROM enrolled WHERE cid = '15-445'
+EXCEPT
+SELECT sid FROM enrolled WHERE cid = '15-721';
 
 -- 12. Using ANY, find students whose GPA is greater than at least one
 --     student enrolled in course '15-826'.
+SELECT name, gpa FROM student
+WHERE gpa > ANY (
+    SELECT s.gpa FROM student AS s
+    JOIN enrolled AS e ON s.sid = e.sid
+    WHERE e.cid = '15-826'
+);
 
 -- 13. Using ALL, find students whose GPA is greater than every student
 --     enrolled in course '15-445'.
+SELECT name, gpa FROM student
+WHERE gpa > ALL (
+    SELECT s.gpa FROM student AS s
+    JOIN enrolled AS e ON s.sid = e.sid
+    WHERE e.cid = '15-445'
+);
 
 -- 14. Find courses where the number of enrolled students equals the
 --     maximum enrollment count of any course.
+SELECT cid, COUNT(*) AS cnt
+FROM enrolled
+GROUP BY cid
+HAVING COUNT(*) = (
+    SELECT MAX(course_cnt) FROM (
+        SELECT COUNT(*) AS course_cnt FROM enrolled GROUP BY cid
+    ) AS counts
+);
 
 -- 15. Find students who share the same GPA as at least one other student.
+SELECT name, gpa FROM student
+WHERE gpa IN (
+    SELECT gpa FROM student
+    GROUP BY gpa
+    HAVING COUNT(*) > 1
+);
 ```
 
 ---
@@ -837,33 +999,116 @@ FROM (SELECT 1 AS x) AS t1,
 ```sql
 -- 1. For each course, use LATERAL to find the number of enrolled students.
 --    Show course name and count.
+SELECT c.name, t.cnt
+FROM course AS c,
+     LATERAL (
+         SELECT COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid
+     ) AS t;
 
 -- 2. For each student, use LATERAL to find the number of courses they are enrolled in.
 --    Show student name and course count.
+SELECT s.name, t.cnt
+FROM student AS s,
+     LATERAL (
+         SELECT COUNT(*) AS cnt FROM enrolled WHERE sid = s.sid
+     ) AS t;
 
 -- 3. For each course, use LATERAL to find the grade given most frequently.
 --    (Hint: LATERAL with ORDER BY + LIMIT 1)
+SELECT c.name, t.grade
+FROM course AS c,
+     LATERAL (
+         SELECT grade, COUNT(*) AS cnt
+         FROM enrolled
+         WHERE cid = c.cid
+         GROUP BY grade
+         ORDER BY cnt DESC
+         LIMIT 1
+     ) AS t;
 
 -- 4. For each student, use LATERAL to find the course they are enrolled in
 --    that has the highest average GPA. Show student name and course cid.
+SELECT s.name, t.cid
+FROM student AS s,
+     LATERAL (
+         SELECT e.cid, AVG(s2.gpa) AS avg_gpa
+         FROM enrolled AS e
+         JOIN student AS s2 ON e.sid = s2.sid
+         WHERE e.sid = s.sid
+         GROUP BY e.cid
+         ORDER BY avg_gpa DESC
+         LIMIT 1
+     ) AS t;
 
 -- 5. Use LATERAL to compute, for each course, both the enrollment count
 --    and the MAX GPA of enrolled students in one query.
+SELECT c.name, t1.cnt, t2.max_gpa
+FROM course AS c,
+     LATERAL (
+         SELECT COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid
+     ) AS t1,
+     LATERAL (
+         SELECT MAX(s.gpa) AS max_gpa
+         FROM student AS s
+         JOIN enrolled AS e ON s.sid = e.sid
+         WHERE e.cid = c.cid
+     ) AS t2;
 
 -- 6. For each course, use LATERAL to get the name of the student
 --    with the highest GPA enrolled in that course.
+SELECT c.name AS course_name, t.student_name
+FROM course AS c,
+     LATERAL (
+         SELECT s.name AS student_name
+         FROM student AS s
+         JOIN enrolled AS e ON s.sid = e.sid
+         WHERE e.cid = c.cid
+         ORDER BY s.gpa DESC
+         LIMIT 1
+     ) AS t;
 
 -- 7. For each student, use LATERAL to find the grade they received
 --    in course '15-445' (NULL if not enrolled). Show student name and grade.
+SELECT s.name, t.grade
+FROM student AS s
+LEFT JOIN LATERAL (
+    SELECT grade FROM enrolled
+    WHERE sid = s.sid AND cid = '15-445'
+) AS t ON TRUE;
 
 -- 8. List all courses with their enrollment count and average student age
 --    using two LATERAL subqueries.
+SELECT c.name, t1.cnt, t2.avg_age
+FROM course AS c,
+     LATERAL (
+         SELECT COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid
+     ) AS t1,
+     LATERAL (
+         SELECT AVG(s.age) AS avg_age
+         FROM student AS s
+         JOIN enrolled AS e ON s.sid = e.sid
+         WHERE e.cid = c.cid
+     ) AS t2;
 
 -- 9. Use LATERAL to simulate a row number per course, listing
 --    all students enrolled with their position (1, 2, ...) in that course.
+SELECT c.cid, t.sid, t.rn
+FROM course AS c,
+     LATERAL (
+         SELECT e.sid, ROW_NUMBER() OVER (ORDER BY e.sid) AS rn
+         FROM enrolled AS e
+         WHERE e.cid = c.cid
+     ) AS t;
 
 -- 10. For each student, LATERAL join to find how many other students
 --     share the same GPA.
+SELECT s.name, s.gpa, t.shared_count
+FROM student AS s,
+     LATERAL (
+         SELECT COUNT(*) - 1 AS shared_count
+         FROM student AS s2
+         WHERE s2.gpa = s.gpa
+     ) AS t;
 ```
 
 ---
@@ -980,48 +1225,170 @@ SELECT * FROM org_tree ORDER BY depth, name;
 ```sql
 -- 1. Write a CTE that finds all students with GPA above 3.8,
 --    then select their names and GPAs from it.
+WITH high_gpa AS (
+    SELECT name, gpa FROM student WHERE gpa > 3.8
+)
+SELECT * FROM high_gpa ORDER BY gpa DESC;
 
 -- 2. Write a CTE that computes enrollment counts per course,
 --    then select courses with more than 1 student.
+WITH enrollment_counts AS (
+    SELECT cid, COUNT(*) AS cnt FROM enrolled GROUP BY cid
+)
+SELECT cid, cnt FROM enrollment_counts WHERE cnt > 1;
 
 -- 3. Rewrite the "find student with highest sid enrolled" query using a CTE.
+WITH max_enrolled (max_sid) AS (
+    SELECT MAX(sid) FROM enrolled
+)
+SELECT s.name FROM student AS s
+JOIN max_enrolled ON s.sid = max_enrolled.max_sid;
 
 -- 4. Write two chained CTEs: first get all enrolled sids, then
 --    from those get names of students with GPA >= 3.5.
+WITH
+    enrolled_sids AS (
+        SELECT DISTINCT sid FROM enrolled
+    ),
+    good_students AS (
+        SELECT s.name, s.gpa FROM student AS s
+        JOIN enrolled_sids AS e ON s.sid = e.sid
+        WHERE s.gpa >= 3.5
+    )
+SELECT * FROM good_students ORDER BY gpa DESC;
 
 -- 5. Write a CTE that finds the average GPA per course,
 --    then list courses where avg GPA is above the overall average GPA
 --    (which should also come from a CTE).
+WITH
+    course_avg AS (
+        SELECT e.cid, AVG(s.gpa) AS avg_gpa
+        FROM enrolled AS e
+        JOIN student AS s ON e.sid = s.sid
+        GROUP BY e.cid
+    ),
+    overall_avg AS (
+        SELECT AVG(gpa) AS avg_gpa FROM student
+    )
+SELECT c.cid, c.avg_gpa
+FROM course_avg AS c, overall_avg AS o
+WHERE c.avg_gpa > o.avg_gpa;
 
 -- 6. Use a recursive CTE to generate a sequence of even numbers from 2 to 20.
+WITH RECURSIVE evens (n) AS (
+    SELECT 2
+    UNION ALL
+    SELECT n + 2 FROM evens WHERE n < 20
+)
+SELECT * FROM evens;
 
 -- 7. Use a recursive CTE to compute the factorial of 10.
 --    (Output: n and n! for each row from 1 to 10)
+WITH RECURSIVE factorial (n, fact) AS (
+    SELECT 1, 1
+    UNION ALL
+    SELECT n + 1, fact * (n + 1) FROM factorial WHERE n < 10
+)
+SELECT n, fact AS factorial FROM factorial;
 
 -- 8. Write a CTE that for each course computes the number of
 --    students with grade 'A'. Then show courses with zero 'A' grades.
+WITH a_counts AS (
+    SELECT c.cid, COUNT(e.sid) AS a_count
+    FROM course AS c
+    LEFT JOIN enrolled AS e ON c.cid = e.cid AND e.grade = 'A'
+    GROUP BY c.cid
+)
+SELECT cid FROM a_counts WHERE a_count = 0;
 
 -- 9. Write a CTE to find students enrolled in more than one course,
 --    then show their names and enrollment counts.
+WITH multi_enrolled AS (
+    SELECT sid, COUNT(*) AS course_count
+    FROM enrolled
+    GROUP BY sid
+    HAVING COUNT(*) > 1
+)
+SELECT s.name, m.course_count
+FROM student AS s
+JOIN multi_enrolled AS m ON s.sid = m.sid
+ORDER BY m.course_count DESC;
 
 -- 10. Use a recursive CTE to generate a Fibonacci sequence up to the
 --     15th term. (Output columns: position, fibonacci_value)
+WITH RECURSIVE fib (pos, a, b) AS (
+    SELECT 1, 0, 1
+    UNION ALL
+    SELECT pos + 1, b, a + b FROM fib WHERE pos < 15
+)
+SELECT pos AS position, a AS fibonacci_value FROM fib;
 
 -- 11. Write a CTE that ranks courses by enrollment count (most enrolled first),
 --     then select the top 2 courses.
+WITH ranked_courses AS (
+    SELECT cid, COUNT(*) AS cnt,
+           RANK() OVER (ORDER BY COUNT(*) DESC) AS rnk
+    FROM enrolled
+    GROUP BY cid
+)
+SELECT cid, cnt FROM ranked_courses WHERE rnk <= 2;
 
 -- 12. Write two CTEs: one for students with GPA > 3.5, another for
 --     students enrolled in '15-721'. Then find the intersection.
+WITH
+    high_gpa AS (
+        SELECT sid FROM student WHERE gpa > 3.5
+    ),
+    in_15721 AS (
+        SELECT sid FROM enrolled WHERE cid = '15-721'
+    )
+SELECT s.name, s.gpa
+FROM student AS s
+WHERE s.sid IN (SELECT sid FROM high_gpa)
+  AND s.sid IN (SELECT sid FROM in_15721);
 
 -- 13. Write a CTE that computes, for each student, their grade in '15-445'
 --     and their overall GPA. Then filter to students who got a 'C' but
 --     have GPA above 3.5.
+WITH student_grades AS (
+    SELECT s.sid, s.name, s.gpa, e.grade
+    FROM student AS s
+    JOIN enrolled AS e ON s.sid = e.sid
+    WHERE e.cid = '15-445'
+)
+SELECT name, gpa, grade
+FROM student_grades
+WHERE grade = 'C' AND gpa > 3.5;
 
 -- 14. Use a recursive CTE to compute the sum of integers 1 through 100.
+WITH RECURSIVE sum_series (n, running_sum) AS (
+    SELECT 1, 1
+    UNION ALL
+    SELECT n + 1, running_sum + (n + 1) FROM sum_series WHERE n < 100
+)
+SELECT running_sum AS total FROM sum_series WHERE n = 100;
 
 -- 15. Write a multi-CTE query that: (a) finds the course with max enrollment,
 --     (b) finds the average GPA of students in that course,
 --     (c) selects the course name and that average GPA as the final output.
+WITH
+    max_enrollment AS (
+        SELECT cid, COUNT(*) AS cnt
+        FROM enrolled
+        GROUP BY cid
+        ORDER BY cnt DESC
+        LIMIT 1
+    ),
+    avg_gpa_in_course AS (
+        SELECT AVG(s.gpa) AS avg_gpa
+        FROM student AS s
+        JOIN enrolled AS e ON s.sid = e.sid
+        JOIN max_enrollment AS m ON e.cid = m.cid
+    )
+SELECT c.name AS course_name, a.avg_gpa
+FROM course AS c
+JOIN max_enrollment AS m ON c.cid = m.cid,
+     avg_gpa_in_course AS a;
 ```
 
 ---
@@ -1155,44 +1522,108 @@ GROUP BY cid, sid;
 
 ```sql
 -- 1. Assign a global row number to all students ordered by GPA descending.
+SELECT name, gpa,
+       ROW_NUMBER() OVER (ORDER BY gpa DESC) AS row_num
+FROM student;
 
 -- 2. For each course, assign row numbers to enrolled students ordered by
 --    grade ascending (best grade first).
+SELECT cid, sid, grade,
+       ROW_NUMBER() OVER (PARTITION BY cid ORDER BY grade ASC) AS row_num
+FROM enrolled;
 
 -- 3. Rank all students by GPA (highest = rank 1). Use RANK().
 --    Show ties with the same rank.
+SELECT name, gpa,
+       RANK() OVER (ORDER BY gpa DESC) AS rnk
+FROM student;
 
 -- 4. Find all students who rank in the top 2 by GPA using DENSE_RANK().
+SELECT name, gpa, dr FROM (
+    SELECT name, gpa,
+           DENSE_RANK() OVER (ORDER BY gpa DESC) AS dr
+    FROM student
+) AS ranked
+WHERE dr <= 2;
 
 -- 5. For each course, find the student with the highest GPA (rank = 1).
 --    Use RANK() with PARTITION BY.
+SELECT cid, sid, gpa FROM (
+    SELECT e.cid, s.sid, s.gpa,
+           RANK() OVER (PARTITION BY e.cid ORDER BY s.gpa DESC) AS rnk
+    FROM enrolled AS e
+    JOIN student AS s ON e.sid = s.sid
+) AS ranked
+WHERE rnk = 1;
 
 -- 6. Find the student with the 2nd highest GPA overall. Handle ties.
+SELECT name, gpa FROM (
+    SELECT name, gpa,
+           DENSE_RANK() OVER (ORDER BY gpa DESC) AS dr
+    FROM student
+) AS ranked
+WHERE dr = 2;
 
 -- 7. For each enrollment row, show the grade and the average grade
 --    across all enrollments in the same course (as a window aggregate).
+SELECT cid, sid, grade,
+       AVG(ASCII(grade)) OVER (PARTITION BY cid) AS avg_grade_ascii
+FROM enrolled;
 
 -- 8. Compute a running count of enrollments ordered by sid ascending.
+SELECT sid, cid,
+       COUNT(*) OVER (ORDER BY sid ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_count
+FROM enrolled;
 
 -- 9. For each enrollment, use LAG() to show the previous student's grade
 --    when ordered by sid within each course.
+SELECT cid, sid, grade,
+       LAG(grade, 1) OVER (PARTITION BY cid ORDER BY sid) AS prev_grade
+FROM enrolled;
 
 -- 10. For each course, use FIRST_VALUE() to show the name of the
 --     student with the best grade (alphabetically first grade).
+SELECT e.cid, s.name, e.grade,
+       FIRST_VALUE(s.name) OVER (
+           PARTITION BY e.cid ORDER BY e.grade ASC
+       ) AS best_grade_student
+FROM enrolled AS e
+JOIN student AS s ON e.sid = s.sid;
 
 -- 11. Assign NTILE(3) buckets to all students ordered by GPA.
 --     Show which third each student falls into.
+SELECT name, gpa,
+       NTILE(3) OVER (ORDER BY gpa DESC) AS bucket
+FROM student;
 
 -- 12. For each student, show their GPA and the GPA of the student
 --     immediately above them (when sorted by GPA DESC) using LEAD().
+SELECT name, gpa,
+       LEAD(gpa, 1) OVER (ORDER BY gpa DESC) AS next_lower_gpa
+FROM student
+ORDER BY gpa DESC;
 
 -- 13. Compute the cumulative sum of student GPAs ordered by sid.
+SELECT sid, gpa,
+       SUM(gpa) OVER (ORDER BY sid ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative_gpa
+FROM student;
 
 -- 14. Find courses where the student with rank 1 (best grade) has a GPA
 --     above 3.8. (Hint: window rank in subquery, then filter outer query)
+SELECT cid FROM (
+    SELECT e.cid, s.gpa,
+           RANK() OVER (PARTITION BY e.cid ORDER BY e.grade ASC) AS rnk
+    FROM enrolled AS e
+    JOIN student AS s ON e.sid = s.sid
+) AS ranked
+WHERE rnk = 1 AND gpa > 3.8;
 
 -- 15. For each course, show the difference between each student's GPA
 --     and the average GPA of all students in that course.
+SELECT e.cid, s.name, s.gpa,
+       s.gpa - AVG(s.gpa) OVER (PARTITION BY e.cid) AS diff_from_course_avg
+FROM enrolled AS e
+JOIN student AS s ON e.sid = s.sid;
 ```
 
 ---
