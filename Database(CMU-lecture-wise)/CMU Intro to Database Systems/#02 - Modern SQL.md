@@ -1,273 +1,1186 @@
-**Course:** 15-445/645 Database Systems (Fall 2025) · Carnegie Mellon University · Andy Pavlo
+# Complete SQL Learning Guide
+**Based on:** 15-445/645 Database Systems (Fall 2025) · Carnegie Mellon University · Andy Pavlo
+**Extended with:** Level 1–3 foundational topics missing from the original lecture notes
 
 ---
 
-## 1. SQL History & Standards
+## 📚 5 Levels of SQL Mastery
 
-> [!info] What Is SQL and Why Does It Matter?
-> **SQL** (Structured Query Language) is a **declarative** query language for relational databases. "Declarative" means you describe *what* you want, not *how* to compute it — the DBMS's query optimizer figures out the execution strategy. This is the fundamental contract: you say "join these two tables and filter by this condition," and the engine decides index scans, join algorithms, and execution order.
->
-> SQL originated in the 1970s as IBM's **SEQUEL** (Structured English Query Language) as part of the System R project. The name shortened to SQL in the 1980s. It became an ANSI standard in 1986 and an ISO standard in 1987. Crucially, SQL is still actively evolving — new editions land every few years.
-
-The standard progresses through versioned editions. Each adds significant capabilities:
-
-| Standard | Key Additions |
-|---|---|
-| **SQL:1999** | Regular expressions, Triggers, Object-Oriented features |
-| **SQL:2003** | XML support, Window functions, Sequences, Auto-generated IDs |
-| **SQL:2008** | `TRUNCATE`, advanced sorting |
-| **SQL:2011** | Temporal databases, Pipelined DML |
-| **SQL:2016** | JSON support, Polymorphic tables |
-| **SQL:2023** | Property Graph Queries, Multi-Dimensional Arrays |
-
-> [!important] SQL-92 Is the Baseline
-> The **minimum** standard a system must implement to claim SQL compliance is **SQL-92**. Everything above it is vendor-optional. This is why compatibility issues exist across PostgreSQL, MySQL, SQLite, MSSQL, and Oracle — each vendor extends the standard with proprietary features and may not implement every standard feature.
-
----
-
-## 2. Relational Languages (SQL Command Classes)
-
-> [!note] The Four Classes of SQL Commands
-> SQL is not a monolithic language — it is composed of distinct sublanguages:
->
-> - **DML (Data Manipulation Language):** `SELECT`, `INSERT`, `UPDATE`, `DELETE` — the commands developers use daily to read and mutate data.
-> - **DDL (Data Definition Language):** `CREATE TABLE`, `CREATE INDEX`, `CREATE VIEW`, `ALTER TABLE`, `DROP` — schema-level structure definitions.
-> - **DCL (Data Control Language):** `GRANT`, `REVOKE` — access control and permissions.
-> - **Other:** View definitions, integrity constraints (`FOREIGN KEY`, `CHECK`), referential constraints, and transaction control (`BEGIN`, `COMMIT`, `ROLLBACK`).
-
-> [!important] Sets vs. Bags — A Critical Distinction
-> **Relational algebra** (the mathematical foundation) operates on **sets** — unordered collections with no duplicates.
->
-> **SQL** operates on **bags** — unordered collections *that allow duplicates*. This is a deliberate engineering tradeoff: eliminating duplicates requires extra work (sorting or hashing), so SQL skips it by default for performance. You must explicitly request deduplication via the `DISTINCT` keyword.
->
-> This is why `SELECT name FROM student` can return the same name multiple times if multiple rows share it, while `SELECT DISTINCT name FROM student` does not.
-
----
-
-## 3. Example Database Schema
-
-The following schema is used throughout all examples in this lecture. Internalize it.
-
-```sql
--- Students at a university
-CREATE TABLE student (
-    sid   INT PRIMARY KEY,
-    name  VARCHAR(16),
-    login VARCHAR(32) UNIQUE,
-    age   SMALLINT,
-    gpa   FLOAT
-);
-
--- Courses offered
-CREATE TABLE course (
-    cid  VARCHAR(32) PRIMARY KEY,
-    name VARCHAR(32) NOT NULL
-);
-
--- Enrollment junction table (many-to-many between student and course)
-CREATE TABLE enrolled (
-    sid   INT  REFERENCES student(sid),
-    cid   VARCHAR(32) REFERENCES course(cid),
-    grade CHAR(1)
-);
-```
-
-Sample data used in examples:
-
-```
-student:                              enrolled:                  course:
-sid    name    login      age  gpa   sid    cid     grade      cid     name
-53666  RZA     rza@cs     56   4.0   53666  15-445  C          15-445  Database Systems
-53688  Taylor  swift@cs   35   3.9   53688  15-721  A          15-721  Advanced DB Systems
-53655  Tupac   shakur@cs  25   3.5   53688  15-826  B          15-826  Data Mining
-                                     53655  15-445  B          15-799  Special Topics
-                                     53666  15-721  C
-```
-
----
-
-## 3b. Practice Database Setup — Seed Data (1000 Students)
-
-> [!info] Why a Seed Script?
-> The lecture examples use only 3 students and 5 enrollments — not enough data to make aggregation, window ranking, or pagination exercises meaningful. The `seed.mjs` generator (attached separately) creates a fully realistic dataset: **1000 students**, **40 courses**, and **2000 enrollments** so every exercise in these notes produces interesting, non-trivial results.
-
-### What Gets Generated
-
-| Table | Rows | Details |
+| Level | Focus | Topics |
 |---|---|---|
-| `student` | 1,000 | Realistic names · unique logins (`name@dept`) · ages 18–60 · GPA 0.0–4.0 (bell-curve weighted) |
-| `course` | 40 | Real CMU course IDs and names (15-445 through 36-401) |
-| `enrolled` | 2,000 | Unique (sid, cid) pairs · grades weighted A 35% B 30% C 20% D 10% F 5% |
+| **Level 1** | Basics | SELECT, INSERT, UPDATE, DELETE, WHERE, ORDER BY, LIMIT |
+| **Level 2** | Intermediate | JOINs, GROUP BY, HAVING, Aggregates, DISTINCT |
+| **Level 3** | Advanced Querying | Subqueries, CASE WHEN, UNION, String/Date functions |
+| **Level 4** | Design & Optimization | Normalization, Indexes, Transactions, Views, Stored Procedures |
+| **Level 5** | Expert / Performance | Window Functions, CTEs, Query Optimization, Partitioning |
 
-### Quick Start
+---
 
-```bash
-# 1. Install the only dependency
-npm install @faker-js/faker
+# ═══════════════════════════════════════
+# LEVEL 1 — BASICS (BEGINNER)
+# ═══════════════════════════════════════
 
-# 2. Run the generator — produces seed.sql in the same directory
-node seed.mjs
+## L1-1. What Is SQL?
 
-# 3. Load into PostgreSQL
-psql -U youruser -d yourdb -f seed.sql
+> **SQL** (Structured Query Language) is a **declarative** query language for relational databases. "Declarative" means you describe *what* you want, not *how* to compute it — the DBMS's query optimizer figures out the execution strategy.
 
-# 4. Load into SQLite (works without modification)
-sqlite3 lecture.db < seed.sql
-```
+SQL originated in the 1970s as IBM's **SEQUEL** (Structured English Query Language). It became an ANSI standard in 1986. It is still actively evolving.
 
-### How seed.mjs Works
+### SQL Command Classes
 
-```
-seed.mjs
- ├── faker.seed(15445)          ← deterministic: same data every run
- ├── Build 40 courses           ← hardcoded CMU catalogue
- ├── Build 1000 students        ← faker names + unique login + GPA curve
- ├── Build 2000 enrollments     ← random (sid, cid) pairs, no duplicates
- └── Write seed.sql             ← wrapped in BEGIN/COMMIT, batched INSERTs
-```
+SQL is composed of distinct sublanguages:
 
-GPA distribution used in `seed.mjs`:
+- **DML (Data Manipulation Language):** `SELECT`, `INSERT`, `UPDATE`, `DELETE`
+- **DDL (Data Definition Language):** `CREATE TABLE`, `ALTER TABLE`, `DROP TABLE`, `CREATE INDEX`
+- **DCL (Data Control Language):** `GRANT`, `REVOKE`
+- **TCL (Transaction Control Language):** `BEGIN`, `COMMIT`, `ROLLBACK`
 
-```
- 0.0 – 1.49  →  5%   (struggling / academic probation)
- 1.5 – 2.49  → 10%   (below average)
- 2.5 – 3.29  → 25%   (average)
- 3.3 – 3.79  → 35%   (good)
- 3.8 – 4.00  → 25%   (excellent / dean's list)
-```
+---
 
-### Sanity-Check Queries (Run After Seeding)
+## L1-2. Data Types
+
+Every column in a table has a data type. Common ones:
+
+| Category | Types | Example |
+|---|---|---|
+| Integer | `INT`, `SMALLINT`, `BIGINT` | `42` |
+| Decimal | `FLOAT`, `NUMERIC(p,s)`, `DECIMAL` | `3.14` |
+| Text | `CHAR(n)`, `VARCHAR(n)`, `TEXT` | `'hello'` |
+| Boolean | `BOOLEAN` | `TRUE`, `FALSE` |
+| Date/Time | `DATE`, `TIME`, `TIMESTAMP` | `'2025-01-01'` |
+
+---
+
+## L1-3. CREATE TABLE & DROP TABLE (DDL)
 
 ```sql
--- Verify row counts (expect: student=1000, course=40, enrolled=2000)
-SELECT 'student'  AS tbl, COUNT(*) AS cnt FROM student
-UNION ALL
-SELECT 'course'   AS tbl, COUNT(*) AS cnt FROM course
-UNION ALL
-SELECT 'enrolled' AS tbl, COUNT(*) AS cnt FROM enrolled;
+-- Create a table
+CREATE TABLE student (
+    sid    INT PRIMARY KEY,
+    name   VARCHAR(16),
+    login  VARCHAR(32) UNIQUE,
+    age    SMALLINT,
+    gpa    FLOAT
+);
 
--- GPA distribution
-SELECT ROUND(gpa::numeric, 0) AS bucket, COUNT(*) AS students
-FROM student
-GROUP BY bucket
-ORDER BY bucket;
+-- Create with NOT NULL and DEFAULT
+CREATE TABLE course (
+    cid   VARCHAR(32) PRIMARY KEY,
+    name  VARCHAR(32) NOT NULL,
+    credits INT DEFAULT 3
+);
 
--- Grade distribution with percentages (uses a window function — see §12)
-SELECT grade,
-       COUNT(*) AS cnt,
-       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 1) AS pct
-FROM enrolled
-GROUP BY grade
-ORDER BY grade;
+-- Drop a table (permanent — use carefully!)
+DROP TABLE student;
 
--- Top 5 most enrolled courses
-SELECT c.name, COUNT(*) AS enrolled_count
-FROM enrolled AS e
-JOIN course AS c ON e.cid = c.cid
-GROUP BY c.name
-ORDER BY enrolled_count DESC
-FETCH FIRST 5 ROWS ONLY;
+-- Drop only if it exists (safe)
+DROP TABLE IF EXISTS student;
 
--- Students taking the most courses
-SELECT s.name, COUNT(*) AS course_count
+-- Modify an existing table
+ALTER TABLE student ADD COLUMN email VARCHAR(64);
+ALTER TABLE student DROP COLUMN email;
+ALTER TABLE student RENAME COLUMN name TO full_name;
+```
+
+### 🏋️ DDL Practice Exercises
+
+```sql
+-- 1. Create a table called 'department' with columns: dept_id (INT, PK),
+--    dept_name (VARCHAR 50, NOT NULL), location (VARCHAR 100).
+CREATE TABLE department (
+    dept_id   INT PRIMARY KEY,
+    dept_name VARCHAR(50) NOT NULL,
+    location  VARCHAR(100)
+);
+
+-- 2. Add a column 'budget' (FLOAT) to the department table.
+ALTER TABLE department ADD COLUMN budget FLOAT;
+
+-- 3. Drop the budget column from department.
+ALTER TABLE department DROP COLUMN budget;
+
+-- 4. Create a table 'professor' with prof_id (INT PK), name (VARCHAR 50),
+--    dept_id (INT), salary (NUMERIC 10,2).
+CREATE TABLE professor (
+    prof_id  INT PRIMARY KEY,
+    name     VARCHAR(50),
+    dept_id  INT,
+    salary   NUMERIC(10, 2)
+);
+
+-- 5. Drop the professor table if it exists.
+DROP TABLE IF EXISTS professor;
+```
+
+---
+
+## L1-4. INSERT — Adding Data
+
+```sql
+-- Insert a single row (all columns)
+INSERT INTO student (sid, name, login, age, gpa)
+VALUES (53666, 'RZA', 'rza@cs', 56, 4.0);
+
+-- Insert multiple rows at once
+INSERT INTO student (sid, name, login, age, gpa)
+VALUES
+    (53688, 'Taylor', 'swift@cs', 35, 3.9),
+    (53655, 'Tupac',  'shakur@cs', 25, 3.5);
+
+-- Insert from another table
+INSERT INTO top_students (sid, name, gpa)
+SELECT sid, name, gpa FROM student WHERE gpa >= 3.9;
+```
+
+### 🏋️ INSERT Practice Exercises
+
+```sql
+-- 1. Insert a new student: sid=1001, name='Alice', login='alice@cs',
+--    age=22, gpa=3.7
+INSERT INTO student (sid, name, login, age, gpa)
+VALUES (1001, 'Alice', 'alice@cs', 22, 3.7);
+
+-- 2. Insert two courses: ('CS-101','Intro to CS') and ('CS-201','Data Structures')
+INSERT INTO course (cid, name)
+VALUES ('CS-101', 'Intro to CS'), ('CS-201', 'Data Structures');
+
+-- 3. Insert a student without specifying age (leave it NULL).
+INSERT INTO student (sid, name, login, gpa)
+VALUES (1002, 'Bob', 'bob@cs', 3.2);
+```
+
+---
+
+## L1-5. SELECT — Reading Data
+
+```sql
+-- Select all columns
+SELECT * FROM student;
+
+-- Select specific columns
+SELECT name, gpa FROM student;
+
+-- Select with a computed column
+SELECT name, gpa * 25 AS gpa_score FROM student;
+
+-- Select with alias
+SELECT name AS student_name, gpa AS grade_point FROM student;
+
+-- Select distinct values (remove duplicates)
+SELECT DISTINCT age FROM student;
+```
+
+---
+
+## L1-6. WHERE — Filtering Rows
+
+```sql
+-- Basic comparison operators: =, <>, !=, <, >, <=, >=
+SELECT * FROM student WHERE gpa > 3.5;
+SELECT * FROM student WHERE age = 25;
+SELECT * FROM student WHERE name <> 'RZA';
+
+-- Combining conditions with AND / OR / NOT
+SELECT * FROM student WHERE gpa > 3.5 AND age < 30;
+SELECT * FROM student WHERE gpa > 3.9 OR name = 'Tupac';
+SELECT * FROM student WHERE NOT age = 25;
+
+-- BETWEEN (inclusive on both ends)
+SELECT * FROM student WHERE gpa BETWEEN 3.0 AND 3.9;
+SELECT * FROM student WHERE age BETWEEN 20 AND 35;
+
+-- IN (match against a list)
+SELECT * FROM student WHERE name IN ('RZA', 'Tupac', 'Taylor');
+SELECT * FROM student WHERE sid NOT IN (53666, 53688);
+
+-- IS NULL / IS NOT NULL
+SELECT * FROM student WHERE age IS NULL;
+SELECT * FROM student WHERE gpa IS NOT NULL;
+
+-- LIKE for pattern matching
+-- '%' = any sequence of characters, '_' = exactly one character
+SELECT * FROM student WHERE name LIKE 'T%';       -- starts with T
+SELECT * FROM student WHERE login LIKE '%@cs';    -- ends with @cs
+SELECT * FROM student WHERE name LIKE '_u%';      -- 2nd char is 'u'
+```
+
+### 🏋️ SELECT & WHERE Practice Exercises
+
+```sql
+-- 1. Select all students with GPA above 3.8.
+SELECT * FROM student WHERE gpa > 3.8;
+
+-- 2. Select names and logins of students aged between 20 and 30.
+SELECT name, login FROM student WHERE age BETWEEN 20 AND 30;
+
+-- 3. Select students whose name starts with 'T' AND have GPA >= 3.5.
+SELECT * FROM student WHERE name LIKE 'T%' AND gpa >= 3.5;
+
+-- 4. Select students whose sid is in the list: 53666, 53655.
+SELECT * FROM student WHERE sid IN (53666, 53655);
+
+-- 5. Select all students who do NOT have a NULL age.
+SELECT * FROM student WHERE age IS NOT NULL;
+
+-- 6. Select all students with GPA between 3.0 and 3.8, ordered by gpa DESC.
+SELECT * FROM student WHERE gpa BETWEEN 3.0 AND 3.8 ORDER BY gpa DESC;
+
+-- 7. Select students whose login contains 'cs'.
+SELECT * FROM student WHERE login LIKE '%cs%';
+
+-- 8. Select students where GPA is NOT between 2.0 and 3.0.
+SELECT * FROM student WHERE gpa NOT BETWEEN 2.0 AND 3.0;
+```
+
+---
+
+## L1-7. UPDATE — Modifying Data
+
+```sql
+-- Update a single column for matching rows
+UPDATE student SET gpa = 4.0 WHERE sid = 53655;
+
+-- Update multiple columns at once
+UPDATE student SET gpa = 3.8, age = 26 WHERE name = 'Tupac';
+
+-- Update all rows (no WHERE — be very careful!)
+UPDATE student SET gpa = 0.0;
+
+-- Update using an expression
+UPDATE student SET gpa = gpa + 0.1 WHERE gpa < 3.5;
+```
+
+> [!warning] Always use WHERE with UPDATE
+> Running `UPDATE table SET col = val` without `WHERE` modifies **every row** in the table. Always double-check your `WHERE` clause before executing.
+
+### 🏋️ UPDATE Practice Exercises
+
+```sql
+-- 1. Set the GPA of student with sid=53666 to 3.95.
+UPDATE student SET gpa = 3.95 WHERE sid = 53666;
+
+-- 2. Increase every student's age by 1.
+UPDATE student SET age = age + 1;
+
+-- 3. Set login to 'unknown@cs' for all students where login IS NULL.
+UPDATE student SET login = 'unknown@cs' WHERE login IS NULL;
+
+-- 4. Set GPA to 0.0 for students with GPA below 1.0.
+UPDATE student SET gpa = 0.0 WHERE gpa < 1.0;
+```
+
+---
+
+## L1-8. DELETE — Removing Data
+
+```sql
+-- Delete rows matching a condition
+DELETE FROM student WHERE sid = 53666;
+
+-- Delete all students with GPA below 1.0
+DELETE FROM student WHERE gpa < 1.0;
+
+-- Delete all rows (no WHERE — empties the table!)
+DELETE FROM student;
+
+-- TRUNCATE: faster way to empty a table (DDL, not DML)
+TRUNCATE TABLE student;
+```
+
+> [!warning] DELETE without WHERE removes all rows.
+> `TRUNCATE` is faster than `DELETE` for clearing a table but cannot be rolled back in some databases and does not fire row-level triggers.
+
+### 🏋️ DELETE Practice Exercises
+
+```sql
+-- 1. Delete the student with sid = 53655.
+DELETE FROM student WHERE sid = 53655;
+
+-- 2. Delete all students older than 50.
+DELETE FROM student WHERE age > 50;
+
+-- 3. Delete all enrollments for course '15-445'.
+DELETE FROM enrolled WHERE cid = '15-445';
+
+-- 4. Delete students who are not enrolled in any course.
+DELETE FROM student WHERE sid NOT IN (SELECT sid FROM enrolled);
+```
+
+---
+
+## L1-9. ORDER BY and LIMIT
+
+```sql
+-- Sort ascending (default)
+SELECT * FROM student ORDER BY gpa;
+
+-- Sort descending
+SELECT * FROM student ORDER BY gpa DESC;
+
+-- Multi-column sort
+SELECT * FROM student ORDER BY gpa DESC, name ASC;
+
+-- LIMIT: return only N rows
+SELECT * FROM student ORDER BY gpa DESC LIMIT 5;
+
+-- OFFSET: skip N rows, then return next M
+SELECT * FROM student ORDER BY gpa DESC LIMIT 5 OFFSET 5;
+```
+
+> [!warning] LIMIT without ORDER BY is non-deterministic — different rows may be returned each run.
+
+---
+
+# ═══════════════════════════════════════
+# LEVEL 2 — INTERMEDIATE QUERYING
+# ═══════════════════════════════════════
+
+## L2-1. JOINs
+
+> A **JOIN** combines rows from two or more tables based on a related column.
+
+### Example Schema (used throughout)
+
+```sql
+CREATE TABLE student  (sid INT PK, name VARCHAR, login VARCHAR, age SMALLINT, gpa FLOAT);
+CREATE TABLE course   (cid VARCHAR PK, name VARCHAR);
+CREATE TABLE enrolled (sid INT → student, cid VARCHAR → course, grade CHAR(1));
+```
+
+### INNER JOIN — Only Matching Rows
+
+```sql
+-- Students who are enrolled (only rows with a match in both tables)
+SELECT s.name, e.cid, e.grade
+FROM student AS s
+INNER JOIN enrolled AS e ON s.sid = e.sid;
+
+-- Three-table join
+SELECT s.name, c.name AS course_name, e.grade
+FROM student AS s
+JOIN enrolled AS e ON s.sid = e.sid
+JOIN course AS c ON e.cid = c.cid;
+```
+
+### LEFT JOIN — All Left Rows + Matching Right
+
+```sql
+-- All students, even those not enrolled (grade = NULL if not enrolled)
+SELECT s.name, e.cid, e.grade
+FROM student AS s
+LEFT JOIN enrolled AS e ON s.sid = e.sid;
+```
+
+### RIGHT JOIN — All Right Rows + Matching Left
+
+```sql
+-- All enrollments, even if the student record is missing
+SELECT s.name, e.cid, e.grade
+FROM student AS s
+RIGHT JOIN enrolled AS e ON s.sid = e.sid;
+```
+
+### FULL OUTER JOIN — All Rows from Both Tables
+
+```sql
+-- All students and all enrollments, matched where possible
+SELECT s.name, e.cid
+FROM student AS s
+FULL OUTER JOIN enrolled AS e ON s.sid = e.sid;
+```
+
+### CROSS JOIN — Every Combination (Cartesian Product)
+
+```sql
+-- Every student paired with every course (use carefully — can be huge)
+SELECT s.name, c.name
+FROM student AS s
+CROSS JOIN course AS c;
+```
+
+### Self Join — Table Joined to Itself
+
+```sql
+-- Find pairs of students with the same GPA
+SELECT a.name AS student1, b.name AS student2, a.gpa
+FROM student AS a
+JOIN student AS b ON a.gpa = b.gpa AND a.sid < b.sid;
+```
+
+### 🏋️ JOIN Practice Exercises
+
+```sql
+-- 1. List all students with their enrolled course names. (INNER JOIN)
+SELECT s.name, c.name AS course_name
+FROM student AS s
+JOIN enrolled AS e ON s.sid = e.sid
+JOIN course AS c ON e.cid = c.cid;
+
+-- 2. List all students including those not enrolled in any course. (LEFT JOIN)
+SELECT s.name, e.cid
+FROM student AS s
+LEFT JOIN enrolled AS e ON s.sid = e.sid;
+
+-- 3. Find all courses that have no enrolled students. (LEFT JOIN + IS NULL)
+SELECT c.name
+FROM course AS c
+LEFT JOIN enrolled AS e ON c.cid = e.cid
+WHERE e.sid IS NULL;
+
+-- 4. List student name, course name, and grade for all enrollments.
+SELECT s.name, c.name AS course_name, e.grade
 FROM enrolled AS e
 JOIN student AS s ON e.sid = s.sid
-GROUP BY s.name
-ORDER BY course_count DESC
-LIMIT 5;
-```
+JOIN course AS c ON e.cid = c.cid;
 
-> [!tip] Regenerate Anytime
-> `faker.seed(15445)` makes every run produce identical data. Change the number to any integer to get a fresh randomized dataset. Useful if you want to practice on different distributions.
+-- 5. Find students enrolled in '15-445' using a JOIN.
+SELECT s.name
+FROM student AS s
+JOIN enrolled AS e ON s.sid = e.sid
+WHERE e.cid = '15-445';
+
+-- 6. Find all pairs of students enrolled in the same course. (Self join on enrolled)
+SELECT a.sid AS student1, b.sid AS student2, a.cid
+FROM enrolled AS a
+JOIN enrolled AS b ON a.cid = b.cid AND a.sid < b.sid;
+
+-- 7. List every student-course combination regardless of enrollment. (CROSS JOIN)
+SELECT s.name, c.name
+FROM student AS s
+CROSS JOIN course AS c;
+
+-- 8. Using FULL OUTER JOIN, show all students and all enrollments,
+--    even unmatched ones.
+SELECT s.name, e.cid, e.grade
+FROM student AS s
+FULL OUTER JOIN enrolled AS e ON s.sid = e.sid;
+
+-- 9. Count how many courses each student is enrolled in (include 0 for unenrolled).
+SELECT s.name, COUNT(e.cid) AS course_count
+FROM student AS s
+LEFT JOIN enrolled AS e ON s.sid = e.sid
+GROUP BY s.sid, s.name;
+
+-- 10. Find the student(s) enrolled in the most courses.
+SELECT s.name, COUNT(*) AS course_count
+FROM student AS s
+JOIN enrolled AS e ON s.sid = e.sid
+GROUP BY s.sid, s.name
+ORDER BY course_count DESC
+LIMIT 1;
+```
 
 ---
 
-## 4. Aggregates
+## L2-2. Aggregate Functions
 
-> [!note] What Are Aggregate Functions?
-> An **aggregate function** takes a *bag of tuples* as input and produces a *single scalar value* as output. They collapse multiple rows into one summary value. Aggregate functions can almost only appear in the `SELECT` output list (or in `HAVING` clauses).
->
-> The five standard aggregates:
-> - `AVG(col)` — arithmetic mean of values in `col`
-> - `MIN(col)` — minimum value in `col`
-> - `MAX(col)` — maximum value in `col`
-> - `SUM(col)` — sum of all values in `col`
-> - `COUNT(col)` — number of non-NULL values in `col`; `COUNT(*)` counts all rows including NULLs
-
-### Counting — Three Equivalent Forms
-
-All three of the following produce identical results:
+> An **aggregate function** takes a bag of rows and produces a single scalar value.
 
 ```sql
--- Count students with a CS login — all three are equivalent
-SELECT COUNT(*) AS cnt    FROM student WHERE login LIKE '%@cs';
-SELECT COUNT(login) AS cnt FROM student WHERE login LIKE '%@cs';
-SELECT COUNT(1) AS cnt    FROM student WHERE login LIKE '%@cs';
+COUNT(*)        -- count all rows
+COUNT(col)      -- count non-NULL values in col
+COUNT(DISTINCT col) -- count unique non-NULL values
+SUM(col)        -- sum of values
+AVG(col)        -- arithmetic mean
+MIN(col)        -- minimum value
+MAX(col)        -- maximum value
 ```
 
-`COUNT(*)` counts every row. `COUNT(col)` counts rows where `col` is NOT NULL. `COUNT(1)` evaluates the constant `1` for each row and counts those — same result.
-
-### DISTINCT Inside Aggregates
-
 ```sql
--- Count only unique logins (deduplicate before counting)
-SELECT COUNT(DISTINCT login) AS unique_logins
-FROM student
-WHERE login LIKE '%@cs';
+-- Basic aggregates
+SELECT COUNT(*) AS total_students FROM student;
+SELECT AVG(gpa) AS avg_gpa FROM student;
+SELECT MAX(gpa) AS top_gpa, MIN(gpa) AS lowest_gpa FROM student;
+SELECT SUM(age) AS total_age FROM student;
 
--- Multiple aggregates in one SELECT
-SELECT AVG(gpa) AS avg_gpa, COUNT(sid) AS num_students
-FROM student
-WHERE login LIKE '%@cs';
+-- DISTINCT inside aggregate
+SELECT COUNT(DISTINCT cid) AS unique_courses FROM enrolled;
+
+-- Multiple aggregates together
+SELECT AVG(gpa), COUNT(sid), MAX(gpa), MIN(age) FROM student;
 ```
 
-> [!warning] Non-Aggregated Columns Outside GROUP BY Are Undefined
-> This is one of the most common SQL mistakes. If you `SELECT` a column that is *not* wrapped in an aggregate AND *not* listed in `GROUP BY`, the result for that column is undefined.
->
-> ```sql
-> -- WRONG: e.cid is not aggregated and not in GROUP BY
-> SELECT AVG(s.gpa), e.cid
-> FROM enrolled AS e JOIN student AS s ON e.sid = s.sid;
-> -- Result: AVG(s.gpa) = 3.86, e.cid = ??? (arbitrary value)
-> ```
->
-> Most production databases (PostgreSQL, Oracle, MSSQL) will **error** here. SQLite silently picks an arbitrary value — dangerous in production. The SQL:2023 standard added `ANY_VALUE()` to explicitly request this "pick any" behavior:
->
-> ```sql
-> -- EXPLICIT: I know this is arbitrary, I'm okay with it
-> SELECT AVG(s.gpa), ANY_VALUE(e.cid)
-> FROM enrolled AS e JOIN student AS s ON e.sid = s.sid;
-> ```
+---
 
-### GROUP BY — Partitioned Aggregation
+## L2-3. GROUP BY
 
-`GROUP BY` partitions the result set into subsets sharing the same values for the specified columns, then computes aggregates per subset.
+> `GROUP BY` partitions rows into groups sharing the same values, then applies aggregates per group.
 
 ```sql
--- Average GPA broken down by each course
+-- Count students per course
+SELECT cid, COUNT(*) AS student_count
+FROM enrolled
+GROUP BY cid;
+
+-- Average GPA per course
 SELECT e.cid, AVG(s.gpa) AS avg_gpa
 FROM enrolled AS e
 JOIN student AS s ON e.sid = s.sid
 GROUP BY e.cid;
 ```
 
-```
-Result:
-cid     avg_gpa
-15-445  3.75
-15-721  3.95
-15-826  3.90
+> [!important] GROUP BY Rule: Every column in SELECT that is NOT inside an aggregate MUST appear in GROUP BY.
+
+---
+
+## L2-4. HAVING
+
+> `WHERE` filters rows **before** grouping. `HAVING` filters **groups** after aggregation.
+
+```sql
+-- Courses with more than 1 enrolled student
+SELECT cid, COUNT(*) AS student_count
+FROM enrolled
+GROUP BY cid
+HAVING COUNT(*) > 1;
+
+-- Courses where average GPA of enrolled students > 3.9
+SELECT e.cid, AVG(s.gpa) AS avg_gpa
+FROM enrolled AS e
+JOIN student AS s ON e.sid = s.sid
+GROUP BY e.cid
+HAVING AVG(s.gpa) > 3.9;
 ```
 
-> [!important] GROUP BY Rule
-> Every column in the `SELECT` list that is NOT inside an aggregate function MUST appear in the `GROUP BY` clause. This is enforced by standard-compliant databases.
+### SQL Logical Execution Order
+
+```
+FROM / JOIN   → tables assembled
+WHERE         → rows filtered (no aggregates here)
+GROUP BY      → rows partitioned into groups
+HAVING        → groups filtered (aggregates available)
+SELECT        → output columns computed
+ORDER BY      → results sorted
+LIMIT/OFFSET  → results trimmed
+```
+
+### 🏋️ Aggregate + GROUP BY + HAVING Practice
+
+```sql
+-- 1. Count the total number of students.
+SELECT COUNT(*) AS total_students FROM student;
+
+-- 2. Find the highest and lowest GPA.
+SELECT MAX(gpa) AS highest, MIN(gpa) AS lowest FROM student;
+
+-- 3. Find the average age of all students.
+SELECT AVG(age) AS avg_age FROM student;
+
+-- 4. Count enrollments per course. Show cid and count.
+SELECT cid, COUNT(*) AS enrollment_count FROM enrolled GROUP BY cid;
+
+-- 5. Find the average GPA per course (join required).
+SELECT e.cid, AVG(s.gpa) AS avg_gpa
+FROM enrolled AS e JOIN student AS s ON e.sid = s.sid
+GROUP BY e.cid;
+
+-- 6. List courses with more than 1 enrolled student.
+SELECT cid, COUNT(*) AS cnt FROM enrolled
+GROUP BY cid HAVING COUNT(*) > 1;
+
+-- 7. Find the number of students per grade across all enrollments.
+SELECT grade, COUNT(*) AS cnt FROM enrolled
+GROUP BY grade ORDER BY grade;
+
+-- 8. Find the course with the highest average GPA.
+SELECT e.cid, AVG(s.gpa) AS avg_gpa
+FROM enrolled AS e JOIN student AS s ON e.sid = s.sid
+GROUP BY e.cid ORDER BY avg_gpa DESC LIMIT 1;
+
+-- 9. Find courses where ALL students have GPA above 3.5. (HAVING MIN)
+SELECT e.cid FROM enrolled AS e
+JOIN student AS s ON e.sid = s.sid
+GROUP BY e.cid HAVING MIN(s.gpa) > 3.5;
+
+-- 10. Count distinct students enrolled (vs total enrollment rows).
+SELECT COUNT(DISTINCT sid) AS unique_students FROM enrolled;
+```
+
+---
+
+## L2-5. DISTINCT
+
+```sql
+-- Remove duplicate rows from result
+SELECT DISTINCT age FROM student;
+
+-- Distinct across multiple columns
+SELECT DISTINCT cid, grade FROM enrolled;
+
+-- Count unique values
+SELECT COUNT(DISTINCT cid) FROM enrolled;
+```
+
+---
+
+# ═══════════════════════════════════════
+# LEVEL 3 — ADVANCED QUERYING
+# ═══════════════════════════════════════
+
+## L3-1. CASE WHEN — Conditional Logic
+
+> `CASE WHEN` is SQL's if-else. It can appear in `SELECT`, `WHERE`, `ORDER BY`, and `GROUP BY`.
+
+```sql
+-- Simple CASE WHEN
+SELECT name, gpa,
+    CASE
+        WHEN gpa >= 3.8 THEN 'Excellent'
+        WHEN gpa >= 3.0 THEN 'Good'
+        WHEN gpa >= 2.0 THEN 'Average'
+        ELSE 'Poor'
+    END AS performance
+FROM student;
+
+-- CASE in GROUP BY (age brackets)
+SELECT
+    CASE
+        WHEN age < 25  THEN 'Under 25'
+        WHEN age <= 35 THEN '25-35'
+        ELSE                'Over 35'
+    END AS age_group,
+    COUNT(*) AS student_count,
+    AVG(gpa) AS avg_gpa
+FROM student
+GROUP BY age_group;
+
+-- CASE in ORDER BY (custom sort order)
+SELECT name, grade FROM enrolled
+ORDER BY
+    CASE grade
+        WHEN 'A' THEN 1
+        WHEN 'B' THEN 2
+        WHEN 'C' THEN 3
+        ELSE 4
+    END;
+
+-- Counted pivot using CASE
+SELECT
+    COUNT(CASE WHEN grade = 'A' THEN 1 END) AS a_count,
+    COUNT(CASE WHEN grade = 'B' THEN 1 END) AS b_count,
+    COUNT(CASE WHEN grade = 'C' THEN 1 END) AS c_count
+FROM enrolled;
+```
+
+### 🏋️ CASE WHEN Practice Exercises
+
+```sql
+-- 1. Label each student as 'High GPA' (>=3.8), 'Mid GPA' (>=3.0), or 'Low GPA'.
+SELECT name, gpa,
+    CASE
+        WHEN gpa >= 3.8 THEN 'High GPA'
+        WHEN gpa >= 3.0 THEN 'Mid GPA'
+        ELSE 'Low GPA'
+    END AS gpa_label
+FROM student;
+
+-- 2. For each enrollment, label the grade as 'Pass' (A,B,C) or 'Fail' (D,F).
+SELECT sid, cid, grade,
+    CASE WHEN grade IN ('A','B','C') THEN 'Pass' ELSE 'Fail' END AS result
+FROM enrolled;
+
+-- 3. Count how many students fall into each GPA bracket:
+--    Excellent (>=3.8), Good (>=3.0), Below Average (<3.0).
+SELECT
+    CASE
+        WHEN gpa >= 3.8 THEN 'Excellent'
+        WHEN gpa >= 3.0 THEN 'Good'
+        ELSE 'Below Average'
+    END AS bracket,
+    COUNT(*) AS student_count
+FROM student
+GROUP BY bracket;
+
+-- 4. Show each student's name and a column 'is_senior' = 'Yes' if age > 40, else 'No'.
+SELECT name, age,
+    CASE WHEN age > 40 THEN 'Yes' ELSE 'No' END AS is_senior
+FROM student;
+
+-- 5. Using CASE, sort students so those with GPA >= 3.8 appear first,
+--    then the rest alphabetically by name.
+SELECT name, gpa FROM student
+ORDER BY
+    CASE WHEN gpa >= 3.8 THEN 0 ELSE 1 END,
+    name ASC;
+```
+
+---
+
+## L3-2. UNION, INTERSECT, EXCEPT
+
+> Set operations combine results from two or more SELECT statements.
+
+| Operator | Meaning | Duplicates |
+|---|---|---|
+| `UNION` | All rows from both queries | Removes duplicates |
+| `UNION ALL` | All rows from both queries | Keeps duplicates |
+| `INTERSECT` | Only rows in BOTH queries | Removes duplicates |
+| `EXCEPT` | Rows in first but NOT second | Removes duplicates |
+
+> Both queries must have the same number of columns with compatible types.
+
+```sql
+-- UNION: combine two result sets (removes duplicates)
+SELECT sid FROM enrolled WHERE cid = '15-445'
+UNION
+SELECT sid FROM enrolled WHERE cid = '15-721';
+
+-- UNION ALL: keep duplicates (faster — no deduplication step)
+SELECT cid FROM enrolled WHERE grade = 'A'
+UNION ALL
+SELECT cid FROM enrolled WHERE grade = 'B';
+
+-- INTERSECT: students enrolled in BOTH courses
+SELECT sid FROM enrolled WHERE cid = '15-445'
+INTERSECT
+SELECT sid FROM enrolled WHERE cid = '15-721';
+
+-- EXCEPT: students in 15-445 but NOT in 15-721
+SELECT sid FROM enrolled WHERE cid = '15-445'
+EXCEPT
+SELECT sid FROM enrolled WHERE cid = '15-721';
+```
+
+### 🏋️ UNION / INTERSECT / EXCEPT Practice
+
+```sql
+-- 1. List all sids enrolled in '15-445' OR '15-721' (no duplicates).
+SELECT sid FROM enrolled WHERE cid = '15-445'
+UNION
+SELECT sid FROM enrolled WHERE cid = '15-721';
+
+-- 2. Find students enrolled in BOTH '15-445' AND '15-826'.
+SELECT sid FROM enrolled WHERE cid = '15-445'
+INTERSECT
+SELECT sid FROM enrolled WHERE cid = '15-826';
+
+-- 3. Find students in '15-445' but NOT in '15-721'.
+SELECT sid FROM enrolled WHERE cid = '15-445'
+EXCEPT
+SELECT sid FROM enrolled WHERE cid = '15-721';
+
+-- 4. Combine a list of student names and course names into one column.
+SELECT name AS label, 'student' AS type FROM student
+UNION ALL
+SELECT name AS label, 'course' AS type FROM course;
+
+-- 5. Using UNION, create a report showing total students and total courses.
+SELECT 'Total Students' AS metric, COUNT(*) AS value FROM student
+UNION ALL
+SELECT 'Total Courses', COUNT(*) FROM course
+UNION ALL
+SELECT 'Total Enrollments', COUNT(*) FROM enrolled;
+```
+
+---
+
+## L3-3. String Operations
+
+> SQL-92 mandates strings are **case-sensitive** and use **single quotes** only.
+
+### Pattern Matching with LIKE
+
+```sql
+-- '%' = any substring, '_' = exactly one character
+SELECT * FROM student WHERE name LIKE 'T%';         -- starts with T
+SELECT * FROM student WHERE login LIKE '%@cs';       -- ends with @cs
+SELECT * FROM student WHERE name LIKE '_u%';         -- 2nd char is 'u'
+SELECT * FROM student WHERE login LIKE '%@c_';       -- @c + one char
+```
+
+### Common String Functions
+
+```sql
+-- UPPER / LOWER — normalize case
+SELECT UPPER(name) FROM student;
+SELECT * FROM student WHERE UPPER(name) = 'TAYLOR';
+
+-- LENGTH — character count
+SELECT name, LENGTH(name) AS name_length FROM student;
+
+-- SUBSTRING — extract part of string
+SELECT SUBSTRING(name, 1, 3) AS abbr FROM student;   -- first 3 chars
+
+-- TRIM — remove leading/trailing whitespace
+SELECT TRIM('  hello  ');     -- 'hello'
+SELECT LTRIM('  hello');      -- 'hello'
+SELECT RTRIM('hello  ');      -- 'hello'
+
+-- REPLACE — substitute text
+SELECT REPLACE(login, '@cs', '@university') FROM student;
+
+-- CONCAT / || — join strings
+SELECT name || ' (' || login || ')' AS label FROM student;   -- standard
+SELECT CONCAT(name, ' (', login, ')') AS label FROM student; -- MySQL/PG
+
+-- POSITION / INSTR — find substring
+SELECT POSITION('@' IN login) AS at_position FROM student;  -- PostgreSQL
+SELECT INSTR(login, '@') AS at_position FROM student;        -- SQLite/MySQL
+```
+
+### Regex (PostgreSQL)
+
+```sql
+-- SIMILAR TO (SQL standard regex)
+SELECT * FROM student WHERE login SIMILAR TO '[a-z]+@cs';
+
+-- POSIX regex (PostgreSQL only)
+SELECT * FROM student WHERE login ~ '^[a-z]+@cs$';  -- case sensitive
+SELECT * FROM student WHERE login ~* '^[a-z]+@cs$'; -- case insensitive
+```
+
+### 🏋️ String Operations Practice Exercises
+
+```sql
+-- 1. Find all students whose name starts with 'T'.
+SELECT * FROM student WHERE name LIKE 'T%';
+
+-- 2. Find all students whose login ends in '@cs'.
+SELECT * FROM student WHERE login LIKE '%@cs';
+
+-- 3. Find all students whose name is exactly 5 characters long.
+SELECT * FROM student WHERE name LIKE '_____';
+
+-- 4. Select each student's name in uppercase.
+SELECT UPPER(name) AS name_upper FROM student;
+
+-- 5. Select the first 3 characters of each student's name as abbreviation.
+SELECT SUBSTRING(name, 1, 3) AS abbr FROM student;
+
+-- 6. Construct a label for each student as "name (login)".
+SELECT name || ' (' || login || ')' AS label FROM student;
+
+-- 7. Find all courses whose name contains 'Database' (case-insensitive).
+SELECT name FROM course WHERE UPPER(name) LIKE '%DATABASE%';
+
+-- 8. Replace '@cs' with '@university' in all student logins.
+SELECT name, REPLACE(login, '@cs', '@university') AS new_login FROM student;
+
+-- 9. Find the length of each student's name, ordered longest first.
+SELECT name, LENGTH(name) AS name_len FROM student ORDER BY name_len DESC;
+
+-- 10. Find students whose lowercase name matches the prefix of their login
+--     (before the '@' sign).
+-- PostgreSQL:
+SELECT * FROM student WHERE LOWER(name) = SPLIT_PART(login, '@', 1);
+-- SQLite:
+SELECT * FROM student WHERE LOWER(name) = SUBSTR(login, 1, INSTR(login,'@')-1);
+```
+
+---
+
+## L3-4. Date and Time Operations
+
+> SQL supports `DATE`, `TIME`, `TIMESTAMP`, and `INTERVAL`. Functions vary by database.
+
+```sql
+-- Get current date/time
+SELECT CURRENT_DATE;           -- today's date
+SELECT CURRENT_TIME;           -- current time
+SELECT CURRENT_TIMESTAMP;      -- date + time (PostgreSQL: NOW())
+SELECT NOW();                  -- MySQL / PostgreSQL
+
+-- Extract parts of a date
+SELECT EXTRACT(YEAR  FROM CURRENT_DATE) AS yr;
+SELECT EXTRACT(MONTH FROM CURRENT_DATE) AS mo;
+SELECT EXTRACT(DAY   FROM CURRENT_DATE) AS dy;
+
+-- Date arithmetic (PostgreSQL)
+SELECT CURRENT_DATE + INTERVAL '7 days';       -- 7 days from now
+SELECT CURRENT_DATE - INTERVAL '1 month';      -- 1 month ago
+SELECT AGE('2025-01-01', '2000-06-15');        -- difference as interval
+
+-- Date functions
+SELECT DATE_TRUNC('month', CURRENT_DATE);      -- first day of month (PG)
+SELECT DATE_TRUNC('year',  CURRENT_DATE);      -- first day of year (PG)
+
+-- Filter by date
+SELECT * FROM some_table WHERE event_date >= '2025-01-01';
+SELECT * FROM some_table WHERE event_date BETWEEN '2025-01-01' AND '2025-12-31';
+
+-- MySQL equivalents
+SELECT CURDATE();              -- current date
+SELECT DATEDIFF('2025-12-31', '2025-01-01');  -- days between dates
+SELECT DATE_FORMAT(NOW(), '%Y-%m-%d');         -- format date
+```
+
+> [!tip] Always store timestamps as `TIMESTAMPTZ` (with timezone) in PostgreSQL to avoid timezone bugs.
+
+---
+
+# ═══════════════════════════════════════
+# LEVEL 4 — DATABASE DESIGN & OPTIMIZATION
+# ═══════════════════════════════════════
+
+## L4-1. Normalization
+
+> **Normalization** is the process of organizing a database to reduce data redundancy and improve data integrity.
+
+### First Normal Form (1NF)
+- Each column holds **atomic** (indivisible) values
+- No repeating groups or arrays in a column
+- Each row is uniquely identifiable
+
+```sql
+-- VIOLATES 1NF: courses column holds multiple values
+-- student_id | name  | courses
+-- 1          | Alice | 'Math, Science, English'
+
+-- SATISFIES 1NF: each value is atomic
+-- student_id | name  | course
+-- 1          | Alice | Math
+-- 1          | Alice | Science
+-- 1          | Alice | English
+```
+
+### Second Normal Form (2NF)
+- Must be in 1NF
+- Every non-key column must depend on the **whole** primary key (no partial dependencies)
+
+```sql
+-- VIOLATES 2NF: student_name depends only on student_id (partial dependency)
+-- (student_id, course_id) | student_name | grade
+--   student_name should be in a separate student table
+
+-- SATISFIES 2NF: split into student and enrollment tables
+CREATE TABLE student (student_id INT PK, student_name VARCHAR);
+CREATE TABLE enrollment (student_id INT, course_id INT, grade CHAR, PRIMARY KEY(student_id, course_id));
+```
+
+### Third Normal Form (3NF)
+- Must be in 2NF
+- No non-key column depends on another non-key column (no transitive dependencies)
+
+```sql
+-- VIOLATES 3NF: dept_location depends on dept_name, not on student_id
+-- student_id | dept_name | dept_location
+
+-- SATISFIES 3NF: move department data to its own table
+CREATE TABLE department (dept_name VARCHAR PK, dept_location VARCHAR);
+CREATE TABLE student (student_id INT PK, dept_name VARCHAR REFERENCES department);
+```
+
+---
+
+## L4-2. Indexes
+
+> An **index** is a data structure that speeds up lookups on a column at the cost of extra storage and slower writes.
+
+```sql
+-- Create an index on a single column
+CREATE INDEX idx_student_gpa ON student(gpa);
+
+-- Create an index on multiple columns (composite index)
+CREATE INDEX idx_enrolled_cid_sid ON enrolled(cid, sid);
+
+-- Create a unique index (enforces uniqueness like a constraint)
+CREATE UNIQUE INDEX idx_student_login ON student(login);
+
+-- Drop an index
+DROP INDEX idx_student_gpa;
+
+-- View query plan (use to check if index is being used)
+EXPLAIN SELECT * FROM student WHERE gpa > 3.8;              -- PostgreSQL
+EXPLAIN ANALYZE SELECT * FROM student WHERE gpa > 3.8;      -- with actual stats
+```
+
+> [!tip] Index a column if: you filter (WHERE), join, or sort (ORDER BY) on it frequently. Avoid indexing columns with very few distinct values (like a boolean).
+
+---
+
+## L4-3. Constraints
+
+```sql
+-- PRIMARY KEY: uniquely identifies each row, cannot be NULL
+CREATE TABLE student (sid INT PRIMARY KEY, name VARCHAR);
+
+-- FOREIGN KEY: enforces referential integrity
+CREATE TABLE enrolled (
+    sid INT REFERENCES student(sid) ON DELETE CASCADE,
+    cid VARCHAR REFERENCES course(cid) ON DELETE RESTRICT,
+    grade CHAR(1)
+);
+
+-- UNIQUE: no two rows can have the same value
+CREATE TABLE student (sid INT PK, login VARCHAR UNIQUE);
+
+-- NOT NULL: column must always have a value
+CREATE TABLE course (cid VARCHAR PK, name VARCHAR NOT NULL);
+
+-- CHECK: custom validation rule
+CREATE TABLE student (
+    sid INT PK,
+    gpa FLOAT CHECK (gpa >= 0.0 AND gpa <= 4.0),
+    age SMALLINT CHECK (age >= 0)
+);
+
+-- DEFAULT: value used when not specified on INSERT
+CREATE TABLE course (cid VARCHAR PK, credits INT DEFAULT 3);
+
+-- Add constraint to existing table
+ALTER TABLE student ADD CONSTRAINT chk_gpa CHECK (gpa BETWEEN 0 AND 4);
+```
+
+---
+
+## L4-4. Transactions (ACID)
+
+> A **transaction** is a sequence of SQL operations treated as a single unit of work.
+
+### ACID Properties
+
+| Property | Meaning |
+|---|---|
+| **Atomicity** | All operations succeed or all are rolled back — no partial updates |
+| **Consistency** | Database moves from one valid state to another |
+| **Isolation** | Concurrent transactions don't interfere with each other |
+| **Durability** | Committed changes survive crashes |
+
+```sql
+-- Basic transaction
+BEGIN;                          -- start transaction (also: START TRANSACTION)
+    UPDATE student SET gpa = 4.0 WHERE sid = 53666;
+    INSERT INTO enrolled (sid, cid, grade) VALUES (53666, '15-826', 'A');
+COMMIT;                         -- save all changes permanently
+
+-- Rollback on error
+BEGIN;
+    DELETE FROM student WHERE sid = 53666;
+    -- Something goes wrong...
+ROLLBACK;                       -- undo all changes since BEGIN
+
+-- SAVEPOINT: partial rollback within a transaction
+BEGIN;
+    UPDATE student SET gpa = 3.5 WHERE sid = 53688;
+    SAVEPOINT before_delete;
+    DELETE FROM enrolled WHERE sid = 53688;
+    ROLLBACK TO before_delete;  -- undo only the DELETE
+COMMIT;                         -- commit the UPDATE
+```
+
+---
+
+## L4-5. Views
+
+> A **view** is a saved SQL query that behaves like a virtual table.
+
+```sql
+-- Create a view
+CREATE VIEW high_gpa_students AS
+SELECT sid, name, gpa FROM student WHERE gpa >= 3.8;
+
+-- Query the view like a table
+SELECT * FROM high_gpa_students;
+
+-- View joining tables
+CREATE VIEW student_enrollments AS
+SELECT s.name, c.name AS course_name, e.grade
+FROM student AS s
+JOIN enrolled AS e ON s.sid = e.sid
+JOIN course AS c ON e.cid = c.cid;
+
+-- Drop a view
+DROP VIEW high_gpa_students;
+
+-- Replace/update a view
+CREATE OR REPLACE VIEW high_gpa_students AS
+SELECT sid, name, gpa, age FROM student WHERE gpa >= 3.8;
+```
+
+> [!tip] Views don't store data — they re-execute the query each time. For performance on complex queries, use **Materialized Views** (PostgreSQL) which cache the result.
+
+```sql
+-- Materialized view (PostgreSQL)
+CREATE MATERIALIZED VIEW course_stats AS
+SELECT e.cid, COUNT(*) AS cnt, AVG(s.gpa) AS avg_gpa
+FROM enrolled AS e JOIN student AS s ON e.sid = s.sid
+GROUP BY e.cid;
+
+-- Refresh materialized view
+REFRESH MATERIALIZED VIEW course_stats;
+```
+
+---
+
+## L4-6. Stored Procedures and Functions
+
+> A **stored procedure** is a reusable block of SQL (and procedural logic) stored in the database.
+
+```sql
+-- PostgreSQL stored procedure (using PL/pgSQL)
+CREATE OR REPLACE PROCEDURE enroll_student(p_sid INT, p_cid VARCHAR, p_grade CHAR)
+LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO enrolled (sid, cid, grade) VALUES (p_sid, p_cid, p_grade);
+    RAISE NOTICE 'Enrolled student % in course %', p_sid, p_cid;
+END;
+$$;
+
+-- Call a procedure
+CALL enroll_student(53666, '15-826', 'A');
+
+-- PostgreSQL function (returns a value)
+CREATE OR REPLACE FUNCTION get_avg_gpa(p_cid VARCHAR)
+RETURNS FLOAT
+LANGUAGE plpgsql AS $$
+DECLARE
+    avg_result FLOAT;
+BEGIN
+    SELECT AVG(s.gpa) INTO avg_result
+    FROM student AS s
+    JOIN enrolled AS e ON s.sid = e.sid
+    WHERE e.cid = p_cid;
+    RETURN avg_result;
+END;
+$$;
+
+-- Call a function
+SELECT get_avg_gpa('15-445');
+```
+
+---
+
+# ═══════════════════════════════════════
+# LEVEL 5 — EXPERT / PERFORMANCE
+# ═══════════════════════════════════════
+
+## L5-1. SQL History & Standards
+
+> **SQL** is a **declarative** query language — you describe *what* you want, not *how* to compute it. The DBMS optimizer decides the execution strategy.
+
+SQL originated in the 1970s as IBM's **SEQUEL**. ANSI standard 1986, ISO standard 1987.
+
+| Standard | Key Additions |
+|---|---|
+| **SQL:1999** | Regular expressions, Triggers, OO features |
+| **SQL:2003** | XML support, Window functions, Sequences |
+| **SQL:2008** | `TRUNCATE`, advanced sorting |
+| **SQL:2011** | Temporal databases |
+| **SQL:2016** | JSON support |
+| **SQL:2023** | Property Graph Queries, Multi-Dimensional Arrays |
+
+> **SQL-92** is the minimum compliance baseline. Each vendor extends it differently — hence compatibility issues across PostgreSQL, MySQL, SQLite, MSSQL, Oracle.
+
+---
+
+## L5-2. Aggregates — Advanced
+
+> Standard aggregates: `AVG`, `MIN`, `MAX`, `SUM`, `COUNT`.
+> SQL operates on **bags** (allow duplicates), not sets. Use `DISTINCT` to deduplicate.
+
+```sql
+-- All three are equivalent for counting
+SELECT COUNT(*)     FROM student WHERE login LIKE '%@cs';
+SELECT COUNT(login) FROM student WHERE login LIKE '%@cs';
+SELECT COUNT(1)     FROM student WHERE login LIKE '%@cs';
+
+-- DISTINCT inside aggregate
+SELECT COUNT(DISTINCT login) FROM student WHERE login LIKE '%@cs';
+```
 
 ### GROUPING SETS — Multiple Groupings in One Pass
 
-`GROUPING SETS` lets you compute multiple `GROUP BY` levels in a single query, avoiding multiple passes over the data that `UNION ALL` would require.
-
 ```sql
--- Compute enrollment counts at three granularities simultaneously
 SELECT c.name AS course_name, e.grade, COUNT(*) AS num_students
 FROM enrolled AS e
 JOIN course AS c ON e.cid = c.cid
@@ -278,69 +1191,8 @@ GROUP BY GROUPING SETS (
 );
 ```
 
-```
-Result:
-course_name              grade  num_students
-NULL                     NULL   5            ← grand total
-Database Systems         C      1
-Database Systems         B      1
-Advanced DB Systems      A      1
-Advanced DB Systems      C      1
-Data Mining              B      1
-Database Systems         NULL   2            ← course subtotal
-Advanced DB Systems      NULL   2
-Data Mining              NULL   1
-```
-
-`NULL` in the grouping columns indicates "rolled up" / aggregated across all values at that level.
-
-> [!tip] ROLLUP and CUBE as Shortcuts
-> `ROLLUP(a, b)` is shorthand for `GROUPING SETS ((a, b), (a), ())` — all hierarchical subtotals.
-> `CUBE(a, b)` is shorthand for all possible combinations: `GROUPING SETS ((a,b), (a), (b), ())`.
-> These are common in OLAP/reporting queries.
-
-### HAVING — Filtering Groups
-
-`WHERE` filters individual rows *before* grouping. `HAVING` filters *groups* after aggregation has been computed.
-
-```sql
--- Wrong: cannot use aggregate alias in WHERE
-SELECT AVG(s.gpa) AS avg_gpa, e.cid
-FROM enrolled AS e, student AS s
-WHERE e.sid = s.sid
-  AND avg_gpa > 3.9        -- ERROR: avg_gpa doesn't exist yet at this stage
-GROUP BY e.cid;
-
--- Correct: use HAVING to filter on aggregate results
-SELECT AVG(s.gpa) AS avg_gpa, e.cid
-FROM enrolled AS e
-JOIN student AS s ON e.sid = s.sid
-GROUP BY e.cid
-HAVING AVG(s.gpa) > 3.9;
-```
-
-```
-Result:
-avg_gpa   cid
-3.950000  15-721
-```
-
-> [!warning] HAVING Alias Compatibility
-> Some databases (like PostgreSQL) allow `HAVING avg_gpa > 3.9` using the alias defined in `SELECT`. The SQL standard technically requires repeating the full expression `HAVING AVG(s.gpa) > 3.9`. For portability, prefer the full expression.
-
-### SQL Logical Execution Order
-
-Understanding this order is key to knowing what is available where:
-
-```
-FROM / JOIN        ← tables are assembled
-WHERE              ← rows are filtered (no aggregates here)
-GROUP BY           ← rows are partitioned into groups
-HAVING             ← groups are filtered (aggregates available)
-SELECT             ← output columns are computed
-ORDER BY           ← results are sorted
-LIMIT / OFFSET     ← results are trimmed
-```
+> `ROLLUP(a, b)` = `GROUPING SETS ((a,b),(a),())` — hierarchical subtotals.
+> `CUBE(a, b)` = all combinations: `GROUPING SETS ((a,b),(a),(b),())`.
 
 ### 🏋️ Aggregate Practice Exercises
 
@@ -361,785 +1213,259 @@ SELECT AVG(age) AS avg_age FROM student;
 SELECT COUNT(DISTINCT cid) AS active_courses FROM enrolled;
 
 -- 6. For each student, count how many courses they are enrolled in.
---    Show sid and the count. Order by count descending.
-SELECT sid, COUNT(*) AS course_count
-FROM enrolled
-GROUP BY sid
-ORDER BY course_count DESC;
+SELECT sid, COUNT(*) AS course_count FROM enrolled
+GROUP BY sid ORDER BY course_count DESC;
 
 -- 7. Find the average GPA of students enrolled in course '15-445'.
 SELECT AVG(s.gpa) AS avg_gpa
-FROM student AS s
-JOIN enrolled AS e ON s.sid = e.sid
+FROM student AS s JOIN enrolled AS e ON s.sid = e.sid
 WHERE e.cid = '15-445';
 
 -- 8. List all courses where the number of enrolled students is greater than 1.
---    Show cid and the student count.
-SELECT cid, COUNT(*) AS student_count
-FROM enrolled
-GROUP BY cid
-HAVING COUNT(*) > 1;
+SELECT cid, COUNT(*) AS student_count FROM enrolled
+GROUP BY cid HAVING COUNT(*) > 1;
 
 -- 9. Find the course with the highest average student GPA.
---    Show cid and avg_gpa.
 SELECT e.cid, AVG(s.gpa) AS avg_gpa
-FROM enrolled AS e
-JOIN student AS s ON e.sid = s.sid
-GROUP BY e.cid
-ORDER BY avg_gpa DESC
-LIMIT 1;
+FROM enrolled AS e JOIN student AS s ON e.sid = s.sid
+GROUP BY e.cid ORDER BY avg_gpa DESC LIMIT 1;
 
 -- 10. Count the number of students per grade (A, B, C) across all enrollments.
-SELECT grade, COUNT(*) AS student_count
-FROM enrolled
-GROUP BY grade
-ORDER BY grade;
+SELECT grade, COUNT(*) AS student_count FROM enrolled
+GROUP BY grade ORDER BY grade;
 
--- 11. For each course, show the count of students per grade using GROUPING SETS
---     to also include per-course subtotals and a grand total.
+-- 11. For each course, show count per grade using GROUPING SETS.
 SELECT e.cid, e.grade, COUNT(*) AS num_students
 FROM enrolled AS e
-GROUP BY GROUPING SETS (
-    (e.cid, e.grade),
-    (e.cid),
-    ()
-);
+GROUP BY GROUPING SETS ((e.cid, e.grade),(e.cid),());
 
--- 12. Find courses where ALL enrolled students have a GPA above 3.5.
---     (Hint: use HAVING with MIN)
-SELECT e.cid
-FROM enrolled AS e
-JOIN student AS s ON e.sid = s.sid
-GROUP BY e.cid
-HAVING MIN(s.gpa) > 3.5;
+-- 12. Find courses where ALL enrolled students have GPA above 3.5.
+SELECT e.cid FROM enrolled AS e JOIN student AS s ON e.sid = s.sid
+GROUP BY e.cid HAVING MIN(s.gpa) > 3.5;
 
--- 13. Find the course with the most enrolled students. Show just that one course.
-SELECT cid, COUNT(*) AS student_count
-FROM enrolled
-GROUP BY cid
-ORDER BY student_count DESC
-LIMIT 1;
+-- 13. Find the course with the most enrolled students.
+SELECT cid, COUNT(*) AS student_count FROM enrolled
+GROUP BY cid ORDER BY student_count DESC LIMIT 1;
 
--- 14. Get the number of students and average GPA grouped by age bracket:
---     age < 30, 30-40, > 40. (Hint: use CASE inside GROUP BY)
+-- 14. Get count and average GPA grouped by age bracket.
 SELECT
-    CASE
-        WHEN age < 30  THEN 'Under 30'
-        WHEN age <= 40 THEN '30-40'
-        ELSE                'Over 40'
-    END AS age_bracket,
-    COUNT(*)    AS student_count,
-    AVG(gpa)    AS avg_gpa
-FROM student
-GROUP BY age_bracket;
+    CASE WHEN age < 30 THEN 'Under 30' WHEN age <= 40 THEN '30-40' ELSE 'Over 40' END AS age_bracket,
+    COUNT(*) AS student_count, AVG(gpa) AS avg_gpa
+FROM student GROUP BY age_bracket;
 
--- 15. Find students whose GPA is above the overall average GPA of all students.
-SELECT name, gpa
-FROM student
-WHERE gpa > (SELECT AVG(gpa) FROM student)
-ORDER BY gpa DESC;
+-- 15. Find students whose GPA is above the overall average.
+SELECT name, gpa FROM student
+WHERE gpa > (SELECT AVG(gpa) FROM student) ORDER BY gpa DESC;
 ```
 
 ---
 
-## 5. String Operations
+## L5-3. Nested Queries (Subqueries)
 
-> [!note] String Behavior Across Databases
-> SQL-92 mandates that strings are **case-sensitive** and must use **single quotes** only. Real-world systems vary significantly:
+> A **subquery** is a full SELECT embedded inside another query.
 
-| System | Case Sensitive | Quote Style |
-|---|---|---|
-| SQL-92 Standard | ✅ Yes | Single `'` only |
-| PostgreSQL | ✅ Yes | Single `'` only |
-| MySQL | ❌ No | Single `'` or double `"` |
-| SQLite | ✅ Yes | Single `'` or double `"` |
-| MSSQL | ✅ Yes | Single `'` only |
-| Oracle | ✅ Yes | Single `'` only |
-
-This means `WHERE name = 'tupac'` would fail in PostgreSQL (case-sensitive), but succeed in MySQL. Use `UPPER()` or `LOWER()` for safe case-insensitive comparisons.
-
-### Pattern Matching with LIKE
+### Where Subqueries Can Appear
 
 ```sql
--- '%' matches any substring (including empty string)
--- '_' matches exactly one character
-
--- Find all courses starting with '15-'
-SELECT * FROM enrolled WHERE cid LIKE '15-%';
-
--- Find students whose login ends with '@c' followed by exactly one character
-SELECT * FROM student WHERE login LIKE '%@c_';
--- Matches: rza@cs, swift@cs, shakur@cs
-
--- Case-insensitive match using UPPER
-SELECT * FROM student WHERE UPPER(name) = UPPER('TuPaC');
-```
-
-### SIMILAR TO — Regex Pattern Matching
-
-```sql
--- SIMILAR TO uses SQL regex syntax (supported in PostgreSQL, not all systems)
-SELECT * FROM student
-WHERE login SIMILAR TO '[a-z]+@cs';
-
--- Many systems (PostgreSQL, MySQL) also support POSIX regex:
-SELECT * FROM student WHERE login ~ '^[a-z]+@cs$'; -- PostgreSQL
-```
-
-### String Functions
-
-```sql
--- SUBSTRING: extract characters 1 through 5 from name
-SELECT SUBSTRING(name, 1, 5) AS short_name
-FROM student WHERE sid = 53688;
--- Result: 'Taylo'
-
--- UPPER/LOWER for normalization
-SELECT * FROM student WHERE UPPER(name) LIKE 'R%';
-
--- CONCAT or || operator for string joining
-SELECT name FROM student WHERE login = LOWER(name) || '@cs';
-SELECT name FROM student WHERE login = CONCAT(LOWER(name), '@cs');
-```
-
-> [!warning] Concatenation Operator Varies by System
-> `||` is the SQL standard concatenation operator. MSSQL uses `+`. MySQL uses `CONCAT()`. Always check the target system. PostgreSQL supports both `||` and `CONCAT()`.
-
-### 🏋️ String Operations Practice Exercises
-
-```sql
--- 1. Find all students whose name starts with the letter 'T'.
-SELECT * FROM student WHERE name LIKE 'T%';
-
--- 2. Find all students whose login ends in '@cs'.
-SELECT * FROM student WHERE login LIKE '%@cs';
-
--- 3. Find all students whose name is exactly 5 characters long.
---    (Hint: use LIKE with '_')
-SELECT * FROM student WHERE name LIKE '_____';
-
--- 4. Select each student's name converted to uppercase.
-SELECT UPPER(name) AS name_upper FROM student;
-
--- 5. Find all students where the login starts with exactly 3 lowercase letters
---    followed by '@cs'. Use SIMILAR TO or LIKE.
--- PostgreSQL SIMILAR TO:
-SELECT * FROM student WHERE login SIMILAR TO '[a-z]{3}@cs';
--- LIKE fallback:
-SELECT * FROM student WHERE login LIKE '___@cs';
-
--- 6. Select the first 3 characters of every student's name as an abbreviation.
-SELECT SUBSTRING(name, 1, 3) AS abbr FROM student;
-
--- 7. Construct a full label for each student as "name (login)".
---    Example: "Taylor (swift@cs)" using concatenation.
-SELECT name || ' (' || login || ')' AS label FROM student;
--- MySQL: SELECT CONCAT(name, ' (', login, ')') AS label FROM student;
-
--- 8. Find students whose name, when lowercased, matches their login prefix
---    (the part before '@'). (Hint: LOWER and SUBSTRING or SPLIT_PART)
--- PostgreSQL:
-SELECT * FROM student
-WHERE LOWER(name) = SPLIT_PART(login, '@', 1);
--- SQLite:
-SELECT * FROM student
-WHERE LOWER(name) = SUBSTR(login, 1, INSTR(login, '@') - 1);
-
--- 9. List all course names that contain the word 'Database' (case-insensitive).
-SELECT name FROM course WHERE UPPER(name) LIKE '%DATABASE%';
-
--- 10. Find all enrollments where the course id contains a dash '-'.
-SELECT * FROM enrolled WHERE cid LIKE '%-%';
-```
-
----
-
-## 6. Date and Time Operations
-
-> [!note] DATE and TIME in SQL
-> SQL supports `DATE`, `TIME`, `TIMESTAMP`, and `INTERVAL` types for representing temporal data. These can appear in both the `SELECT` output list and in `WHERE` predicates.
-
-> [!warning] Massive Vendor Variation
-> Date/time syntax and function names vary wildly across database systems. The SQL standard defines these types, but the functions to manipulate them are largely vendor-specific. Always check the docs for your target system.
-
-```sql
--- PostgreSQL: days since start of year
-SELECT CURRENT_DATE - DATE_TRUNC('year', CURRENT_DATE)::date AS days_since_jan1;
-
--- MySQL equivalent
-SELECT DATEDIFF(CURDATE(), DATE_FORMAT(CURDATE(), '%Y-01-01')) AS days_since_jan1;
-
--- Filtering by date range (PostgreSQL)
-SELECT * FROM some_event_table
-WHERE event_date BETWEEN '2025-01-01' AND '2025-12-31';
-
--- Extracting parts of a date
-SELECT EXTRACT(YEAR FROM CURRENT_DATE) AS year,
-       EXTRACT(MONTH FROM CURRENT_DATE) AS month;
-```
-
-> [!tip] Backend Advice
-> In Node.js/PostgreSQL applications, always store timestamps as `TIMESTAMPTZ` (timestamp with timezone) rather than `TIMESTAMP`. This avoids timezone-related bugs when your server or data spans multiple regions. Libraries like `date-fns` or `Temporal` API on the JS side pair well with PostgreSQL's rich temporal functions.
-
----
-
-## 7. Output Redirection
-
-Instead of returning query results to the client, you can persist them into another table for later use.
-
-> [!note] Two Modes of Output Redirection
-> **Into a new table** — creates the table on the fly with the same schema as the query output:
-> ```sql
-> -- PostgreSQL / SQL standard CREATE TABLE AS
-> CREATE TABLE CourseIds AS
->     SELECT DISTINCT cid FROM enrolled;
->
-> -- SQL Server / Sybase syntax
-> SELECT DISTINCT cid INTO CourseIds FROM enrolled;
-> ```
->
-> **Into an existing table** — the target must already exist with compatible column types:
-> ```sql
-> INSERT INTO CourseIds (SELECT DISTINCT cid FROM enrolled);
-> ```
->
-> **Into a temporary table** — scoped to the current session, auto-dropped on disconnect:
-> ```sql
-> SELECT DISTINCT cid INTO TEMPORARY CourseIds FROM enrolled; -- PostgreSQL
-> CREATE TEMP TABLE CourseIds AS SELECT DISTINCT cid FROM enrolled;
-> ```
-
-> [!tip] When to Use This
-> Output redirection is especially useful in multi-step ETL pipelines where you compute intermediate results and store them before the next transformation step. In production, prefer CTEs or views over proliferating temp tables — they're cleaner and the query planner can optimize across them.
-
----
-
-## 8. Output Control
-
-> [!note] ORDER BY — Imposing Sort Order
-> SQL results are unordered by default (the relational model has no inherent row order). Use `ORDER BY` to sort output. The default direction is `ASC` (ascending); use `DESC` for descending. Multiple columns create a lexicographic sort where later columns break ties from earlier ones.
-
-```sql
--- Simple sort ascending (default)
-SELECT sid, grade FROM enrolled WHERE cid = '15-721'
-ORDER BY grade;
-
--- Descending sort
-SELECT sid, grade FROM enrolled WHERE cid = '15-721'
-ORDER BY grade DESC;
-
--- Multi-column sort: primary by grade descending, break ties by sid ascending
-SELECT sid, grade FROM enrolled WHERE cid = '15-721'
-ORDER BY grade DESC, sid ASC;
-
--- Sort by an expression
-SELECT sid FROM enrolled WHERE cid = '15-721'
-ORDER BY UPPER(grade) DESC, sid + 1 ASC;
-```
-
-### LIMIT and OFFSET — Pagination
-
-```sql
--- Return only the first 10 results
-SELECT sid, name FROM student
-WHERE login LIKE '%@cs'
-LIMIT 10;
-
--- Skip 10 rows, then return the next 20 (pagination)
-SELECT sid, name FROM student
-WHERE login LIKE '%@cs'
-ORDER BY sid
-LIMIT 20 OFFSET 10;
-
--- SQL Standard syntax (also valid in PostgreSQL)
-SELECT sid, name FROM student
-WHERE login LIKE '%@cs'
-ORDER BY gpa DESC
-FETCH FIRST 5 ROWS ONLY;
-
--- WITH TIES: include rows that tie for the last position
-SELECT sid, name FROM student
-ORDER BY gpa DESC
-OFFSET 0 ROWS
-FETCH FIRST 3 ROWS WITH TIES;
-
--- SQL Server proprietary syntax
-SELECT TOP 10 sid, name FROM student WHERE login LIKE '%@cs';
-```
-
-> [!warning] LIMIT Without ORDER BY Is Non-Deterministic
-> Without `ORDER BY`, the DBMS may return *different rows* on repeated invocations of the same `LIMIT` query — it depends on physical storage order and query plan. Always pair `LIMIT` with `ORDER BY` when you care about which rows are returned.
-
-### 🏋️ Output Control Practice Exercises
-
-```sql
--- 1. List all students ordered by GPA from highest to lowest.
-SELECT * FROM student ORDER BY gpa DESC;
-
--- 2. List the top 3 students by GPA.
-SELECT * FROM student ORDER BY gpa DESC LIMIT 3;
-
--- 3. List all enrolled courses for student 53688, ordered by grade A to C.
-SELECT * FROM enrolled WHERE sid = 53688 ORDER BY grade ASC;
-
--- 4. Find the 2nd and 3rd highest GPA students.
---    (Hint: LIMIT 2 OFFSET 1)
-SELECT * FROM student ORDER BY gpa DESC LIMIT 2 OFFSET 1;
-
--- 5. List all students sorted by name alphabetically, then by age descending
---    if names are equal.
-SELECT * FROM student ORDER BY name ASC, age DESC;
-
--- 6. List all courses ordered by course id descending.
-SELECT * FROM course ORDER BY cid DESC;
-
--- 7. Find the student with the lowest GPA. Show only that one row.
-SELECT * FROM student ORDER BY gpa ASC LIMIT 1;
-
--- 8. Paginate students: show students 6 through 10 when sorted by sid ascending.
-SELECT * FROM student ORDER BY sid ASC LIMIT 5 OFFSET 5;
-
--- 9. List all enrollments sorted first by grade (A before B before C),
---    then by course id alphabetically.
-SELECT * FROM enrolled ORDER BY grade ASC, cid ASC;
-
--- 10. Create a new table TopStudents containing students with GPA >= 3.9.
-CREATE TABLE TopStudents AS
-SELECT * FROM student WHERE gpa >= 3.9;
-```
-
----
-
-## 9. Nested Queries (Subqueries)
-
-> [!note] What Are Nested Queries?
-> A **nested query** (subquery) is a full `SELECT` statement embedded inside another query. They allow expressing complex logic that would otherwise require multiple round trips or temporary tables. The inner query executes and its result is used by the outer query.
->
-> **Scope rule:** The inner query can reference columns from the outer query (correlated subquery), but the outer query cannot reference columns computed inside the inner query.
-
-### Where Can Subqueries Appear?
-
-```sql
--- 1. In SELECT output list (scalar subquery)
-SELECT sid,
-       (SELECT name FROM student AS s WHERE s.sid = e.sid) AS student_name
+-- 1. In SELECT (scalar subquery)
+SELECT sid, (SELECT name FROM student AS s WHERE s.sid = e.sid) AS student_name
 FROM enrolled AS e;
 
--- 2. In FROM clause (derived table / inline view)
-SELECT s.name
-FROM student AS s,
-     (SELECT sid FROM enrolled WHERE cid = '15-445') AS enrolled_445
+-- 2. In FROM (derived table)
+SELECT s.name FROM student AS s,
+    (SELECT sid FROM enrolled WHERE cid = '15-445') AS enrolled_445
 WHERE s.sid = enrolled_445.sid;
 
--- 3. In WHERE clause (most common)
-SELECT name FROM student
-WHERE sid IN (SELECT sid FROM enrolled WHERE cid = '15-445');
+-- 3. In WHERE (most common)
+SELECT name FROM student WHERE sid IN (SELECT sid FROM enrolled WHERE cid = '15-445');
 ```
 
-### Nested Query Result Expressions
+### Subquery Operators
 
 | Operator | Meaning |
 |---|---|
-| `ALL` | Expression must be true for **every** row in the subquery result |
-| `ANY` | Expression must be true for **at least one** row in the subquery result |
-| `IN` | Equivalent to `= ANY()` — value appears in the subquery result set |
-| `EXISTS` | True if the subquery returns **at least one row** (doesn't compare values) |
-| `NOT EXISTS` | True if the subquery returns **zero rows** |
-
-### Example: Students Enrolled in a Specific Course
-
-```sql
--- Get names of students enrolled in '15-445'
-SELECT name FROM student
-WHERE sid IN (
-    SELECT sid FROM enrolled
-    WHERE cid = '15-445'
-);
--- Result: RZA, Tupac
-```
-
-### Example: Student with Highest Enrollment ID
+| `IN` | Value is in the subquery result set |
+| `NOT IN` | Value is not in the subquery result set (watch out for NULLs!) |
+| `EXISTS` | True if subquery returns at least one row |
+| `NOT EXISTS` | True if subquery returns zero rows |
+| `ANY` | True for at least one row in subquery |
+| `ALL` | True for every row in subquery |
 
 ```sql
--- Find the student record with the maximum sid among enrolled students
--- Method 1: Using IN with MAX
-SELECT sid, name FROM student
-WHERE sid IN (
-    SELECT MAX(sid) FROM enrolled
+-- IN: students enrolled in 15-445
+SELECT name FROM student WHERE sid IN (SELECT sid FROM enrolled WHERE cid = '15-445');
+
+-- NOT EXISTS: courses with no students (safer than NOT IN)
+SELECT * FROM course WHERE NOT EXISTS (
+    SELECT 1 FROM enrolled WHERE course.cid = enrolled.cid
 );
 
--- Method 2: Using JOIN with derived table (cleaner, optimizer-friendly)
-SELECT s.sid, s.name
-FROM student AS s
-JOIN (SELECT MAX(sid) AS sid FROM enrolled) AS max_e
-    ON s.sid = max_e.sid;
+-- ANY: students whose GPA > at least one student in 15-826
+SELECT name FROM student WHERE gpa > ANY (
+    SELECT s.gpa FROM student AS s JOIN enrolled AS e ON s.sid = e.sid WHERE e.cid = '15-826'
+);
 
--- Method 3: Using ORDER BY + FETCH (explicit)
-SELECT sid, name FROM student
-WHERE sid IN (
-    SELECT sid FROM enrolled
-    ORDER BY sid DESC
-    FETCH FIRST 1 ROW ONLY
+-- ALL: students whose GPA > every student in 15-445
+SELECT name FROM student WHERE gpa > ALL (
+    SELECT s.gpa FROM student AS s JOIN enrolled AS e ON s.sid = e.sid WHERE e.cid = '15-445'
 );
 ```
 
-### Example: Courses with No Students (Correlated NOT EXISTS)
-
-```sql
--- Find courses that have zero enrollments
--- This is a correlated subquery: the inner query references course.cid from outer
-SELECT * FROM course
-WHERE NOT EXISTS (
-    SELECT * FROM enrolled
-    WHERE course.cid = enrolled.cid
-);
--- Result: 15-799 Special Topics in Databases
-```
-
-The `NOT EXISTS` pattern is generally preferred over `NOT IN` because `NOT IN` has subtle NULL-handling bugs: if the subquery returns any NULL, `NOT IN` returns no rows at all.
-
-> [!warning] NOT IN vs. NOT EXISTS and NULLs
-> ```sql
-> -- DANGEROUS: if any enrolled.cid is NULL, this returns zero rows
-> SELECT * FROM course WHERE cid NOT IN (SELECT cid FROM enrolled);
->
-> -- SAFE: NOT EXISTS handles NULLs correctly
-> SELECT * FROM course
-> WHERE NOT EXISTS (SELECT 1 FROM enrolled WHERE enrolled.cid = course.cid);
-> ```
-> Always prefer `NOT EXISTS` over `NOT IN` when NULLs may be present in the subquery.
-
-> [!tip] Nested Queries Are Hard to Optimize
-> The DBMS may not be able to "un-nest" a correlated subquery efficiently — it might re-execute the inner query for each row of the outer table. For large datasets, rewriting with a `JOIN` or `CTE` often yields dramatically better performance. Use `EXPLAIN ANALYZE` (PostgreSQL) to verify.
+> [!warning] NOT IN vs NOT EXISTS: if the subquery returns any NULL, `NOT IN` returns zero rows. Always prefer `NOT EXISTS`.
 
 ### 🏋️ Nested Query Practice Exercises
 
 ```sql
--- 1. Find the names of all students who are enrolled in at least one course.
-SELECT name FROM student
-WHERE sid IN (SELECT sid FROM enrolled);
+-- 1. Find names of all students enrolled in at least one course.
+SELECT name FROM student WHERE sid IN (SELECT sid FROM enrolled);
 
--- 2. Find the names of all students who are NOT enrolled in any course.
---    (Use NOT EXISTS)
+-- 2. Find names of students NOT enrolled in any course. (NOT EXISTS)
 SELECT name FROM student AS s
-WHERE NOT EXISTS (
-    SELECT 1 FROM enrolled AS e WHERE e.sid = s.sid
-);
+WHERE NOT EXISTS (SELECT 1 FROM enrolled AS e WHERE e.sid = s.sid);
 
--- 3. Find all courses that have at least one enrolled student.
---    (Use EXISTS)
+-- 3. Find all courses with at least one enrolled student. (EXISTS)
 SELECT * FROM course AS c
-WHERE EXISTS (
-    SELECT 1 FROM enrolled AS e WHERE e.cid = c.cid
-);
+WHERE EXISTS (SELECT 1 FROM enrolled AS e WHERE e.cid = c.cid);
 
 -- 4. Find the name of the student with the highest GPA.
---    (Use a subquery with MAX)
-SELECT name FROM student
-WHERE gpa = (SELECT MAX(gpa) FROM student);
+SELECT name FROM student WHERE gpa = (SELECT MAX(gpa) FROM student);
 
--- 5. Find all students whose GPA is above the average GPA of all students.
-SELECT name, gpa FROM student
-WHERE gpa > (SELECT AVG(gpa) FROM student);
+-- 5. Find all students with GPA above the average.
+SELECT name, gpa FROM student WHERE gpa > (SELECT AVG(gpa) FROM student);
 
--- 6. Find all students enrolled in both '15-445' AND '15-721'.
---    (Hint: nested IN or intersect)
+-- 6. Find students enrolled in both '15-445' AND '15-721'.
 SELECT sid FROM enrolled WHERE cid = '15-445'
 INTERSECT
 SELECT sid FROM enrolled WHERE cid = '15-721';
 
--- 7. Find all courses where every enrolled student has a grade of 'A'.
---    (Hint: NOT EXISTS with a NOT = 'A' inner query)
-SELECT * FROM course AS c
-WHERE NOT EXISTS (
-    SELECT 1 FROM enrolled AS e
-    WHERE e.cid = c.cid AND e.grade <> 'A'
+-- 7. Find courses where every enrolled student has grade 'A'.
+SELECT * FROM course AS c WHERE NOT EXISTS (
+    SELECT 1 FROM enrolled AS e WHERE e.cid = c.cid AND e.grade <> 'A'
 );
 
--- 8. Using a subquery in the FROM clause, find the average GPA
---    of students who are enrolled in at least one course.
-SELECT AVG(gpa) AS avg_gpa
-FROM (
-    SELECT DISTINCT s.sid, s.gpa
-    FROM student AS s
-    JOIN enrolled AS e ON s.sid = e.sid
+-- 8. Find the avg GPA of students enrolled in at least one course (subquery in FROM).
+SELECT AVG(gpa) AS avg_gpa FROM (
+    SELECT DISTINCT s.sid, s.gpa FROM student AS s JOIN enrolled AS e ON s.sid = e.sid
 ) AS enrolled_students;
 
--- 9. Find students who are enrolled in more courses than student 53688.
---    (Hint: correlated subquery with COUNT)
+-- 9. Find students enrolled in more courses than student 53688.
 SELECT s.name FROM student AS s
-WHERE (
-    SELECT COUNT(*) FROM enrolled AS e WHERE e.sid = s.sid
-) > (
-    SELECT COUNT(*) FROM enrolled AS e WHERE e.sid = 53688
-);
+WHERE (SELECT COUNT(*) FROM enrolled AS e WHERE e.sid = s.sid) >
+      (SELECT COUNT(*) FROM enrolled AS e WHERE e.sid = 53688);
 
--- 10. Find the course(s) with the lowest number of enrolled students
---     (could be 0). Show cid and count.
-SELECT c.cid, COUNT(e.sid) AS student_count
-FROM course AS c
-LEFT JOIN enrolled AS e ON c.cid = e.cid
-GROUP BY c.cid
-HAVING COUNT(e.sid) = (
-    SELECT MIN(cnt) FROM (
-        SELECT c2.cid, COUNT(e2.sid) AS cnt
-        FROM course AS c2
-        LEFT JOIN enrolled AS e2 ON c2.cid = e2.cid
-        GROUP BY c2.cid
-    ) AS counts
-);
-
--- 11. Find all students enrolled in '15-445' but NOT in '15-721'.
+-- 10. Find students in '15-445' but NOT in '15-721'.
 SELECT sid FROM enrolled WHERE cid = '15-445'
 EXCEPT
 SELECT sid FROM enrolled WHERE cid = '15-721';
 
--- 12. Using ANY, find students whose GPA is greater than at least one
---     student enrolled in course '15-826'.
-SELECT name, gpa FROM student
-WHERE gpa > ANY (
-    SELECT s.gpa FROM student AS s
-    JOIN enrolled AS e ON s.sid = e.sid
-    WHERE e.cid = '15-826'
+-- 11. Using ANY, find students whose GPA > at least one student in '15-826'.
+SELECT name, gpa FROM student WHERE gpa > ANY (
+    SELECT s.gpa FROM student AS s JOIN enrolled AS e ON s.sid = e.sid WHERE e.cid = '15-826'
 );
 
--- 13. Using ALL, find students whose GPA is greater than every student
---     enrolled in course '15-445'.
-SELECT name, gpa FROM student
-WHERE gpa > ALL (
-    SELECT s.gpa FROM student AS s
-    JOIN enrolled AS e ON s.sid = e.sid
-    WHERE e.cid = '15-445'
+-- 12. Using ALL, find students whose GPA > every student in '15-445'.
+SELECT name, gpa FROM student WHERE gpa > ALL (
+    SELECT s.gpa FROM student AS s JOIN enrolled AS e ON s.sid = e.sid WHERE e.cid = '15-445'
 );
 
--- 14. Find courses where the number of enrolled students equals the
---     maximum enrollment count of any course.
-SELECT cid, COUNT(*) AS cnt
-FROM enrolled
-GROUP BY cid
-HAVING COUNT(*) = (
-    SELECT MAX(course_cnt) FROM (
-        SELECT COUNT(*) AS course_cnt FROM enrolled GROUP BY cid
+-- 13. Find courses with enrollment equal to the maximum enrollment.
+SELECT cid, COUNT(*) AS cnt FROM enrolled GROUP BY cid
+HAVING COUNT(*) = (SELECT MAX(course_cnt) FROM (SELECT COUNT(*) AS course_cnt FROM enrolled GROUP BY cid) AS counts);
+
+-- 14. Find students who share GPA with at least one other student.
+SELECT name, gpa FROM student WHERE gpa IN (
+    SELECT gpa FROM student GROUP BY gpa HAVING COUNT(*) > 1
+);
+
+-- 15. Find the course(s) with the lowest enrollment count.
+SELECT c.cid, COUNT(e.sid) AS student_count
+FROM course AS c LEFT JOIN enrolled AS e ON c.cid = e.cid
+GROUP BY c.cid
+HAVING COUNT(e.sid) = (
+    SELECT MIN(cnt) FROM (
+        SELECT c2.cid, COUNT(e2.sid) AS cnt
+        FROM course AS c2 LEFT JOIN enrolled AS e2 ON c2.cid = e2.cid
+        GROUP BY c2.cid
     ) AS counts
-);
-
--- 15. Find students who share the same GPA as at least one other student.
-SELECT name, gpa FROM student
-WHERE gpa IN (
-    SELECT gpa FROM student
-    GROUP BY gpa
-    HAVING COUNT(*) > 1
 );
 ```
 
 ---
 
-## 10. Lateral Joins
+## L5-4. Lateral Joins
 
-> [!note] What Is LATERAL?
-> The `LATERAL` keyword allows a subquery in the `FROM` clause to reference columns from tables that appear *earlier* (to its left) in the same `FROM` clause. Without `LATERAL`, a subquery in `FROM` is independent — it cannot see other tables in the same query's `FROM` list.
->
-> Conceptually, a `LATERAL` join behaves like a **for loop**: for each row in the left table, execute the lateral subquery using that row's values, then combine the results.
-
-```
-Conceptual execution:
-for each course c in course:
-    t1 = COUNT(*) of enrolled rows where cid = c.cid
-    t2 = AVG(gpa) of students enrolled in c.cid
-    emit (c.*, t1.cnt, t2.avg)
-```
+> `LATERAL` allows a subquery in `FROM` to reference columns from tables appearing earlier (to its left) in the same `FROM` clause. Like a SQL for-loop: for each left row, execute the lateral subquery.
 
 ```sql
--- Calculate enrollment count and average GPA per course
--- t1 sees c.cid; t2 sees c.cid (both reference the outer course table)
+-- For each course: enrollment count + average GPA in one query
 SELECT *
 FROM course AS c,
-     LATERAL (
-         SELECT COUNT(*) AS cnt
-         FROM enrolled
-         WHERE enrolled.cid = c.cid
-     ) AS t1,
-     LATERAL (
-         SELECT AVG(s.gpa) AS avg_gpa
-         FROM student AS s
-         JOIN enrolled AS e ON s.sid = e.sid
-         WHERE e.cid = c.cid
-     ) AS t2
+     LATERAL (SELECT COUNT(*) AS cnt FROM enrolled WHERE enrolled.cid = c.cid) AS t1,
+     LATERAL (SELECT AVG(s.gpa) AS avg_gpa
+              FROM student AS s JOIN enrolled AS e ON s.sid = e.sid
+              WHERE e.cid = c.cid) AS t2
 ORDER BY t1.cnt ASC;
 ```
 
-```
-Result:
-cid     name                         cnt  avg_gpa
-15-799  Special Topics in Databases   0   NULL
-15-826  Data Mining                   1   3.90
-15-445  Database Systems              2   3.75
-15-721  Advanced DB Systems           2   3.95
-```
-
-Notice that `15-799` appears with `cnt = 0` and `avg_gpa = NULL` — a course with no enrollments. A regular `JOIN` would have eliminated it entirely. `LATERAL` with a comma join (implicit cross join) preserves all rows.
-
-> [!tip] LATERAL vs. Correlated Subquery in WHERE
-> A correlated subquery in `WHERE` runs once per outer row but can only return a scalar (single value). `LATERAL` in `FROM` can return multiple columns and multiple rows per outer row, making it far more powerful for computing multiple derived values simultaneously without repeating the join logic.
->
-> In PostgreSQL, `JOIN LATERAL ... ON TRUE` is an explicit form. Many ORMs (like Prisma, TypeORM) generate lateral-style queries internally for N+1 avoidance.
-
-### Simple LATERAL Illustration
-
-```sql
--- t1 produces x=1; t2 references t1.x and produces y=2
-SELECT *
-FROM (SELECT 1 AS x) AS t1,
-     LATERAL (SELECT t1.x + 1 AS y) AS t2;
--- Result: x=1, y=2
-```
+> `LEFT JOIN LATERAL ... ON TRUE` preserves courses with zero enrollments. A plain comma join also works but filters them out depending on the inner query.
 
 ### 🏋️ Lateral Join Practice Exercises
 
 ```sql
--- 1. For each course, use LATERAL to find the number of enrolled students.
---    Show course name and count.
-SELECT c.name, t.cnt
-FROM course AS c,
-     LATERAL (
-         SELECT COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid
-     ) AS t;
+-- 1. For each course, find number of enrolled students.
+SELECT c.name, t.cnt FROM course AS c,
+     LATERAL (SELECT COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid) AS t;
 
--- 2. For each student, use LATERAL to find the number of courses they are enrolled in.
---    Show student name and course count.
-SELECT s.name, t.cnt
-FROM student AS s,
-     LATERAL (
-         SELECT COUNT(*) AS cnt FROM enrolled WHERE sid = s.sid
-     ) AS t;
+-- 2. For each student, find number of courses enrolled in.
+SELECT s.name, t.cnt FROM student AS s,
+     LATERAL (SELECT COUNT(*) AS cnt FROM enrolled WHERE sid = s.sid) AS t;
 
--- 3. For each course, use LATERAL to find the grade given most frequently.
---    (Hint: LATERAL with ORDER BY + LIMIT 1)
-SELECT c.name, t.grade
-FROM course AS c,
-     LATERAL (
-         SELECT grade, COUNT(*) AS cnt
-         FROM enrolled
-         WHERE cid = c.cid
-         GROUP BY grade
-         ORDER BY cnt DESC
-         LIMIT 1
-     ) AS t;
+-- 3. For each course, find the most frequent grade.
+SELECT c.name, t.grade FROM course AS c,
+     LATERAL (SELECT grade, COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid
+              GROUP BY grade ORDER BY cnt DESC LIMIT 1) AS t;
 
--- 4. For each student, use LATERAL to find the course they are enrolled in
---    that has the highest average GPA. Show student name and course cid.
-SELECT s.name, t.cid
-FROM student AS s,
-     LATERAL (
-         SELECT e.cid, AVG(s2.gpa) AS avg_gpa
-         FROM enrolled AS e
-         JOIN student AS s2 ON e.sid = s2.sid
-         WHERE e.sid = s.sid
-         GROUP BY e.cid
-         ORDER BY avg_gpa DESC
-         LIMIT 1
-     ) AS t;
+-- 4. For each course, compute both enrollment count and MAX GPA.
+SELECT c.name, t1.cnt, t2.max_gpa FROM course AS c,
+     LATERAL (SELECT COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid) AS t1,
+     LATERAL (SELECT MAX(s.gpa) AS max_gpa
+              FROM student AS s JOIN enrolled AS e ON s.sid = e.sid WHERE e.cid = c.cid) AS t2;
 
--- 5. Use LATERAL to compute, for each course, both the enrollment count
---    and the MAX GPA of enrolled students in one query.
-SELECT c.name, t1.cnt, t2.max_gpa
-FROM course AS c,
-     LATERAL (
-         SELECT COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid
-     ) AS t1,
-     LATERAL (
-         SELECT MAX(s.gpa) AS max_gpa
-         FROM student AS s
-         JOIN enrolled AS e ON s.sid = e.sid
-         WHERE e.cid = c.cid
-     ) AS t2;
+-- 5. For each student, find their grade in '15-445' (NULL if not enrolled).
+SELECT s.name, t.grade FROM student AS s
+LEFT JOIN LATERAL (SELECT grade FROM enrolled WHERE sid = s.sid AND cid = '15-445') AS t ON TRUE;
 
--- 6. For each course, use LATERAL to get the name of the student
---    with the highest GPA enrolled in that course.
-SELECT c.name AS course_name, t.student_name
-FROM course AS c,
-     LATERAL (
-         SELECT s.name AS student_name
-         FROM student AS s
-         JOIN enrolled AS e ON s.sid = e.sid
-         WHERE e.cid = c.cid
-         ORDER BY s.gpa DESC
-         LIMIT 1
-     ) AS t;
+-- 6. For each course, get the name of the highest-GPA enrolled student.
+SELECT c.name AS course_name, t.student_name FROM course AS c,
+     LATERAL (SELECT s.name AS student_name FROM student AS s
+              JOIN enrolled AS e ON s.sid = e.sid WHERE e.cid = c.cid
+              ORDER BY s.gpa DESC LIMIT 1) AS t;
 
--- 7. For each student, use LATERAL to find the grade they received
---    in course '15-445' (NULL if not enrolled). Show student name and grade.
-SELECT s.name, t.grade
-FROM student AS s
-LEFT JOIN LATERAL (
-    SELECT grade FROM enrolled
-    WHERE sid = s.sid AND cid = '15-445'
-) AS t ON TRUE;
+-- 7. For each student, find how many other students share their GPA.
+SELECT s.name, s.gpa, t.shared_count FROM student AS s,
+     LATERAL (SELECT COUNT(*) - 1 AS shared_count FROM student AS s2 WHERE s2.gpa = s.gpa) AS t;
 
--- 8. List all courses with their enrollment count and average student age
---    using two LATERAL subqueries.
-SELECT c.name, t1.cnt, t2.avg_age
-FROM course AS c,
-     LATERAL (
-         SELECT COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid
-     ) AS t1,
-     LATERAL (
-         SELECT AVG(s.age) AS avg_age
-         FROM student AS s
-         JOIN enrolled AS e ON s.sid = e.sid
-         WHERE e.cid = c.cid
-     ) AS t2;
-
--- 9. Use LATERAL to simulate a row number per course, listing
---    all students enrolled with their position (1, 2, ...) in that course.
-SELECT c.cid, t.sid, t.rn
-FROM course AS c,
-     LATERAL (
-         SELECT e.sid, ROW_NUMBER() OVER (ORDER BY e.sid) AS rn
-         FROM enrolled AS e
-         WHERE e.cid = c.cid
-     ) AS t;
-
--- 10. For each student, LATERAL join to find how many other students
---     share the same GPA.
-SELECT s.name, s.gpa, t.shared_count
-FROM student AS s,
-     LATERAL (
-         SELECT COUNT(*) - 1 AS shared_count
-         FROM student AS s2
-         WHERE s2.gpa = s.gpa
-     ) AS t;
+-- 8. List all courses with enrollment count and average student age.
+SELECT c.name, t1.cnt, t2.avg_age FROM course AS c,
+     LATERAL (SELECT COUNT(*) AS cnt FROM enrolled WHERE cid = c.cid) AS t1,
+     LATERAL (SELECT AVG(s.age) AS avg_age
+              FROM student AS s JOIN enrolled AS e ON s.sid = e.sid WHERE e.cid = c.cid) AS t2;
 ```
 
 ---
 
-## 11. Common Table Expressions (CTEs)
+## L5-5. Common Table Expressions (CTEs)
 
-> [!note] What Is a CTE?
-> A **Common Table Expression** (CTE) is a named, temporary result set defined with the `WITH` clause that exists only for the duration of a single query. It functions like an inline view or a temporary table scoped to that one statement.
->
-> CTEs are an alternative to nested subqueries, explicit temp tables, and views. They improve readability, allow reuse of the same result multiple times in one query, and enable recursion.
+> A **CTE** is a named temporary result set defined with `WITH`, scoped to one query. Improves readability and allows result reuse and recursion.
 
 ```sql
--- Basic CTE: define cteName, then use it like a table
-WITH cteName AS (
-    SELECT 1 AS value
+-- Basic CTE
+WITH high_gpa AS (
+    SELECT name, gpa FROM student WHERE gpa > 3.8
 )
-SELECT * FROM cteName;
--- Result: value = 1
+SELECT * FROM high_gpa ORDER BY gpa DESC;
 
--- Column aliasing before AS keyword
-WITH cteName (col1, col2) AS (
-    SELECT 1, 2
-)
-SELECT col1 + col2 AS total FROM cteName;
--- Result: total = 3
-```
-
-### Multiple CTEs in One Query
-
-```sql
--- Chain multiple CTEs — later ones can reference earlier ones
+-- Multiple chained CTEs
 WITH
     enrolled_counts (cid, cnt) AS (
         SELECT cid, COUNT(*) FROM enrolled GROUP BY cid
@@ -1147,175 +1473,92 @@ WITH
     high_enrollment (cid) AS (
         SELECT cid FROM enrolled_counts WHERE cnt > 1
     )
-SELECT c.name
-FROM course AS c
-JOIN high_enrollment AS h ON c.cid = h.cid;
+SELECT c.name FROM course AS c JOIN high_enrollment AS h ON c.cid = h.cid;
 ```
-
-### CTE Replacing a Nested Subquery
-
-```sql
--- Find student with highest sid among enrolled students — using CTE
-WITH max_enrolled (max_sid) AS (
-    SELECT MAX(sid) FROM enrolled
-)
-SELECT s.name
-FROM student AS s
-JOIN max_enrolled ON s.sid = max_enrolled.max_sid;
-```
-
-This is functionally identical to the nested subquery version, but significantly more readable.
 
 ### Recursive CTEs
 
-Adding `RECURSIVE` after `WITH` allows the CTE to reference itself. This enables expressing recursive computations — hierarchies, graph traversals, sequences — that would otherwise require procedural code.
-
-> [!important] Recursive CTE Structure
-> A recursive CTE has two mandatory parts separated by `UNION` or `UNION ALL`:
-> 1. **Base case** — the non-recursive seed query (executed once)
-> 2. **Recursive case** — the query that references the CTE itself (executed repeatedly until no new rows are produced)
->
-> ```sql
-> WITH RECURSIVE cte_name (columns) AS (
->     -- Base case
->     SELECT initial_values
->     UNION [ALL]
->     -- Recursive case (references cte_name)
->     SELECT next_values FROM cte_name WHERE stop_condition
-> )
-> SELECT * FROM cte_name;
-> ```
-
 ```sql
--- Generate integers 1 through 10 using recursion
+-- Generate integers 1–10
 WITH RECURSIVE counter (n) AS (
-    SELECT 1                              -- Base case: start at 1
+    SELECT 1
     UNION ALL
-    SELECT n + 1 FROM counter WHERE n < 10  -- Recursive: add 1 until n=10
+    SELECT n + 1 FROM counter WHERE n < 10
 )
 SELECT * FROM counter;
--- Result: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-```
 
-```sql
--- Practical example: traverse an org chart hierarchy
--- Assuming a table: employee(id, name, manager_id)
-WITH RECURSIVE org_tree (id, name, depth) AS (
-    -- Base case: the CEO (no manager)
-    SELECT id, name, 0 FROM employee WHERE manager_id IS NULL
-    UNION ALL
-    -- Recursive: find direct reports of already-found employees
-    SELECT e.id, e.name, t.depth + 1
-    FROM employee AS e
-    JOIN org_tree AS t ON e.manager_id = t.id
-)
-SELECT * FROM org_tree ORDER BY depth, name;
-```
-
-> [!important] SQL Is Turing-Complete with Recursive CTEs
-> `WITH RECURSIVE` makes SQL provably **Turing-complete** — it can express any computation that a general-purpose programming language can (given enough time and memory). This is not just trivia: it means complex graph algorithms (shortest paths, connectivity checks) can be expressed purely in SQL without application-side logic.
-
-> [!tip] CTE vs. Subquery — When to Use Which
-> Prefer **CTEs** when: the same subquery result is referenced multiple times, the query has more than two levels of nesting, or you need recursion.
-> Prefer **subqueries** when: the logic is a one-liner used in exactly one place and a CTE would add verbosity without clarity.
-> In PostgreSQL, CTEs before version 12 were **optimization fences** (always materialized). From PostgreSQL 12+, the planner can inline non-recursive CTEs unless you add `MATERIALIZED`. Be aware of this when writing performance-critical queries.
-
-### 🏋️ CTE Practice Exercises
-
-```sql
--- 1. Write a CTE that finds all students with GPA above 3.8,
---    then select their names and GPAs from it.
-WITH high_gpa AS (
-    SELECT name, gpa FROM student WHERE gpa > 3.8
-)
-SELECT * FROM high_gpa ORDER BY gpa DESC;
-
--- 2. Write a CTE that computes enrollment counts per course,
---    then select courses with more than 1 student.
-WITH enrollment_counts AS (
-    SELECT cid, COUNT(*) AS cnt FROM enrolled GROUP BY cid
-)
-SELECT cid, cnt FROM enrollment_counts WHERE cnt > 1;
-
--- 3. Rewrite the "find student with highest sid enrolled" query using a CTE.
-WITH max_enrolled (max_sid) AS (
-    SELECT MAX(sid) FROM enrolled
-)
-SELECT s.name FROM student AS s
-JOIN max_enrolled ON s.sid = max_enrolled.max_sid;
-
--- 4. Write two chained CTEs: first get all enrolled sids, then
---    from those get names of students with GPA >= 3.5.
-WITH
-    enrolled_sids AS (
-        SELECT DISTINCT sid FROM enrolled
-    ),
-    good_students AS (
-        SELECT s.name, s.gpa FROM student AS s
-        JOIN enrolled_sids AS e ON s.sid = e.sid
-        WHERE s.gpa >= 3.5
-    )
-SELECT * FROM good_students ORDER BY gpa DESC;
-
--- 5. Write a CTE that finds the average GPA per course,
---    then list courses where avg GPA is above the overall average GPA
---    (which should also come from a CTE).
-WITH
-    course_avg AS (
-        SELECT e.cid, AVG(s.gpa) AS avg_gpa
-        FROM enrolled AS e
-        JOIN student AS s ON e.sid = s.sid
-        GROUP BY e.cid
-    ),
-    overall_avg AS (
-        SELECT AVG(gpa) AS avg_gpa FROM student
-    )
-SELECT c.cid, c.avg_gpa
-FROM course_avg AS c, overall_avg AS o
-WHERE c.avg_gpa > o.avg_gpa;
-
--- 6. Use a recursive CTE to generate a sequence of even numbers from 2 to 20.
-WITH RECURSIVE evens (n) AS (
-    SELECT 2
-    UNION ALL
-    SELECT n + 2 FROM evens WHERE n < 20
-)
-SELECT * FROM evens;
-
--- 7. Use a recursive CTE to compute the factorial of 10.
---    (Output: n and n! for each row from 1 to 10)
+-- Factorial of 10
 WITH RECURSIVE factorial (n, fact) AS (
     SELECT 1, 1
     UNION ALL
     SELECT n + 1, fact * (n + 1) FROM factorial WHERE n < 10
 )
+SELECT n, fact FROM factorial;
+```
+
+> `WITH RECURSIVE` makes SQL **Turing-complete** — it can express any computation, including graph traversals and hierarchies.
+
+### 🏋️ CTE Practice Exercises
+
+```sql
+-- 1. CTE to find students with GPA > 3.8, then select names.
+WITH high_gpa AS (SELECT name, gpa FROM student WHERE gpa > 3.8)
+SELECT * FROM high_gpa ORDER BY gpa DESC;
+
+-- 2. CTE for enrollment counts, then select courses with more than 1 student.
+WITH enrollment_counts AS (SELECT cid, COUNT(*) AS cnt FROM enrolled GROUP BY cid)
+SELECT cid, cnt FROM enrollment_counts WHERE cnt > 1;
+
+-- 3. Rewrite "find student with highest sid enrolled" using CTE.
+WITH max_enrolled (max_sid) AS (SELECT MAX(sid) FROM enrolled)
+SELECT s.name FROM student AS s JOIN max_enrolled ON s.sid = max_enrolled.max_sid;
+
+-- 4. Two chained CTEs: enrolled sids → good students (GPA >= 3.5).
+WITH
+    enrolled_sids AS (SELECT DISTINCT sid FROM enrolled),
+    good_students AS (
+        SELECT s.name, s.gpa FROM student AS s
+        JOIN enrolled_sids AS e ON s.sid = e.sid WHERE s.gpa >= 3.5
+    )
+SELECT * FROM good_students ORDER BY gpa DESC;
+
+-- 5. CTE for course avg GPA vs overall avg GPA.
+WITH
+    course_avg AS (
+        SELECT e.cid, AVG(s.gpa) AS avg_gpa
+        FROM enrolled AS e JOIN student AS s ON e.sid = s.sid GROUP BY e.cid
+    ),
+    overall_avg AS (SELECT AVG(gpa) AS avg_gpa FROM student)
+SELECT c.cid, c.avg_gpa FROM course_avg AS c, overall_avg AS o WHERE c.avg_gpa > o.avg_gpa;
+
+-- 6. Recursive CTE: even numbers 2 to 20.
+WITH RECURSIVE evens (n) AS (
+    SELECT 2 UNION ALL SELECT n + 2 FROM evens WHERE n < 20
+)
+SELECT * FROM evens;
+
+-- 7. Recursive CTE: factorial of 10.
+WITH RECURSIVE factorial (n, fact) AS (
+    SELECT 1, 1 UNION ALL SELECT n + 1, fact * (n + 1) FROM factorial WHERE n < 10
+)
 SELECT n, fact AS factorial FROM factorial;
 
--- 8. Write a CTE that for each course computes the number of
---    students with grade 'A'. Then show courses with zero 'A' grades.
+-- 8. CTE: for each course, count students with grade 'A'. Show courses with zero A's.
 WITH a_counts AS (
     SELECT c.cid, COUNT(e.sid) AS a_count
-    FROM course AS c
-    LEFT JOIN enrolled AS e ON c.cid = e.cid AND e.grade = 'A'
+    FROM course AS c LEFT JOIN enrolled AS e ON c.cid = e.cid AND e.grade = 'A'
     GROUP BY c.cid
 )
 SELECT cid FROM a_counts WHERE a_count = 0;
 
--- 9. Write a CTE to find students enrolled in more than one course,
---    then show their names and enrollment counts.
+-- 9. CTE: students enrolled in more than one course, show names and count.
 WITH multi_enrolled AS (
-    SELECT sid, COUNT(*) AS course_count
-    FROM enrolled
-    GROUP BY sid
-    HAVING COUNT(*) > 1
+    SELECT sid, COUNT(*) AS course_count FROM enrolled GROUP BY sid HAVING COUNT(*) > 1
 )
-SELECT s.name, m.course_count
-FROM student AS s
-JOIN multi_enrolled AS m ON s.sid = m.sid
+SELECT s.name, m.course_count FROM student AS s JOIN multi_enrolled AS m ON s.sid = m.sid
 ORDER BY m.course_count DESC;
 
--- 10. Use a recursive CTE to generate a Fibonacci sequence up to the
---     15th term. (Output columns: position, fibonacci_value)
+-- 10. Recursive CTE: Fibonacci sequence, first 15 terms.
 WITH RECURSIVE fib (pos, a, b) AS (
     SELECT 1, 0, 1
     UNION ALL
@@ -1323,373 +1566,310 @@ WITH RECURSIVE fib (pos, a, b) AS (
 )
 SELECT pos AS position, a AS fibonacci_value FROM fib;
 
--- 11. Write a CTE that ranks courses by enrollment count (most enrolled first),
---     then select the top 2 courses.
+-- 11. CTE ranking courses by enrollment, select top 2.
 WITH ranked_courses AS (
-    SELECT cid, COUNT(*) AS cnt,
-           RANK() OVER (ORDER BY COUNT(*) DESC) AS rnk
-    FROM enrolled
-    GROUP BY cid
+    SELECT cid, COUNT(*) AS cnt, RANK() OVER (ORDER BY COUNT(*) DESC) AS rnk
+    FROM enrolled GROUP BY cid
 )
 SELECT cid, cnt FROM ranked_courses WHERE rnk <= 2;
 
--- 12. Write two CTEs: one for students with GPA > 3.5, another for
---     students enrolled in '15-721'. Then find the intersection.
-WITH
-    high_gpa AS (
-        SELECT sid FROM student WHERE gpa > 3.5
-    ),
-    in_15721 AS (
-        SELECT sid FROM enrolled WHERE cid = '15-721'
-    )
-SELECT s.name, s.gpa
-FROM student AS s
-WHERE s.sid IN (SELECT sid FROM high_gpa)
-  AND s.sid IN (SELECT sid FROM in_15721);
-
--- 13. Write a CTE that computes, for each student, their grade in '15-445'
---     and their overall GPA. Then filter to students who got a 'C' but
---     have GPA above 3.5.
-WITH student_grades AS (
-    SELECT s.sid, s.name, s.gpa, e.grade
-    FROM student AS s
-    JOIN enrolled AS e ON s.sid = e.sid
-    WHERE e.cid = '15-445'
-)
-SELECT name, gpa, grade
-FROM student_grades
-WHERE grade = 'C' AND gpa > 3.5;
-
--- 14. Use a recursive CTE to compute the sum of integers 1 through 100.
+-- 12. Recursive CTE: sum of integers 1 to 100.
 WITH RECURSIVE sum_series (n, running_sum) AS (
     SELECT 1, 1
     UNION ALL
     SELECT n + 1, running_sum + (n + 1) FROM sum_series WHERE n < 100
 )
 SELECT running_sum AS total FROM sum_series WHERE n = 100;
-
--- 15. Write a multi-CTE query that: (a) finds the course with max enrollment,
---     (b) finds the average GPA of students in that course,
---     (c) selects the course name and that average GPA as the final output.
-WITH
-    max_enrollment AS (
-        SELECT cid, COUNT(*) AS cnt
-        FROM enrolled
-        GROUP BY cid
-        ORDER BY cnt DESC
-        LIMIT 1
-    ),
-    avg_gpa_in_course AS (
-        SELECT AVG(s.gpa) AS avg_gpa
-        FROM student AS s
-        JOIN enrolled AS e ON s.sid = e.sid
-        JOIN max_enrollment AS m ON e.cid = m.cid
-    )
-SELECT c.name AS course_name, a.avg_gpa
-FROM course AS c
-JOIN max_enrollment AS m ON c.cid = m.cid,
-     avg_gpa_in_course AS a;
 ```
 
 ---
 
-## 12. Window Functions
+## L5-6. Window Functions
 
-> [!note] What Are Window Functions?
-> A **window function** computes a value for each row based on a set of related rows (its "window"), without collapsing those rows into a single output row. This is the key difference from regular aggregates: `GROUP BY` produces one row per group; window functions produce one row per input row, augmented with a computed value derived from neighboring rows.
->
-> Window functions are essential for: running totals, moving averages, rankings, row numbering, lead/lag access, and percentile computations.
+> A **window function** computes a value for each row based on a related set of rows — without collapsing them like GROUP BY does.
 
 ```sql
--- Syntax template
+-- Syntax
 SELECT FUNC_NAME(...) OVER (
-    [PARTITION BY col1, col2, ...]  -- how to group rows
-    [ORDER BY col3 ASC|DESC]        -- how to order within the window
-    [ROWS/RANGE BETWEEN ...]        -- optional frame specification
+    [PARTITION BY col1, ...]   -- grouping (optional)
+    [ORDER BY col2 ASC|DESC]   -- ordering within window (optional)
+    [ROWS/RANGE BETWEEN ...]   -- frame specification (optional)
 )
 FROM table_name;
 ```
 
-### Standard Aggregate Functions as Window Functions
-
-Any standard aggregate (`SUM`, `AVG`, `COUNT`, `MIN`, `MAX`) can be used as a window function by adding `OVER (...)`.
+### Standard Aggregates as Window Functions
 
 ```sql
--- Running total of enrollment count across all rows (no partitioning)
-SELECT sid, cid, grade,
-       COUNT(*) OVER () AS total_enrollments
-FROM enrolled;
--- total_enrollments = 5 for every row (global count, no partitioning)
+-- Global count on every row (no partitioning)
+SELECT sid, cid, COUNT(*) OVER () AS total_enrollments FROM enrolled;
+
+-- Running total of GPA ordered by sid
+SELECT sid, gpa, SUM(gpa) OVER (ORDER BY sid ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_sum
+FROM student;
 ```
 
-### Special Window Functions
+### Ranking Functions
 
-| Function | Description |
+| Function | Behavior |
 |---|---|
-| `ROW_NUMBER()` | Assigns a unique sequential integer to each row within the window (no ties) |
-| `RANK()` | Assigns rank within window; ties receive the same rank, next rank skips (1,1,3) |
-| `DENSE_RANK()` | Like RANK but no gaps after ties (1,1,2) |
-| `LEAD(col, n)` | Value of `col` from n rows ahead |
-| `LAG(col, n)` | Value of `col` from n rows behind |
-| `NTILE(n)` | Divides rows into n equal buckets, returns bucket number |
-| `FIRST_VALUE(col)` | Value of `col` in the first row of the window frame |
-| `LAST_VALUE(col)` | Value of `col` in the last row of the window frame |
-
-### ROW_NUMBER — Basic Usage
+| `ROW_NUMBER()` | Always unique — no ties |
+| `RANK()` | Ties get same rank; next rank skips (1,1,3) |
+| `DENSE_RANK()` | Ties get same rank; no gap (1,1,2) |
+| `NTILE(n)` | Divides into n equal buckets |
 
 ```sql
--- Assign a row number to every enrollment (arbitrary order)
-SELECT *, ROW_NUMBER() OVER () AS row_num
-FROM enrolled;
-```
+-- Global row number ordered by GPA
+SELECT name, gpa, ROW_NUMBER() OVER (ORDER BY gpa DESC) AS row_num FROM student;
 
-```
-sid    cid     grade  row_num
-53666  15-445  C      1
-53688  15-721  A      2
-53688  15-826  B      3
-53655  15-445  B      4
-53666  15-721  C      5
-```
+-- Per-course row numbers
+SELECT cid, sid, ROW_NUMBER() OVER (PARTITION BY cid ORDER BY grade ASC) AS row_num FROM enrolled;
 
-### PARTITION BY — Per-Group Row Numbers
+-- Rank with ties
+SELECT name, gpa, RANK() OVER (ORDER BY gpa DESC) AS rnk FROM student;
 
-```sql
--- Row numbers reset per course (partitioned by cid)
-SELECT cid, sid,
-       ROW_NUMBER() OVER (PARTITION BY cid) AS row_num
-FROM enrolled
-ORDER BY cid;
-```
+-- Dense rank (no gaps)
+SELECT name, gpa, DENSE_RANK() OVER (ORDER BY gpa DESC) AS dr FROM student;
 
-```
-cid     sid    row_num
-15-445  53666  1
-15-445  53655  2
-15-721  53688  1
-15-721  53666  2
-15-826  53688  1
-```
-
-### ORDER BY Inside OVER — Deterministic Ordering
-
-```sql
--- Row numbers assigned in cid order (globally, not per partition)
-SELECT *, ROW_NUMBER() OVER (ORDER BY cid) AS row_num
-FROM enrolled
-ORDER BY cid;
-```
-
-> [!important] ROW_NUMBER vs. RANK — Timing of Sort
-> The DBMS computes `RANK()` **after** the window's `ORDER BY` sort, so ties in the sort key get the same rank. `ROW_NUMBER()` is computed **before** the sort stabilizes — each row always gets a unique number even for tied values. This means `ROW_NUMBER()` is non-deterministic among tied rows unless a tiebreaker column is added to `ORDER BY`.
-
-### RANK — Finding Top N Per Group
-
-```sql
--- Find the student with the 2nd highest grade (alphabetically: A < B < C)
--- for each course — i.e., the student with the second-best grade
+-- Top 2 per course
 SELECT * FROM (
-    SELECT *,
-           RANK() OVER (
-               PARTITION BY cid
-               ORDER BY grade ASC  -- ASC: 'A' ranks 1st, 'B' ranks 2nd
-           ) AS rnk
-    FROM enrolled
+    SELECT e.cid, s.name, s.gpa,
+           RANK() OVER (PARTITION BY e.cid ORDER BY s.gpa DESC) AS rnk
+    FROM enrolled AS e JOIN student AS s ON e.sid = s.sid
 ) AS ranked
-WHERE rnk = 2;
+WHERE rnk <= 2;
 ```
 
-The outer `WHERE` on the window rank must be done in a subquery or CTE because window functions are computed after `WHERE` in the logical execution order.
-
-> [!tip] Window Function Execution Order
-> Window functions are computed in the `SELECT` phase, *after* `WHERE`, `GROUP BY`, and `HAVING`. This means you cannot filter on a window function result in the same query's `WHERE` clause — you must wrap the query in a subquery or CTE and filter in the outer query.
-
-### Window Frame Specification
+### Lead / Lag / First / Last
 
 ```sql
--- Running sum of enrollments ordered by cid
--- ROWS BETWEEN defines exactly which rows are included in each window
-SELECT cid, sid,
-       SUM(COUNT(*)) OVER (
-           ORDER BY cid
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS running_total
-FROM enrolled
-GROUP BY cid, sid;
+-- LAG: previous row's value
+SELECT cid, sid, grade, LAG(grade, 1) OVER (PARTITION BY cid ORDER BY sid) AS prev_grade
+FROM enrolled;
+
+-- LEAD: next row's value
+SELECT name, gpa, LEAD(gpa, 1) OVER (ORDER BY gpa DESC) AS next_lower_gpa FROM student;
+
+-- FIRST_VALUE: first value in the window frame
+SELECT e.cid, s.name, e.grade,
+       FIRST_VALUE(s.name) OVER (PARTITION BY e.cid ORDER BY e.grade ASC) AS best_grade_student
+FROM enrolled AS e JOIN student AS s ON e.sid = s.sid;
 ```
+
+> [!tip] Window functions are computed **after** WHERE, GROUP BY, and HAVING. To filter on a window result, wrap the query in a subquery or CTE.
 
 ### 🏋️ Window Function Practice Exercises
 
 ```sql
 -- 1. Assign a global row number to all students ordered by GPA descending.
-SELECT name, gpa,
-       ROW_NUMBER() OVER (ORDER BY gpa DESC) AS row_num
-FROM student;
+SELECT name, gpa, ROW_NUMBER() OVER (ORDER BY gpa DESC) AS row_num FROM student;
 
--- 2. For each course, assign row numbers to enrolled students ordered by
---    grade ascending (best grade first).
-SELECT cid, sid, grade,
-       ROW_NUMBER() OVER (PARTITION BY cid ORDER BY grade ASC) AS row_num
+-- 2. For each course, assign row numbers to enrolled students ordered by grade.
+SELECT cid, sid, grade, ROW_NUMBER() OVER (PARTITION BY cid ORDER BY grade ASC) AS row_num
 FROM enrolled;
 
--- 3. Rank all students by GPA (highest = rank 1). Use RANK().
---    Show ties with the same rank.
-SELECT name, gpa,
-       RANK() OVER (ORDER BY gpa DESC) AS rnk
-FROM student;
+-- 3. Rank all students by GPA (highest = rank 1) using RANK().
+SELECT name, gpa, RANK() OVER (ORDER BY gpa DESC) AS rnk FROM student;
 
--- 4. Find all students who rank in the top 2 by GPA using DENSE_RANK().
+-- 4. Find students in top 2 by GPA using DENSE_RANK().
 SELECT name, gpa, dr FROM (
-    SELECT name, gpa,
-           DENSE_RANK() OVER (ORDER BY gpa DESC) AS dr
-    FROM student
-) AS ranked
-WHERE dr <= 2;
+    SELECT name, gpa, DENSE_RANK() OVER (ORDER BY gpa DESC) AS dr FROM student
+) AS ranked WHERE dr <= 2;
 
 -- 5. For each course, find the student with the highest GPA (rank = 1).
---    Use RANK() with PARTITION BY.
 SELECT cid, sid, gpa FROM (
-    SELECT e.cid, s.sid, s.gpa,
-           RANK() OVER (PARTITION BY e.cid ORDER BY s.gpa DESC) AS rnk
-    FROM enrolled AS e
-    JOIN student AS s ON e.sid = s.sid
-) AS ranked
-WHERE rnk = 1;
+    SELECT e.cid, s.sid, s.gpa, RANK() OVER (PARTITION BY e.cid ORDER BY s.gpa DESC) AS rnk
+    FROM enrolled AS e JOIN student AS s ON e.sid = s.sid
+) AS ranked WHERE rnk = 1;
 
--- 6. Find the student with the 2nd highest GPA overall. Handle ties.
-SELECT name, gpa FROM (
-    SELECT name, gpa,
-           DENSE_RANK() OVER (ORDER BY gpa DESC) AS dr
-    FROM student
-) AS ranked
-WHERE dr = 2;
-
--- 7. For each enrollment row, show the grade and the average grade
---    across all enrollments in the same course (as a window aggregate).
-SELECT cid, sid, grade,
-       AVG(ASCII(grade)) OVER (PARTITION BY cid) AS avg_grade_ascii
+-- 6. Compute a running count of enrollments ordered by sid.
+SELECT sid, cid, COUNT(*) OVER (ORDER BY sid ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_count
 FROM enrolled;
 
--- 8. Compute a running count of enrollments ordered by sid ascending.
-SELECT sid, cid,
-       COUNT(*) OVER (ORDER BY sid ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_count
+-- 7. For each enrollment, show the prev student's grade within the same course (LAG).
+SELECT cid, sid, grade, LAG(grade, 1) OVER (PARTITION BY cid ORDER BY sid) AS prev_grade
 FROM enrolled;
 
--- 9. For each enrollment, use LAG() to show the previous student's grade
---    when ordered by sid within each course.
-SELECT cid, sid, grade,
-       LAG(grade, 1) OVER (PARTITION BY cid ORDER BY sid) AS prev_grade
-FROM enrolled;
+-- 8. Show each student's GPA and the GPA of the student immediately above (LEAD).
+SELECT name, gpa, LEAD(gpa, 1) OVER (ORDER BY gpa DESC) AS next_lower_gpa FROM student;
 
--- 10. For each course, use FIRST_VALUE() to show the name of the
---     student with the best grade (alphabetically first grade).
-SELECT e.cid, s.name, e.grade,
-       FIRST_VALUE(s.name) OVER (
-           PARTITION BY e.cid ORDER BY e.grade ASC
-       ) AS best_grade_student
-FROM enrolled AS e
-JOIN student AS s ON e.sid = s.sid;
+-- 9. Assign NTILE(3) buckets to all students ordered by GPA.
+SELECT name, gpa, NTILE(3) OVER (ORDER BY gpa DESC) AS bucket FROM student;
 
--- 11. Assign NTILE(3) buckets to all students ordered by GPA.
---     Show which third each student falls into.
-SELECT name, gpa,
-       NTILE(3) OVER (ORDER BY gpa DESC) AS bucket
+-- 10. Compute cumulative sum of GPAs ordered by sid.
+SELECT sid, gpa, SUM(gpa) OVER (ORDER BY sid ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative_gpa
 FROM student;
 
--- 12. For each student, show their GPA and the GPA of the student
---     immediately above them (when sorted by GPA DESC) using LEAD().
-SELECT name, gpa,
-       LEAD(gpa, 1) OVER (ORDER BY gpa DESC) AS next_lower_gpa
-FROM student
-ORDER BY gpa DESC;
+-- 11. For each course, show each student's GPA vs course avg GPA difference.
+SELECT e.cid, s.name, s.gpa, s.gpa - AVG(s.gpa) OVER (PARTITION BY e.cid) AS diff_from_avg
+FROM enrolled AS e JOIN student AS s ON e.sid = s.sid;
 
--- 13. Compute the cumulative sum of student GPAs ordered by sid.
-SELECT sid, gpa,
-       SUM(gpa) OVER (ORDER BY sid ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative_gpa
-FROM student;
-
--- 14. Find courses where the student with rank 1 (best grade) has a GPA
---     above 3.8. (Hint: window rank in subquery, then filter outer query)
+-- 12. Find courses where the top-ranked student (best grade) has GPA > 3.8.
 SELECT cid FROM (
-    SELECT e.cid, s.gpa,
-           RANK() OVER (PARTITION BY e.cid ORDER BY e.grade ASC) AS rnk
-    FROM enrolled AS e
-    JOIN student AS s ON e.sid = s.sid
-) AS ranked
-WHERE rnk = 1 AND gpa > 3.8;
+    SELECT e.cid, s.gpa, RANK() OVER (PARTITION BY e.cid ORDER BY e.grade ASC) AS rnk
+    FROM enrolled AS e JOIN student AS s ON e.sid = s.sid
+) AS ranked WHERE rnk = 1 AND gpa > 3.8;
 
--- 15. For each course, show the difference between each student's GPA
---     and the average GPA of all students in that course.
-SELECT e.cid, s.name, s.gpa,
-       s.gpa - AVG(s.gpa) OVER (PARTITION BY e.cid) AS diff_from_course_avg
-FROM enrolled AS e
-JOIN student AS s ON e.sid = s.sid;
+-- 13. For each enrollment, show FIRST_VALUE of student name ordered by grade per course.
+SELECT e.cid, s.name, e.grade,
+       FIRST_VALUE(s.name) OVER (PARTITION BY e.cid ORDER BY e.grade ASC) AS top_student
+FROM enrolled AS e JOIN student AS s ON e.sid = s.sid;
 ```
 
 ---
 
-## 13. Comparisons — Choosing the Right Construct
+## L5-7. Query Optimization & EXPLAIN
 
-| Feature | Nested Subquery | CTE | Lateral Join | Window Function |
-|---|---|---|---|---|
-| **Reusability in same query** | ❌ Repeat it | ✅ Reference by name | ❌ Per-row only | N/A |
-| **Row-level output** | ❌ Returns scalar/set | ❌ Returns a table | ✅ Per outer row | ✅ One row per input |
-| **Multiple derived columns** | Needs multiple subqueries | One CTE per computation | ✅ Multiple lateral blocks | ✅ Multiple OVER clauses |
-| **Recursion** | ❌ | ✅ With RECURSIVE | ❌ | ❌ |
-| **Optimizer transparency** | Variable | Good (PG 12+) | Good | Excellent |
-| **Readability** | Poor for >2 levels | ✅ Excellent | Moderate | Moderate |
-| **Ranking / Running totals** | ❌ Awkward | ❌ Awkward | ❌ Awkward | ✅ Purpose-built |
+```sql
+-- View the query plan (what the optimizer will do)
+EXPLAIN SELECT * FROM student WHERE gpa > 3.8;
 
-| String Function | PostgreSQL | MySQL | SQLite | MSSQL |
+-- View plan WITH actual execution stats (PostgreSQL)
+EXPLAIN ANALYZE SELECT * FROM student WHERE gpa > 3.8;
+
+-- Things to look for in EXPLAIN output:
+-- Seq Scan    → full table scan (consider adding an index)
+-- Index Scan  → using an index (good!)
+-- Hash Join   → joining via hash table
+-- Nested Loop → joining via loop (can be slow on large tables)
+-- Cost        → estimated cost units (lower is better)
+-- Rows        → estimated rows returned
+```
+
+> [!tip] If you see a `Seq Scan` on a large table in a WHERE or JOIN, consider adding an index on that column.
+
+---
+
+## L5-8. Partitioning & Advanced Indexing
+
+### Table Partitioning (PostgreSQL)
+
+```sql
+-- Range partitioning: split table by GPA range
+CREATE TABLE student_partitioned (
+    sid  INT,
+    name VARCHAR,
+    gpa  FLOAT
+) PARTITION BY RANGE (gpa);
+
+CREATE TABLE student_low  PARTITION OF student_partitioned FOR VALUES FROM (0.0) TO (2.0);
+CREATE TABLE student_mid  PARTITION OF student_partitioned FOR VALUES FROM (2.0) TO (3.5);
+CREATE TABLE student_high PARTITION OF student_partitioned FOR VALUES FROM (3.5) TO (4.01);
+```
+
+### Composite and Covering Indexes
+
+```sql
+-- Composite index: speeds up queries filtering on both columns
+CREATE INDEX idx_enrolled_cid_grade ON enrolled(cid, grade);
+
+-- Covering index: index includes all columns needed by the query
+-- (avoids going back to the table at all)
+CREATE INDEX idx_student_covering ON student(gpa, name, sid);
+
+-- Partial index: only index rows matching a condition
+CREATE INDEX idx_high_gpa ON student(gpa) WHERE gpa >= 3.8;
+```
+
+---
+
+## L5-9. Output Redirection
+
+```sql
+-- Create a new table from a query result
+CREATE TABLE CourseIds AS SELECT DISTINCT cid FROM enrolled;
+
+-- Insert query results into an existing table
+INSERT INTO CourseIds (SELECT DISTINCT cid FROM enrolled);
+
+-- Temporary table (dropped automatically when session ends)
+CREATE TEMP TABLE CourseIds AS SELECT DISTINCT cid FROM enrolled;
+```
+
+---
+
+## L5-10. Output Control (ORDER BY, LIMIT, OFFSET)
+
+```sql
+-- Sort and limit
+SELECT * FROM student ORDER BY gpa DESC LIMIT 10;
+
+-- Pagination: page 2 of 10 results per page
+SELECT * FROM student ORDER BY sid LIMIT 10 OFFSET 10;
+
+-- SQL Standard syntax
+SELECT * FROM student ORDER BY gpa DESC FETCH FIRST 5 ROWS ONLY;
+
+-- WITH TIES: include tied rows at the boundary
+SELECT * FROM student ORDER BY gpa DESC FETCH FIRST 3 ROWS WITH TIES;
+```
+
+---
+
+# ═══════════════════════════════════════
+# QUICK REFERENCE
+# ═══════════════════════════════════════
+
+## Construct Comparison
+
+| Feature | Subquery | CTE | Lateral Join | Window Function |
 |---|---|---|---|---|
-| Concat | `||` or `CONCAT()` | `CONCAT()` | `||` | `+` |
-| Regex match | `~` (POSIX) | `REGEXP` | `REGEXP` | `LIKE` only |
+| Reusability in same query | ❌ | ✅ | ❌ | N/A |
+| Row-level output | ❌ | ❌ | ✅ | ✅ |
+| Multiple derived columns | Needs multiples | One per CTE | ✅ | ✅ multiple OVER |
+| Recursion | ❌ | ✅ WITH RECURSIVE | ❌ | ❌ |
+| Ranking / Running totals | ❌ Awkward | ❌ Awkward | ❌ Awkward | ✅ Purpose-built |
+| Readability | Poor at >2 levels | ✅ Excellent | Moderate | Moderate |
+
+## String Functions by Database
+
+| Function | PostgreSQL | MySQL | SQLite | MSSQL |
+|---|---|---|---|---|
+| Concat | `\|\|` or `CONCAT()` | `CONCAT()` | `\|\|` | `+` |
+| Regex | `~` (POSIX) | `REGEXP` | `REGEXP` | `LIKE` only |
 | Substring | `SUBSTRING(s,b,e)` | `SUBSTRING(s,b,e)` | `SUBSTR(s,b,e)` | `SUBSTRING(s,b,e)` |
-| String length | `LENGTH()` | `LENGTH()` | `LENGTH()` | `LEN()` |
-| Case convert | `UPPER()` / `LOWER()` | Same | Same | Same |
+| Length | `LENGTH()` | `LENGTH()` | `LENGTH()` | `LEN()` |
+
+## Logical Execution Order
+
+```
+FROM / JOIN   → tables assembled
+WHERE         → rows filtered
+GROUP BY      → rows grouped
+HAVING        → groups filtered
+SELECT        → output computed
+ORDER BY      → results sorted
+LIMIT/OFFSET  → results trimmed
+```
 
 ---
 
-## 14. Summary / Checklist
+## ✅ Master Checklist
 
-> [!success] What You Must Know Cold
-> - ✅ SQL is **declarative** and operates on **bags** (not sets) — duplicates are allowed by default
-> - ✅ SQL-92 is the **minimum compliance baseline**; know what features are standard vs. proprietary
-> - ✅ Aggregate functions (`AVG`, `MIN`, `MAX`, `SUM`, `COUNT`) collapse bags into scalars
-> - ✅ Any `SELECT`-ed column not inside an aggregate **must appear in `GROUP BY`**
-> - ✅ `WHERE` filters rows **before** grouping; `HAVING` filters groups **after** aggregation
-> - ✅ `GROUPING SETS` computes multiple GROUP BY levels in one pass — far more efficient than UNION ALL
-> - ✅ `ORDER BY` is mandatory for deterministic results; `LIMIT` without `ORDER BY` is non-deterministic
-> - ✅ `NOT EXISTS` is safer than `NOT IN` when NULLs may appear in the subquery
-> - ✅ `LATERAL` allows subqueries in `FROM` to reference earlier tables — like a SQL for-loop
-> - ✅ CTEs use `WITH` and are scoped to one query; `WITH RECURSIVE` enables recursion (Turing-complete)
-> - ✅ Window functions compute per-row values over a related set **without collapsing rows**
-> - ✅ `ROW_NUMBER()` always unique; `RANK()` allows ties with gaps; `DENSE_RANK()` ties without gaps
-> - ✅ Window function filters must go in a subquery/CTE outer query — not in the same `WHERE`
-> - ✅ The logical execution order is: `FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT`
-
----
-
-## 15. Tips
-
-> [!tip] Always Write Explicit JOINs
-> Never use implicit join syntax (`FROM a, b WHERE a.id = b.id`). Always use `JOIN ... ON ...`. The implicit form is a legacy from SQL-89 and makes queries harder to read and maintain. Most linters and style guides flag it.
-
-> [!tip] Use CTEs for Readability, Not Just Functionality
-> Even when a single nested subquery would work, consider a CTE if the query has more than 2 levels of nesting. Future-you (and your teammates) will thank you. In production codebases, unreadable SQL is a major maintenance burden.
-
-> [!tip] EXPLAIN ANALYZE Is Your Best Friend
-> For any query that runs slow, run `EXPLAIN ANALYZE <your_query>` in PostgreSQL. It shows the actual execution plan, actual row counts, and time spent at each step. Look for sequential scans on large tables (often means a missing index) and nested loop joins on large datasets (consider hash join by adding indexes or rewriting).
-
-> [!tip] Window Functions Over Application-Side Loops
-> If you find yourself fetching rows in a loop and computing running totals, rankings, or comparisons to neighboring rows in your application code — stop. Rewrite it as a window function. The DBMS can do this in a single pass over sorted data, far more efficiently than N round-trips from the application.
-
-> [!tip] Strive for One SQL Statement
-> As Pavlo says: "You should (almost) always compute your answer as a single SQL statement." Multiple round trips (fetch, compute in app, insert back) are slow, not atomic, and hard to reason about. Window functions, CTEs, lateral joins, and subqueries exist specifically to let you express complex computations declaratively in one query.
-
-> [!tip] Backend / Node.js Developer Notes
-> When using ORMs (Prisma, TypeORM, Sequelize), know when to drop down to raw SQL. ORMs generate suboptimal queries for complex aggregations, window functions, and CTEs. Use `$queryRaw` (Prisma) or `query()` directly for performance-critical reporting queries. Always validate ORM-generated SQL with `EXPLAIN ANALYZE`.
+- [ ] Write basic SELECT / WHERE / ORDER BY / LIMIT queries
+- [ ] INSERT, UPDATE, DELETE with proper WHERE clauses
+- [ ] Use all JOIN types: INNER, LEFT, RIGHT, FULL, CROSS, SELF
+- [ ] Aggregate functions: COUNT, SUM, AVG, MIN, MAX
+- [ ] GROUP BY + HAVING for grouped filtering
+- [ ] DISTINCT for deduplication
+- [ ] CASE WHEN for conditional logic
+- [ ] UNION, INTERSECT, EXCEPT for set operations
+- [ ] String functions: UPPER, LOWER, LIKE, SUBSTRING, REPLACE, LENGTH
+- [ ] Date functions: CURRENT_DATE, EXTRACT, DATE_TRUNC, INTERVAL
+- [ ] Normalization: 1NF, 2NF, 3NF
+- [ ] Indexes: CREATE INDEX, composite, covering, partial
+- [ ] Constraints: PK, FK, UNIQUE, NOT NULL, CHECK, DEFAULT
+- [ ] Transactions: BEGIN, COMMIT, ROLLBACK, SAVEPOINT, ACID
+- [ ] Views and Materialized Views
+- [ ] Subqueries: IN, NOT IN, EXISTS, NOT EXISTS, ANY, ALL
+- [ ] Lateral Joins for per-row derived values
+- [ ] CTEs with WITH and WITH RECURSIVE
+- [ ] Window functions: ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, NTILE
+- [ ] EXPLAIN / EXPLAIN ANALYZE for query optimization
+- [ ] GROUPING SETS, ROLLUP, CUBE for multi-level aggregation
+- [ ] Partitioning and advanced indexing strategies
 
 ---
 
-*Sources: CMU 15-445/645 Database Systems Lecture #02 — Modern SQL · Andy Pavlo · Fall 2025 · https://15445.courses.cs.cmu.edu/fall2025/*
+*Sources: CMU 15-445/645 Database Systems Lecture #02 — Modern SQL · Andy Pavlo · Fall 2025*
+*Extended with Level 1–3 foundational content for complete SQL learning roadmap*
