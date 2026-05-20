@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "218d445ba785056e",
+        "id": "dcd5ece33ff4f02b",
         "type": "tabs",
         "children": [
           {
-            "id": "9d29d628a2f35064",
+            "id": "10a5afa644871ebd",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
-                "mode": "source",
+                "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
@@ -193,15 +193,26 @@
       "obsidian-shellcommands:Shell commands: Custom variables": false
     }
   },
-  "active": "9d29d628a2f35064",
+  "active": "10a5afa644871ebd",
   "lastOpenFiles": [
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool.md",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/fig3-clock-policy.jpg",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/image.png",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/fig2-buffer-pool-organization.jpg",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/fig1-disk-oriented-dbms.jpg",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide6-disk-oriented-dbms-large.jpg",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide11-locks-vs-latches.jpg",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide19-clock-policy.jpg",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide21-sequential-flooding.jpg",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide24-lru-k.jpg",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide36-os-page-cache.jpg",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img",
+    "Database(CMU-lecture-wise)/img",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
     "docker/Kubernetes.md",
-    "docker/images/closer_look_master_node.png",
-    "docker/images/Pasted image 20240702213241.png",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)",
     "docker/Docker.md",
@@ -230,17 +241,7 @@
     "Sys Design/Hexagonal architecture in golang.md",
     "Sys Design/Clean Architecture.md",
     "Sys Design/Beginners.md",
-    "Sys Design/assets/Pasted image 20240709191934.png",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-4/start-notes-server.vbs",
-    "Database/Database Indexing/images/index_vs_full_scan.png",
-    "Database/Database Indexing/images/btree_index_diagram.png",
-    "docker/images/closer_look_worker_node.png",
-    "Softerware Dev Diaries/assets/Pasted image 20240628070044.png",
     "Untitled.canvas",
-    "kubernetes/assets/controll-plane.png",
-    "DSA/Heap/assets/GIWwdou92B.avif",
-    "DSA/Heap/assets/5sFKHAcSi.avif",
     "Untitled 2.canvas",
     "Untitled 1.canvas"
   ]
