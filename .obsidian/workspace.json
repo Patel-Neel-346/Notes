@@ -14,7 +14,7 @@
               "type": "markdown",
               "state": {
                 "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
-                "mode": "preview",
+                "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
@@ -195,12 +195,15 @@
   },
   "active": "9d29d628a2f35064",
   "lastOpenFiles": [
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
+    "docker/Kubernetes.md",
     "docker/images/closer_look_master_node.png",
+    "docker/images/Pasted image 20240702213241.png",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool",
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)",
     "docker/Docker.md",
     "DSA(NeelPatel)/Time&Space_Complexity.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
@@ -228,11 +231,8 @@
     "Sys Design/Clean Architecture.md",
     "Sys Design/Beginners.md",
     "Sys Design/assets/Pasted image 20240709191934.png",
-    "Sys Design/arpit bhayani/todo.md",
-    "Sys Design/arpit bhayani/third video.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/start-notes-server.vbs",
-    "Untitled 7.base",
     "Database/Database Indexing/images/index_vs_full_scan.png",
     "Database/Database Indexing/images/btree_index_diagram.png",
     "docker/images/closer_look_worker_node.png",
@@ -241,7 +241,6 @@
     "kubernetes/assets/controll-plane.png",
     "DSA/Heap/assets/GIWwdou92B.avif",
     "DSA/Heap/assets/5sFKHAcSi.avif",
-    "kafka/assets/Pasted image 20240630184107.png",
     "Untitled 2.canvas",
     "Untitled 1.canvas"
   ]
