@@ -33,7 +33,7 @@ Shows: Execution Engine → Buffer Pool (memory) ↔ Database File (disk pages 1
 Key labels: "Get page #2", "Pointer to page #2", Buffer Pool frames, Directory
 ```
 
-> **[INSERT IMAGE: fig1-disk-oriented-dbms.jpg]**
+> ![fig1-disk-oriented-dbms](img/fig1-disk-oriented-dbms.jpg)
 > *Figure 1: Disk-oriented DBMS — execution engine requests page #2, buffer pool fetches it from disk and returns a pointer*
 
 ### How the Buffer Pool Works
@@ -83,7 +83,7 @@ Shows: Page Table (hash map: page1→frame, page3→frame, page2→locked frame)
 Key: page2 has a lock icon = pinned
 ```
 
-> **[INSERT IMAGE: fig2-buffer-pool-organization.jpg]**
+> ![fig2-buffer-pool-organization](img/fig2-buffer-pool-organization.jpg)
 > *Figure 2: Buffer pool organization — Page Table maps page IDs to buffer pool frames; page2 is locked (pinned)*
 
 ### The Page Table
@@ -125,7 +125,7 @@ Shows clear two-box comparison with Locks (transaction duration, rollback needed
 vs Latches (operation duration, mutex, no rollback)
 ```
 
-> **[INSERT IMAGE: slide11-locks-vs-latches.jpg]**
+> ![slide11-locks-vs-latches](img/slide11-locks-vs-latches.jpg)
 > *Slide 11: Locks vs Latches — Latches are the low-level mutex equivalent inside the DBMS*
 
 | | Locks | Latches |
@@ -151,7 +151,7 @@ Full Usage (manage their own memory): MonetDB, LMDB, LevelDB, RavenDB, QuestDB, 
 Partial Usage (some OS cache): SQLite, WiredTiger, SQLite, influxdb
 ```
 
-> **[INSERT IMAGE: slide15-why-not-os.jpg]**
+> ![slide15-why-not-os](img/slide15-why-not-os.jpg)
 > *Slide 15: Databases that manage memory fully vs those that partially rely on the OS page cache*
 
 ### Problems with Using the OS (`mmap`)
@@ -203,7 +203,7 @@ Left state: page1 is accessed → ref=1 (red box)
 Right state: clock hand sweeps → page1 ref set to 0 → page5 evicted (X mark)
 ```
 
-> **[INSERT IMAGE: slide19-clock-policy.jpg]**
+> ![slide19-clock-policy](img/slide19-clock-policy.jpg)
 > *Slide 19: CLOCK policy — page1 is referenced (ref=1), clock hand sweeps and clears it to 0, then evicts page5 which has ref=0*
 
 Also see the PDF version:
@@ -214,7 +214,7 @@ Figure 3 (PDF page 4) — CLOCK replacement policy
 Same content but in lecture note format
 ```
 
-> **[INSERT IMAGE: fig3-clock-policy.jpg]**
+> ![fig3-clock-policy](img/fig3-clock-policy.jpg)
 > *Figure 3: CLOCK replacement policy — circular buffer with clock hand; ref=1 gets cleared to 0, ref=0 gets evicted*
 
 **How CLOCK works:**
@@ -244,7 +244,7 @@ Shows: Q1 (SELECT * FROM A WHERE id=1) scanning pages sequentially
 Buffer Pool fills: page0, page1, page2, page3 — evicting potentially useful pages
 ```
 
-> **[INSERT IMAGE: slide21-sequential-flooding.jpg]**
+> ![slide21-sequential-flooding](img/slide21-sequential-flooding.jpg)
 > *Slide 21: Sequential flooding — a full table scan fills the buffer pool with pages that won't be reused, evicting hot pages*
 
 - A **sequential scan** reads many pages quickly → fills the buffer pool → evicts pages from other queries.
@@ -266,7 +266,7 @@ Buffer Pool with page0, page1, page2
 Disk Pages: page0-page5, Q1 arrow pointing to page3
 ```
 
-> **[INSERT IMAGE: slide24-lru-k.jpg]**
+> ![slide24-lru-k](img/slide24-lru-k.jpg)
 > *Slide 24: LRU-K — tracks the last K accesses per page to predict future access patterns*
 
 - Tracks the **history of the last K references** as timestamps.
@@ -347,7 +347,7 @@ Shows: DBMS (user-space) → read(...) → Filesystem (kernel-space) → OS Page
 Key point: without O_DIRECT, pages go through OS page cache = redundant copies
 ```
 
-> **[INSERT IMAGE: slide36-os-page-cache.jpg]**
+> ![slide36-os-page-cache](img/slide36-os-page-cache.jpg)
 > *Slide 36: OS page cache flow — DBMS read() call goes through filesystem and OS page cache before hitting disk*
 
 ### The DBMS's Internal IO Queue
@@ -392,7 +392,7 @@ Q1 arrow pointing to index-page0
 Key insight: DBMS knows from query plan it will need index-page1, index-page2 next → prefetch them
 ```
 
-> **[INSERT IMAGE: slide42-prefetching-index.jpg]**
+> ![slide42-prefetching-index](img/slide42-prefetching-index.jpg)
 > *Slide 42: Pre-fetching for index scan — DBMS reads the query plan to predict which pages will be needed next and loads them before they're requested*
 
 - The DBMS can prefetch pages based on the **query plan** — it knows future access patterns.
@@ -410,7 +410,7 @@ Buffer Pool: page3, page1, page2 loaded (Q1 is at page3)
 Q2 attaches to Q1's cursor mid-scan and shares the already-loaded pages
 ```
 
-> **[INSERT IMAGE: slide44-scan-sharing.jpg]**
+> ![slide44-scan-sharing](img/slide44-scan-sharing.jpg)
 > *Slide 44: Scan sharing — Q2 attaches to Q1's in-progress scan, sharing already-loaded pages instead of starting its own full scan*
 
 - If one query is scanning a table and another query starts the same scan, the second query can **attach to the first query's cursor**.

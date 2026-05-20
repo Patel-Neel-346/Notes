@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
+                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "#03 - Database Storage"
+              "title": "#04 - Buffer Pool"
             }
           }
         ]
@@ -195,10 +195,10 @@
   },
   "active": "10a5afa644871ebd",
   "lastOpenFiles": [
+    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/fig3-clock-policy.jpg",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/image.png",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/fig2-buffer-pool-organization.jpg",
