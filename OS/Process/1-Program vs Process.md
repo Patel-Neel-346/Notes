@@ -47,20 +47,162 @@ Shows: OS loading process from disk to RAM, mapping code and data sections.
 > ![program_in_memory2](../img/program_in_memory2.webp)
 > *Figure 1: OS loading process — copying the static executable program from disk and mapping it as an active process in memory.*
 
+### The Loader Lifecycle
 1. **Compilation**: The compiler translates high-level code (e.g., C, Rust) into object files containing CPU-specific assembly instructions.
-2. **Linking**: The linker combines individual object files and external libraries into a single executable file format (like ELF on Linux or PE on Windows).
+2. **Linking**: The linker resolves symbol references and combines object files and external libraries into a single executable binary.
 3. **OS Loading**: When execution is triggered, the OS loader reads the executable off disk, maps its sections into virtual memory, sets up the execution stack and heap, and hands control to the entry point. The CPU then begins executing instructions.
 
-### Static vs. Dynamic Linking
+---
 
-The linker uses one of two dependency resolution strategies:
+## 3. Linkers & Linking Strategies
 
-- **Static Linking**: Copies the machine code of all dependency libraries **directly into** the final binary.
-  - *Pros*: Self-contained, highly portable; runs anywhere without external dependencies.
-  - *Cons*: Massive binary sizes.
-- **Dynamic Linking**: Embeds **pointers and version constraints** in the executable to locate libraries at runtime (`.so` on Linux, `.dll` on Windows).
-  - *Pros*: Lightweight executable files.
-  - *Cons*: Low portability; requires those libraries to exist on the target machine.
+### What is a Linker?
+When you write a program, you almost never write everything from scratch. You call standard functions like `printf`, `malloc`, or `sqrt` which live in external libraries. The linker's job is to take your compiled object files and stitch them together with those libraries into one runnable executable.
+
+```
+your_code.o  +  math.o  +  stdio.o  ──▶ [ LINKER ] ──▶ final executable
+```
+
+#### Linker Phases
+- **Symbol Resolution**: Maps symbol references (declaring `extern int x;` or calling `sqrt()`) to their correct definitions in other object files or libraries.
+- **Relocation**: Merges code and data sections of object files, assigning final memory addresses to instruction labels and variables so the CPU can execute them correctly.
+
+#### Common Linker Errors
+- **Undefined reference to 'x'**: Occurs when a symbol is declared and referenced, but the linker cannot find its implementation in any object file or library (e.g. failing to link with `-lm` for math operations).
+- **Multiple definition of 'x'**: Occurs when the same function or global variable is defined in multiple object files, breaking the *One Definition Rule* (ODR).
+
+> [!tip] Modern Linkers
+> Traditional linkers (like `ld`) operate sequentially and can become build bottlenecks. Modern linkers like **Mold** (designed by Rui Ueyama) are heavily parallelized and highly optimized for modern multi-core systems, making linking steps exponentially faster.
+
+---
+
+### Static Linking — "Pack everything in the suitcase"
+
+The linker copies the actual machine code of every library your program uses directly into your binary. The final `.exe` / `ELF` file is entirely self-contained.
+
+#### Concrete Example
+Consider a C program (`main.c`):
+```c
+#include <stdio.h>
+#include <math.h>
+
+int main() {
+    double result = sqrt(144.0);
+    printf("Result: %.1f\n", result);
+    return 0;
+}
+```
+
+If we compile this with static linking:
+```sh
+gcc main.c -o app_static -lm -static
+```
+
+The resulting binary looks like this:
+```
+app_static (ELF)
+├── your main() code          ← your code
+├── sqrt() machine code       ← copied from libm.a
+├── printf() machine code     ← copied from libc.a
+└── all other libc internals  ← copied in too
+```
+
+```sh
+ls -lh app_static
+# -rwxr-xr-x  872 KB   ← fat binary, everything is inside
+```
+
+- **✅ Benefit**: High portability. You can copy this one file to any Linux machine and it just works — no external library dependencies needed.
+- **❌ Cost**: Wasted memory. If 50 different static programs are running on your machine, each one loads its own duplicate copy of `printf` and `sqrt` into RAM, causing massive memory bloat.
+
+---
+
+### Dynamic Linking — "Just bring the address of the shop"
+
+The linker does not copy library code. Instead, it embeds references: *"at runtime, find libm.so and load sqrt from it."* The actual library code is loaded by the OS only when you run the program.
+
+```sh
+gcc main.c -o app_dynamic -lm
+# (dynamic is the default — no -static flag)
+```
+
+The binary contains references instead of copied machine code:
+```
+app_dynamic (ELF)
+├── your main() code
+└── .dynamic section:
+    ├── "I need libm.so.6 → find sqrt there"
+    └── "I need libc.so.6 → find printf there"
+```
+
+```sh
+ls -lh app_dynamic
+# -rwxr-xr-x  16 KB   ← tiny, just your code + references
+```
+
+You can view these dynamic library dependencies using `ldd`:
+```sh
+ldd app_dynamic
+# libm.so.6  =>  /lib/x86_64-linux-gnu/libm.so.6
+# libc.so.6  =>  /lib/x86_64-linux-gnu/libc.so.6
+```
+
+- **✅ Benefit**: RAM savings. If 50 running programs all use `printf`, the OS loads `libc.so` once into physical RAM. All 50 processes share the exact same physical pages of memory.
+- **❌ Cost**: Dependency errors. Copying the binary to a machine missing those library `.so` files causes the program to fail to launch.
+
+---
+
+### The Runtime Linker (`ld.so`)
+
+When you run a dynamically linked binary, the OS doesn't jump straight to `main()`. Instead, it fires up the **dynamic runtime linker** first:
+
+```
+You run ./app_dynamic
+    │
+    ▼
+OS loads the ELF binary
+    │
+    ▼
+ld.so (the dynamic linker) kicks in
+    │
+    ▼
+Reads .dynamic section: "I need libm.so.6, libc.so.6"
+    │
+    ▼
+Locates shared libraries in paths (/lib, /usr/lib)
+    │
+    ▼
+Maps libraries into the process's virtual address space
+    │
+    ▼
+Patches the GOT (Global Offset Table) with real memory addresses
+    │
+    ▼
+Jumps to main()
+```
+
+---
+
+### The "DLL Not Found" Story
+
+In the late 90s, users often copied a game's executable (e.g., `game.exe`) from a friend's PC to a floppy disk and took it home:
+
+```
+Floppy Disk:
+└── game.exe        ← dynamically linked binary
+                      contains ref: "needs DirectX.dll"
+
+Home PC:
+└── (no DirectX.dll installed)
+```
+
+When trying to run `game.exe` on the home PC:
+1. `ld.so` starts up and reads the `.dynamic` section.
+2. It looks for `DirectX.dll` in all standard system paths.
+3. Since it is missing, execution aborts with a crash dialog: `ERROR: DirectX.dll not found`.
+4. The process never even executes its first line of code.
+
+If the developer had statically compiled the binary, the machine instructions for the game and libraries would have been self-contained, and the game would have booted directly off the floppy disk.
 
 ```
 📄 Screenshot this: dynamic-linking-failure.jpg
@@ -71,18 +213,41 @@ Shows: Windows pop-up dialog: "The code execution cannot proceed because MSVCR10
 > ![dynamic-linking-failure](../img/dynamic-linking-failure.jpg)
 > *Figure 2: Late 90s Floppy Disk Trap — copying only the `.exe` file without its required `.dll` files resulted in dynamic linking failures on target systems.*
 
-### Linking Comparison
+---
 
-| Feature | Static Linking | Dynamic Linking |
-|---------|----------------|-----------------|
-| **File Size** | Large | Small |
-| **Portability** | High | Low (depends on host libraries) |
-| **Linux Format** | `.a` (Archive) | `.so` (Shared Object) |
-| **Windows Format**| `.lib` (Static Library) | `.dll` (Dynamic Link Library) |
+### Linking Strategy Comparison
+
+| Metric | Static Linking | Dynamic Linking |
+|--------|----------------|-----------------|
+| **Library Format** | `.a` (Linux Archive) / `.lib` (Windows) | `.so` (Linux Shared Object) / `.dll` (Windows) |
+| **Binary Size** | Large (~870 KB for basic C) | Small (~16 KB for basic C) |
+| **RAM footprints (50 apps)** | 50 separate copies in memory | 1 shared copy in RAM |
+| **Portability** | Runs anywhere | Needs runtime libraries installed |
+| **Security Patches** | Must recompile every binary | Update the `.so`/`.dll` once, all apps benefit |
+| **Startup Speed** | Slightly faster (no address resolution) | Slightly slower (`ld.so` runs first) |
 
 ---
 
-## 3. What Every Process Gets from the OS
+### Node.js Connection
+
+Node.js itself is dynamically linked. You can verify this by checking the binary dependencies of Node:
+
+```sh
+ldd $(which node)
+# libdl.so.2   => /lib/x86_64-linux-gnu/libdl.so.2
+# libm.so.6    => /lib/x86_64-linux-gnu/libm.so.6
+# libc.so.6    => /lib/x86_64-linux-gnu/libc.so.6
+# ...
+```
+
+This is why `npm install` for native modules (compiled with node-gyp) sometimes breaks on fresh Linux servers with `"cannot find shared library"` — Node expects certain dynamic system libraries to be present.
+
+> [!important] Docker Alpine vs. Debian (Glibc vs. Musl)
+> Docker images based on `node:alpine` are extremely small, but sometimes fail to run native compiled Node modules. This is because Alpine Linux uses **musl libc** as its default standard library, whereas mainstream Linux distros use **glibc**. If a pre-compiled native Node module is dynamically linked against **glibc**, running it on Alpine causes dynamic linking failures.
+
+---
+
+## 4. What Every Process Gets from the OS
 
 When the kernel initializes a process, it provisions an identity and an execution state:
 
@@ -112,7 +277,7 @@ When the kernel initializes a process, it provisions an identity and an executio
 
 ---
 
-## 4. Memory Layout of a Process
+## 5. Memory Layout of a Process
 
 The OS allocates a virtual address space bounded by a minimum address and a maximum address, split into four primary regions:
 
@@ -155,7 +320,7 @@ Shows: Stack growing down, Heap growing up, Data section, Text section (Machine 
 
 ---
 
-## 5. Context Switch Cost
+## 6. Context Switch Cost
 
 When the OS preempts a running process to allocate CPU time to another process, it triggers a **Context Switch**:
 
@@ -177,7 +342,7 @@ When the OS preempts a running process to allocate CPU time to another process, 
 
 ---
 
-## 6. Language Runtimes — Where Does Your Code Run?
+## 7. Language Runtimes — Where Does Your Code Run?
 
 Not all programming languages map execution to processes in the same way.
 
@@ -209,7 +374,7 @@ To solve this, they rewrote the proxy in **Rust**. Because Rust compiles directl
 
 ---
 
-## 7. Practical Demo: Assembly, GDB, and Process Inspection
+## 8. Practical Demo: Assembly, GDB, and Process Inspection
 
 Let's trace a simple program to see how variables, CPU registers, and the Program Counter interact.
 
@@ -294,7 +459,7 @@ Step to the next execution line:
 
 ---
 
-## 8. Diagnostic Tools — Your Best Friends
+## 9. Diagnostic Tools — Your Best Friends
 
 To inspect active processes and debug executables, use standard Linux utilities:
 
@@ -307,7 +472,7 @@ To inspect active processes and debug executables, use standard Linux utilities:
 
 ---
 
-## 9. Key Takeaways
+## 10. Key Takeaways
 
 - **Program vs. Process**: A program is static code on disk; a process is active instructions executing in RAM.
 - **Isolated Memory**: Every process gets its own virtual memory layout consisting of Stack (local variables, downward-growing), Heap (dynamic allocations, upward-growing), Data (global variables), and Text (read-only code).
