@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool.md",
+                "file": "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "#04 - Buffer Pool"
+              "title": "#02 - Modern SQL"
             }
           }
         ]
@@ -197,6 +197,7 @@
   "lastOpenFiles": [
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool.md",
+    "pravin.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/fig3-clock-policy.jpg",
@@ -240,7 +241,6 @@
     "Sys Design/Microser Services Ptterns & principles.md",
     "Sys Design/Hexagonal architecture in golang.md",
     "Sys Design/Clean Architecture.md",
-    "Sys Design/Beginners.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas"
