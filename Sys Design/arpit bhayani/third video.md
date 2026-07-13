@@ -1,1 +1,0 @@
-Normalization forms 1nf,2nf ... 5nf.
