@@ -75,15 +75,10 @@ The linker does not copy library code. Instead, it embeds references (e.g., *"th
 * **Result**: A tiny binary (~16 KB) containing only your code and a list of references.
 * **RAM Footprint**: All 50 running processes point to a single copy of `libc.so.6` loaded into physical memory. The OS maps this single physical page into each process's virtual memory map, saving massive amounts of RAM.
 
-```
-📄 Screenshot this: program-in-memory-layout.webp
-Figure 1 — Static vs Dynamic Memory footprint
-Shows: Physical RAM containing two running processes.
-With Static linking: Process 1 and Process 2 have duplicate library copies in RAM.
-With Dynamic linking: Process 1 and Process 2 point to a shared physical libc.so memory page.
-```
-
-> ![program-in-memory-layout](images/program-in-memory-layout.png)
+> **📷 Static vs. Dynamic Memory Footprint**
+>
+> ![program-in-memory-layout](../img/program_in_memory2.webp)
+>
 > *Figure 1: Memory Footprint — dynamic linking allows multiple processes to share a single physical copy of libraries in RAM, whereas static linking duplicates them.*
 
 ---

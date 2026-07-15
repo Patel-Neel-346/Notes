@@ -70,13 +70,11 @@ When you run an executable (e.g., an ELF binary on Linux), the process is bootst
 
 ### The Cycle in Detail
 
-```md
-> **📷 Image Placeholder: CPU Execution Bus Flow**
+> **📷 CPU Execution Bus Flow**
 >
-> <!-- IMAGE: cpu-execution-bus-flow.png -->
+> ![cpu-execution-bus-flow](../img/cpu-execution-bus-flow.png)
 >
-> This diagram should illustrate the CPU core containing the PC, IR, and Registers, connected via the Address Bus and Data Bus to the L1 Cache and RAM, highlighting the direction of data flow during the Fetch and Execute phases.
-```
+> *Figure 1: CPU core execution and bus flow diagram showing PC, IR, registers, ALU, and cache connections.*
 
 #### 1. Fetch
 The CPU control unit places the address stored in the PC onto the address bus. The memory controller fetches the instructions at that address and returns them via the data bus into the Instruction Register (IR). 

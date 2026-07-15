@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "OS/Process/02-process-execution.md",
+                "file": "OS/Process/05-heap-memory.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "02-process-execution"
+              "title": "05-heap-memory"
             }
           }
         ]
@@ -195,9 +195,14 @@
   },
   "active": "10a5afa644871ebd",
   "lastOpenFiles": [
+    "OS/Process/04-data-section.md",
     "OS/Process/03-stack-memory.md",
     "OS/Process/02-process-execution.md",
     "OS/Process/1-Program vs Process.md",
+    "OS/img/heap-program-break.png",
+    "OS/img/bss-vs-data-disk-mapping.png",
+    "OS/img/stack-pointers-relationship.png",
+    "OS/img/cpu-execution-bus-flow.png",
     "OS/img/memory_layout.webp",
     "OS/img/program_in_memory2.webp",
     "OS/img",
@@ -210,10 +215,6 @@
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/image.png",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/fig2-buffer-pool-organization.jpg",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/fig1-disk-oriented-dbms.jpg",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide6-disk-oriented-dbms-large.jpg",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide11-locks-vs-latches.jpg",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide19-clock-policy.jpg",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide21-sequential-flooding.jpg",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img",
     "Database(CMU-lecture-wise)/img",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
@@ -240,7 +241,6 @@
     "Untitled 3.base",
     "Untitled 2.base",
     "Untitled 1.md",
-    "Untitled.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas"

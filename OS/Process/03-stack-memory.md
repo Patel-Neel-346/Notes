@@ -54,14 +54,11 @@ Let's look at the mechanics of stack frames, pointers, and memory layout.
 
 To manage variables inside a function, the CPU utilizes two registers: the **Stack Pointer (SP)** and the **Base Pointer (BP)**. 
 
-```
-📄 Screenshot this: stack-pointers-relationship.webp
-Figure 1 — SP and BP Register Anchors
-Shows: Stack memory going from top (High address) to bottom (Low address).
-BP points to the base of the current frame (high address anchor).
-SP points to the active top of the stack (low address limit).
-Local variables are referenced via negative offsets from BP (e.g., [BP - 4]).
-```
+> **📷 SP and BP Register Anchors**
+>
+> ![stack-pointers-relationship](../img/stack-pointers-relationship.png)
+>
+> *Figure 1: Stack memory layout showing the Base Pointer (BP) anchoring the frame base and the Stack Pointer (SP) at the active top.*
 
 * **The Stack Pointer (SP) is dynamic**: As the function pushes temporary values or calls nested functions, the SP slides down and up. Because its value is constantly changing, referencing local variables relative to SP is difficult for the compiler to track.
 * **The Base Pointer (BP) is static**: During the function prologue, the BP is set to a fixed address inside the new frame and remains unchanged throughout the function's execution. Local variables can be referenced using stable offsets relative to BP (e.g., the first variable is at `BP - 4`, the second is at `BP - 8`).

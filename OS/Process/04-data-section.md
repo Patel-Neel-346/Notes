@@ -93,15 +93,10 @@ The next time Thread B on Core 2 reads `X`, it suffers an L1 Cache Miss and must
 
 ### The BSS optimization: Block Started by Symbol
 
-```
-📄 Screenshot this: bss-vs-data-disk-mapping.webp
-Figure 1 — Binary Size vs Memory Layout
-Shows: Compilation output executable file on disk vs loaded program in RAM.
-On disk, only .text, .rodata, and .data segments occupy physical bytes.
-In RAM, the OS loader instantiates the .bss segment, zeroing out its memory.
-```
-
-> ![bss-vs-data-disk-mapping](images/bss-vs-data-disk-mapping.png)
+> **📷 Binary Size vs Memory Layout**
+>
+> ![bss-vs-data-disk-mapping](../img/bss-vs-data-disk-mapping.png)
+>
 > *Figure 1: The BSS Optimization — uninitialized variables do not consume disk space in the executable file, but are expanded to zero-filled RAM pages at startup.*
 
 If you declare an array `int arr[1000000] = {0};` (initialized), the compiler must save 4 MB of zeros directly inside the compiled binary file on disk. 

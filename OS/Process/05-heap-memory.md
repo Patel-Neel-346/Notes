@@ -119,13 +119,11 @@ int main() {
 
 Assume our stack starts at `996` and our heap starts at address `5000`.
 
-```md
-> **📷 Image Placeholder: Stack and Heap Execution Trace**
+> **📷 Heap Allocation and the Program Break**
 >
-> <!-- IMAGE: heap-execution-trace.png -->
+> ![heap-program-break](../img/heap-program-break.png)
 >
-> This image should show two columns representing the Stack and Heap. Traces should illustrate Step 1 (malloc call), Step 2 (heap writes), and Step 3 (free call), showing the stack local pointer variable storing the heap address.
-```
+> *Figure 1: Virtual memory map showing the downward stack growth and upward heap growth toward the Program Break limit.*
 
 #### Step 1: `main` frame setup
 The program starts. `main`'s prologue runs, allocating space on the stack for the local pointer variable `data` (4 bytes on 32-bit systems, 8 bytes on 64-bit systems).
