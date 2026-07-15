@@ -121,7 +121,7 @@ Assume our stack starts at `996` and our heap starts at address `5000`.
 
 > **📷 Heap Allocation and the Program Break**
 >
-> ![heap-program-break](../img/heap-program-break.png)
+> <img src="../img/heap-program-break.png" alt="Heap Allocation and the Program Break" width="550" />
 >
 > *Figure 1: Virtual memory map showing the downward stack growth and upward heap growth toward the Program Break limit.*
 

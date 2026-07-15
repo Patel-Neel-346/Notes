@@ -95,7 +95,7 @@ The next time Thread B on Core 2 reads `X`, it suffers an L1 Cache Miss and must
 
 > **📷 Binary Size vs Memory Layout**
 >
-> ![bss-vs-data-disk-mapping](../img/bss-vs-data-disk-mapping.png)
+> <img src="../img/bss-vs-data-disk-mapping.png" alt="Binary Size vs Memory Layout" width="650" />
 >
 > *Figure 1: The BSS Optimization — uninitialized variables do not consume disk space in the executable file, but are expanded to zero-filled RAM pages at startup.*
 

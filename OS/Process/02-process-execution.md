@@ -72,7 +72,7 @@ When you run an executable (e.g., an ELF binary on Linux), the process is bootst
 
 > **📷 CPU Execution Bus Flow**
 >
-> ![cpu-execution-bus-flow](../img/cpu-execution-bus-flow.png)
+> <img src="../img/cpu-execution-bus-flow.png" alt="CPU Execution Bus Flow" width="650" />
 >
 > *Figure 1: CPU core execution and bus flow diagram showing PC, IR, registers, ALU, and cache connections.*
 

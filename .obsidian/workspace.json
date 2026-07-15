@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "OS/Process/05-heap-memory.md",
+                "file": "OS/Process/04-data-section.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "05-heap-memory"
+              "title": "04-data-section"
             }
           }
         ]
@@ -195,6 +195,7 @@
   },
   "active": "10a5afa644871ebd",
   "lastOpenFiles": [
+    "OS/Process/05-heap-memory.md",
     "OS/Process/04-data-section.md",
     "OS/Process/03-stack-memory.md",
     "OS/Process/02-process-execution.md",
@@ -240,7 +241,6 @@
     "Videos to watch.md",
     "Untitled 3.base",
     "Untitled 2.base",
-    "Untitled 1.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas"

@@ -77,7 +77,7 @@ The linker does not copy library code. Instead, it embeds references (e.g., *"th
 
 > **📷 Static vs. Dynamic Memory Footprint**
 >
-> ![program-in-memory-layout](../img/program_in_memory2.webp)
+> <img src="../img/program_in_memory2.webp" alt="Static vs. Dynamic Memory Footprint" width="600" />
 >
 > *Figure 1: Memory Footprint — dynamic linking allows multiple processes to share a single physical copy of libraries in RAM, whereas static linking duplicates them.*
 

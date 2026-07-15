@@ -56,7 +56,7 @@ To manage variables inside a function, the CPU utilizes two registers: the **Sta
 
 > **📷 SP and BP Register Anchors**
 >
-> ![stack-pointers-relationship](../img/stack-pointers-relationship.png)
+> <img src="../img/stack-pointers-relationship.png" alt="SP and BP Register Anchors" width="450" />
 >
 > *Figure 1: Stack memory layout showing the Base Pointer (BP) anchoring the frame base and the Stack Pointer (SP) at the active top.*
 
