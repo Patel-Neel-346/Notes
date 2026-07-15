@@ -26,6 +26,9 @@ The heap was introduced to manage dynamic data lifecycles:
 
 The trade-off for this flexibility is **manual memory management**. Because the OS cannot predict when your code is done with heap memory, the programmer must track allocations. Forgetting to free memory leads to leaks, while freeing too early leads to dangling pointers and crashes.
 
+> [!note] Garbage collectors are heap managers in disguise
+> Languages like Java, Go, and Python don't eliminate heap allocation — they just hide it. The GC (Garbage Collector) is an automatic system running in the background that tracks all live references and calls the equivalent of `free()` on blocks that are no longer reachable. The tradeoff is GC pause latency and overhead vs. manual management bugs.
+
 ---
 
 ## 3. Core Concept
@@ -67,7 +70,23 @@ If the CPU dereferences an `int*` pointer, it knows to read 4 bytes starting at 
 When you call `malloc(8)` to allocate 8 bytes on the heap, the following steps occur under the hood:
 
 ```
-[ Call malloc(8) ] ──▶ [ Search Allocator Bins/Bins ] ──▶ [ System Call (brk/mmap) if empty ] ──▶ [ Write Size Prefix Header ] ──▶ [ Return Pointer+8 ]
+[ User code: malloc(8) ]
+         │
+         ▼
+[ glibc ptmalloc: check fastbin/smallbin for a free 8-byte chunk ]
+         │
+    Found? ┴───── YES ──────▶ [ Return cached chunk immediately, ~50 ns ]
+         │
+         NO
+         │
+         ▼
+[ System call: brk() or mmap() to request more pages from kernel ]
+         │
+         ▼
+[ Write 8/16-byte metadata header (size, flags) before the block ]
+         │
+         ▼
+[ Return pointer to usable block (header_addr + header_size) ]
 ```
 
 1. **Allocator Lookup**: `malloc` is managed by a user-space memory allocator (like Glibc's `ptmalloc`). The allocator first searches its internal structures (**arenas** and **bins**) to see if it has a previously freed 8-byte chunk available in user-space.
@@ -77,6 +96,12 @@ When you call `malloc(8)` to allocate 8 bytes on the heap, the following steps o
 3. **Kernel Mode Switch**: Making a system call triggers a CPU mode switch into kernel space. The CPU saves user registers, translates the virtual page tables, marks pages as writable, and switches back to user mode.
 4. **Metadata Header Prefixing**: The allocator writes a small **Header** (usually 8 or 16 bytes) at the beginning of the allocated block. This header contains metadata, primarily the **size of the allocation**.
 5. **Return Pointer**: `malloc` returns a pointer to the address *immediately following* the metadata header.
+
+> [!tip] Watch malloc make system calls live
+> ```sh
+> strace -e trace=brk,mmap ./your_program 2>&1 | head -20
+> ```
+> You will see `brk()` calls enlarging the heap address boundary as your program requests more dynamic memory.
 
 ```
 ┌─────────────────────────┬───────────────────────────────────┐
@@ -95,6 +120,18 @@ When you call `free(ptr)`:
 2. It reads the size field from the metadata header to discover exactly how many bytes to free.
 3. The allocator marks this block as "free" in its internal bins so it can be reused by future `malloc` calls, avoiding constant system calls.
 4. **Coalescing**: If the adjacent memory blocks are also free, the allocator merges them into a single, larger free block to prevent heap fragmentation.
+
+> [!caution] Double free is a security vulnerability, not just a crash
+> Calling `free(ptr)` twice corrupts the allocator's internal bin linked lists. Because those linked lists live in memory, an attacker can craft a "double free" exploit to overwrite arbitrary memory locations — including function pointers and return addresses — leading to code execution. Always set `ptr = NULL` after every `free()`.
+
+> [!tip] Detect leaks and corruptions with Valgrind
+> ```sh
+> valgrind --leak-check=full --show-leak-kinds=all ./your_program
+> # ==12345== LEAK SUMMARY:
+> # ==12345==    definitely lost: 8 bytes in 1 blocks
+> # ==12345==  Invalid write of size 4 (heap buffer overflow)
+> ```
+> Valgrind intercepts every `malloc`/`free` call at runtime and reports exact leak sizes, double frees, and out-of-bounds heap writes with line numbers.
 
 ---
 
@@ -181,6 +218,22 @@ The default allocator in Linux is `ptmalloc` (based on `dlmalloc`). To handle mu
   * *Unsorted Bins*: Temporary holding locations for recently freed chunks before they are sorted.
   * *Smallbins* and *Largebins*: Sorted lists for general allocation requests.
 
+```
+Glibc Bin Structure:
+  Fastbins    [16B] [24B] [32B] ... [80B]   ◄─ no coalescing, ultra-fast
+  Smallbins   [16B] [24B] ... [512B]         ◄─ doubly-linked, coalesced
+  Largebins   [512B+] sorted by size         ◄─ best-fit search
+  Unsorted    [newly freed chunks]           ◄─ fast path before sorting
+```
+
+> [!tip] Inspect live heap usage on Linux
+> ```sh
+> # See virtual memory map of a running process (PID 1234)
+> cat /proc/1234/maps | grep heap
+> # 5630e000-5631f000 rw-p 00000000 00:00 0  [heap]
+> #                              ^ rw = read/write, no execute
+> ```
+
 ### Windows Heap Manager
 Windows utilizes `HeapAlloc` and `HeapFree` which communicate with the kernel's virtual memory manager. It uses a **Low Fragment Heap (LFH)** strategy to reduce fragmentation by dividing allocations into predefined slot sizes.
 
@@ -188,6 +241,9 @@ Windows utilizes `HeapAlloc` and `HeapFree` which communicate with the kernel's 
 For high-performance applications, developers often swap out default allocators:
 * **jemalloc**: Focuses on avoiding fragmentation and enhancing multi-threaded concurrency (default in Rust).
 * **tcmalloc**: Developed by Google, uses thread-local caches to perform allocations without lock overhead.
+
+> [!note] Why Rust doesn't need a GC but is still memory-safe
+> Rust uses its **Borrow Checker** to statically verify at compile time that all heap allocations have exactly one owner. When that owner goes out of scope, the compiler automatically inserts a `free()` call (called `Drop`). No runtime GC is needed because the compiler enforces ownership rules, making dangling pointers and double frees compile-time errors.
 
 ---
 

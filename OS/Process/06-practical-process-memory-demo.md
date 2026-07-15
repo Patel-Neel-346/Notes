@@ -22,6 +22,9 @@ Operating systems must expose internal runtime states (such as process schedulin
 
 `/proc` solves this by utilizing the **Virtual File System (VFS)**. It translates live, binary kernel state tables into simple, human-readable ASCII text files. Because they appear as standard files, administrators can inspect processes using standard command-line utilities (like `cat`, `grep`, or `awk`) without direct memory access.
 
+> [!note] `/proc` is a window into the kernel's brain
+> Every file in `/proc/<pid>/` is auto-generated on demand by the kernel. `maps`, `status`, `fd/`, `cmdline`, `mem` — they all expose live kernel data structures with zero disk I/O. This is the exact mechanism that tools like `top`, `htop`, `ps`, and `lsof` use under the hood.
+
 ---
 
 ## 3. Core Concept
@@ -68,6 +71,18 @@ Every row inside a process's `maps` file follows a strict six-column format:
 4. **Device (`dev`)**: The major and minor device numbers of the storage drive holding the backing file.
 5. **Inode**: The filesystem inode number of the backing file, used by the filesystem to locate the data.
 6. **Pathname**: The absolute file path of the library or executable backing the mapping. Special labels include `[heap]` (dynamic memory), `[stack]` (thread execution stack), and `[vdso]` (Virtual Dynamic Shared Object used to accelerate system calls).
+
+> [!tip] Filter maps output by permissions
+> ```sh
+> # Show only executable mappings (code segments)
+> grep 'r-x' /proc/$(pidof high_cpu)/maps
+> 
+> # Show only the heap and stack
+> grep -E '\[heap\]|\[stack\]' /proc/$(pidof high_cpu)/maps
+> 
+> # Count total virtual memory regions
+> wc -l /proc/$(pidof high_cpu)/maps
+> ```
 
 ---
 
@@ -171,6 +186,30 @@ Here are the key mappings displayed by the command:
 * **Backing File**: Labeled `[stack]`.
 * Mapped at high memory addresses. This is where main's frame and the local variables (like `heap_array` pointer) are stored.
 
+> [!important] The full memory map flow
+> ```
+> Virtual Address Space of high_cpu (low → high):
+> 
+> 0x00010000  [r-xp] .text        ◄─ Compiled machine code (Read+Execute)
+> 0x00012000  [r--p] .rodata      ◄─ String constants (Read-Only)
+> 0x00014000  [rw-p] .data/.bss   ◄─ Global/static variables (Read+Write)
+> 0x00016000  [rw-p] [heap]       ◄─ malloc() space, grows UPWARD ↑
+>                   ...
+>             [rw-p] libc.so.6    ◄─ Shared library mappings
+>                   ...
+> 0x7fffffff  [rw-p] [stack]      ◄─ Stack frames, grows DOWNWARD ↓
+> ```
+
+> [!tip] Get a concise memory summary
+> ```sh
+> # See actual RSS (physical RAM used) vs virtual size
+> cat /proc/$(pidof high_cpu)/status | grep -E 'VmRSS|VmSize|VmStk|VmHeap'
+> # VmSize:  20480 kB   ◄ total virtual address space reserved
+> # VmRSS:   1984  kB   ◄ actual physical RAM in use right now
+> # VmStk:   132   kB   ◄ stack RAM
+> ```
+> `VmRSS` (Resident Set Size) shows how much physical RAM a process is actually using — not the virtual allocation. Swap pressure is visible when VmRSS ≪ VmSize.
+
 ---
 
 ## 6. Real Implementation Notes
@@ -182,6 +221,28 @@ The files inside `/proc` do not exist as physical bytes on a disk. When you run 
 Virtual memory is divided into fixed-size chunks called **Pages**. 
 * On most x86-64 and ARM systems, the default page size is **4 KB** (`4096 bytes`).
 * **HugePages**: High-performance database engines (like Oracle or PostgreSQL) often utilize Linux **HugePages** (commonly 2 MB or 1 GB in size). HugePages reduce the number of entries in the Page Tables, decreasing CPU translation overhead and minimizing Translation Lookaside Buffer (TLB) cache misses under massive memory workloads.
+
+```
+Standard Pages (4 KB):
+  1 GB of RAM requires 262,144 page table entries  ◄─ massive TLB pressure
+  TLB hit rate may degrade under heavy memory load
+
+HugePages (2 MB):
+  1 GB of RAM requires only 512 page table entries  ◄─ ~512x fewer entries!
+  TLB hit rate stays high, dramatic speedup for DB workloads
+```
+
+> [!tip] Check and enable HugePages on Linux
+> ```sh
+> # See current HugePage config
+> cat /proc/meminfo | grep -i huge
+> # HugePages_Total:   0
+> # Hugepagesize:   2048 kB
+> 
+> # Reserve 512 HugePages (= 1 GB)
+> echo 512 > /proc/sys/vm/nr_hugepages
+> ```
+> PostgreSQL, Oracle, and Redis all benefit significantly from HugePages when handling large shared memory buffers.
 
 ---
 

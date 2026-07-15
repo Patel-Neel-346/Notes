@@ -62,6 +62,21 @@ When the OS loader launches the process:
    * `.data` and `.bss` pages are set to **Read-Write** (`rw-`).
 3. If code attempts to write to a constant mapped in `.rodata`, the CPU catches the hardware write protection fault and terminates the program with a Segmentation Fault (`SIGSEGV`).
 
+> [!tip] Inspect segment sizes yourself
+> ```sh
+> size /usr/bin/ls
+>    text    data     bss     dec     hex filename
+> 138760    4824    4696  148280   2a2b8 /usr/bin/ls
+> ```
+> `text` = code, `data` = initialized globals, `bss` = zero-filled uninitialized globals. Notice BSS takes real RAM at runtime but costs zero on disk.
+
+> [!caution] Writing to `.rodata` is undefined behaviour
+> ```c
+> const char *msg = "hello";  // "hello" lives in .rodata
+> msg[0] = 'H';               // Segmentation fault — .rodata pages are read-only
+> ```
+> Unlike a stack `const` (which the compiler may allow overwriting in unsafe code), a string literal is mapped to a write-protected page, so this write causes an immediate SIGSEGV.
+
 ### Caching and the Cost of Mutability under Concurrency
 
 Reading initialized global variables is fast because they are mapped to fixed locations. The first read pulls a 64-byte cache line into the L1 cache. Due to spatial locality, adjacent variables are pulled in as well, resulting in fast subsequent reads (~1 ns).
@@ -90,6 +105,9 @@ However, writing to mutable global variables in a multi-threaded system introduc
 #### Cache Coherency (MESI Protocol)
 Modern multi-core CPUs use cache coherency protocols (like MESI) to ensure all cores agree on memory states. If Thread A on Core 1 writes to a global variable `X`, Core 1 must send an invalidation signal to Core 2. Core 2's L1 cache line containing `X` is marked as **Invalid**. 
 The next time Thread B on Core 2 reads `X`, it suffers an L1 Cache Miss and must block execution while `X` is re-fetched from RAM or L3 cache. This is known as **cache bouncing** and creates a performance bottleneck under high write concurrency.
+
+> [!note] False sharing: the invisible performance killer
+> Cache coherency operates on entire 64-byte cache lines, not on individual variables. If two global variables `A` and `B` are declared adjacent and land in the **same cache line**, a write to `A` by Thread 1 will invalidate Thread 2's cached copy of `B` — even though `B` was never touched. This "false sharing" can reduce multi-threaded performance by 10–50×. The fix is `__attribute__((aligned(64)))` or padding between hot variables.
 
 ### The BSS optimization: Block Started by Symbol
 
@@ -126,6 +144,17 @@ The compiler maps the variables to static segments:
 * `global_count` (initialized global) $\rightarrow$ mapped to `.data` at offset `0x00`.
 * `local_step` (initialized static) $\rightarrow$ mapped to `.data` at offset `0x04`.
 * `limit` (constant) $\rightarrow$ mapped to `.rodata` at offset `0x00`.
+
+> [!tip] Confirm with `readelf`
+> ```sh
+> gcc -c example.c -o example.o
+> readelf -s example.o | grep -E 'global_count|local_step|limit'
+> # Num:  Value  Size  Type    Bind    Vis      Ndx  Name
+> #  10:  0000   4     OBJECT  GLOBAL  DEFAULT    3  global_count  (.data)
+> #  11:  0004   4     OBJECT  LOCAL   DEFAULT    3  local_step    (.data)
+> #  12:  0000   4     OBJECT  GLOBAL  DEFAULT    5  limit         (.rodata)
+> ```
+> This directly shows which section (`Ndx 3 = .data`, `Ndx 5 = .rodata`) each variable was placed in by the compiler.
 
 ### Execution Trace
 
@@ -164,6 +193,17 @@ In an ELF executable, the data segment is split into distinct sections:
 * `.data`: Initialized global/static variables.
 * `.bss`: Uninitialized global/static variables.
 * `.rodata`: Read-only constants and string literals.
+
+```sh
+# View all sections in any ELF binary
+readelf -S /usr/bin/python3 | grep -E 'data|bss|rodata'
+# [14] .rodata   PROGBITS  ...  RE
+# [25] .data     PROGBITS  ...  WA
+# [26] .bss      NOBITS    ...  WA   ◄─ NOBITS means 0 bytes on disk!
+```
+
+> [!note] `.bss` is NOBITS on disk
+> In ELF format, the BSS section has type `NOBITS`, which means the section takes up no space in the file. The `p_filesz` (file size) field of the program header is smaller than `p_memsz` (memory size) for the data segment — the OS loader allocates and zeroes the difference at load time.
 
 ### PE Segment Names (Windows)
 In a Portable Executable (PE) binary, the segment names differ slightly:

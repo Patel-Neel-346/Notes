@@ -24,6 +24,9 @@ If compilers did not use a stack to manage function memory, programs would face 
 
 The stack handles function execution nesting perfectly. Because function calls are strictly ordered—meaning the most recently called function is always the first to exit (Last-In, First-Out)—a simple hardware pointer increment/decrement is all that is needed to manage memory lifecycle with zero algorithmic overhead.
 
+> [!note] LIFO maps perfectly to function call nesting
+> When `main()` calls `foo()` which calls `bar()`, the return order is always `bar` → `foo` → `main`. This rigid ordering is exactly the LIFO property, which is why a simple stack pointer register is sufficient to track all frame boundaries without any search or bookkeeping.
+
 ---
 
 ## 3. Core Concept
@@ -66,6 +69,14 @@ To manage variables inside a function, the CPU utilizes two registers: the **Sta
 ### The Function Prologue (Allocating a Frame)
 
 When `caller()` invokes `callee()`, the compiler executes the **Function Prologue** to construct the stack frame:
+
+```asm
+; x86-64 Function Prologue (compiled by gcc)
+push   rbp          ; 1. Save caller's BP onto the stack
+mov    rbp, rsp     ; 2. Set new BP = current SP (anchor this frame)
+sub    rsp, 16      ; 3. Allocate 16 bytes of space for local variables
+```
+
 1. **Push Caller's BP**: The current value of the BP register (which points to `caller`'s frame) is pushed onto the stack. This preserves `caller`'s anchor.
 2. **Set New BP**: The current SP value is copied into the BP register (`BP = SP`). This anchors the new frame for `callee()`.
 3. **Allocate Space**: The SP is decremented by the total size of `callee`'s local variables (e.g., `sub sp, sp, #16`).
@@ -73,9 +84,24 @@ When `caller()` invokes `callee()`, the compiler executes the **Function Prologu
 ### The Function Epilogue (Tearing Down a Frame)
 
 When `callee()` finishes, the **Function Epilogue** executes to restore the caller's execution context:
+
+```asm
+; x86-64 Function Epilogue (compiled by gcc)
+mov    rsp, rbp     ; 1. Collapse frame: SP = BP (free all locals)
+pop    rbp          ; 2. Restore caller's BP from stack
+ret                 ; 3. Pop saved return address into PC → jump back to caller
+```
+
 1. **Collapse Frame**: The SP register is moved back to point to the BP address (`SP = BP`), freeing the local variable space.
 2. **Restore Caller's BP**: The old BP value saved on the stack is popped back into the BP register, restoring `caller`'s frame anchor.
 3. **Return**: The return address is popped into the Program Counter (PC), resuming execution in `caller()`.
+
+> [!tip] See the prologue/epilogue yourself
+> ```sh
+> # Compile a simple function and disassemble it
+> echo 'int add(int a,int b){return a+b;}' > t.c && gcc -O0 -c t.c && objdump -d t.o
+> ```
+> Look for `push rbp`, `mov rbp,rsp`, `sub rsp,N` at the top and `pop rbp`, `ret` at the bottom.
 
 ---
 
@@ -165,9 +191,37 @@ Operating systems allocate a fixed maximum stack size per thread at startup:
 * **Linux**: Typically **8 MB** (configurable via `ulimit -s`).
 * **Windows**: Typically **1 MB** (configurable via PE header settings or thread creation parameters).
 
+> [!tip] Check and change stack size on Linux
+> ```sh
+> ulimit -s          # Print current stack size limit (in KB)
+> # 8192             # Default is 8 MB
+> ulimit -s 16384    # Double it to 16 MB for this shell session
+> ```
+> For production servers, stack sizes are tuned in `/etc/security/limits.conf`.
+
 ### Guard Pages and Stack Overflow Protection
+
+```
+High Memory
+┌─────────────┐
+│  Stack Frame  │  ◄─ SP starts here
+├─────────────┤
+│  Stack Frame  │
+├─────────────┤  (stack grows DOWN ↓)
+│     ...       │
+├─────────────┤
+│  GUARD PAGE   │  ◄─ Read-Only (MMU enforced)
+├─────────────┤
+│  (unmapped)   │  ◄─ Writing here = SIGSEGV
+└─────────────┘
+Low Memory
+```
+
 To prevent stack overflows from corrupting adjacent heap or data memory, the OS maps a write-protected page called a **Guard Page** at the very bottom limit of the stack's address range. 
 If the stack pointer grows too far and writes to this page, the MMU triggers a hardware page fault, which the kernel catches and translates into a `SIGSEGV` (Segmentation Fault) on Linux, terminating the process immediately.
+
+> [!caution] Recursive functions can silently eat your stack
+> A function that recurses 10,000 deep with a 1 KB frame uses 10 MB of stack — more than Linux's default 8 MB limit. It will hit the guard page and crash with a segfault, *not* a helpful "stack overflow" message. Always validate recursion depth, or convert deep recursion to an explicit heap-based stack (iteration).
 
 ### Windows `__chkstk` Probes
 On Windows, if a function allocates more than 4 KB (one page) of local stack variables, the compiler inserts a call to a helper function called `__chkstk`. This function "probes" each memory page sequentially down to the allocation size. This ensures the guard pages are touched in sequence, allowing the OS to dynamically expand the stack space page-by-page. Skipping this check could bypass the guard page entirely, corrupting adjacent process memory.

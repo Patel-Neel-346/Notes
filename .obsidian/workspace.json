@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "OS/Process/04-data-section.md",
+                "file": "OS/Process/06-practical-process-memory-demo.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "04-data-section"
+              "title": "06-practical-process-memory-demo"
             }
           }
         ]
