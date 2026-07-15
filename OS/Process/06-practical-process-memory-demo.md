@@ -6,206 +6,247 @@
 
 ## 1. Intuition
 
-All of the theory covered so far — text, data, heap, stack — isn't abstract; it's directly visible on a live, running Linux process. The kernel exposes this information through a special pseudo-filesystem, `/proc`, which isn't backed by physical disk files at all — it's a live window into the kernel's own internal data structures, rendered as if it were a filesystem for convenience.
+All the theoretical divisions of a process's memory layout—the text section, data section, stack, and heap—are not abstract structures. They are real, concrete divisions of virtual memory that are directly visible, inspectable, and manageable in real time on any running Linux machine. 
 
-This section walks through inspecting a real running C program's memory layout, connecting every abstract concept from the previous sections to an actual command-line output.
+To observe this, we use a special system window called the **`/proc` pseudo-filesystem**. `/proc` is not stored on a hard drive or SSD. Instead, it is an in-memory interface generated dynamically by the Linux kernel. 
+
+When you navigate through `/proc`, you are peering directly into the kernel's active data structures. Reading a file inside `/proc/<pid>/` is equivalent to asking the kernel: *"Tell me what this process is doing right now."*
 
 ---
 
 ## 2. Why This Exists
 
-Operating systems need a way to expose internal kernel state — process metadata, memory mappings, open file descriptors — to user-space tools and administrators, without giving those tools direct, unrestricted access to kernel memory (which would be a massive security and stability risk). `/proc` solves this by presenting a curated, read-only (mostly) view of exactly the information that's safe and useful to expose, in a format any standard file-reading tool (`cat`, scripts, etc.) can consume.
+Operating systems must expose internal runtime states (such as process scheduling, memory footprints, and open file descriptors) to system administrators and debugging tools. However:
+* Directly exposing kernel memory addresses to user space would create catastrophic security vulnerabilities and crash risks.
+* Providing complex proprietary system calls to read process states makes writing administrative scripts and tools difficult.
+
+`/proc` solves this by utilizing the **Virtual File System (VFS)**. It translates live, binary kernel state tables into simple, human-readable ASCII text files. Because they appear as standard files, administrators can inspect processes using standard command-line utilities (like `cat`, `grep`, or `awk`) without direct memory access.
 
 ---
 
 ## 3. Core Concept
 
-| Term | Definition |
-|---|---|
-| **`/proc`** | An in-memory, kernel-generated pseudo-filesystem exposing live process and system information. Not backed by disk. |
-| **`/proc/<pid>/maps`** | A per-process file listing every virtual memory mapping (address range) that process currently has — code, data, heap, stack, and shared libraries. |
-| **`top` / `htop`** | Process viewers that read from `/proc` and render it in a human-friendly, often interactive, format. |
+Here are the formal definitions of the system components used to inspect memory maps:
+
+| Term | Formal Definition | Description |
+|:---|:---|:---|
+| **`/proc` pseudo-filesystem** | An in-memory, kernel-managed directory structure that exposes system configuration and process control tables as files. | Created dynamically; consumes 0 bytes of disk space. |
+| **Memory Map (`/proc/<pid>/maps`)** | A text file listing all currently mapped virtual memory pages for a specific process, detailing address ranges, access permissions, offsets, and backing files. | Read-only from user space; changes dynamically as the process runs. |
+| **Virtual Page** | A fixed-size block of virtual memory (typically 4 KB in Linux) that represents the minimum granularity of memory mapping. | Mapped to physical RAM frames via the CPU's Page Tables. |
+| **VFS (Virtual File System)** | An abstract kernel layer that allows different filesystems (ext4, NTFS, /proc) to be accessed using a single interface. | Handles file operations (`open`, `read`) dynamically. |
 
 ---
 
-## 4. Internal Working — The Demo Program
+## 4. Internal Working
 
-The demo uses a simple C program (`high_cpu.c`) intentionally designed to touch every memory region discussed so far:
+Let's look at the mapping column schema in `/proc/<pid>/maps` and how the OS loader parses the binary.
 
+### The `/proc/<pid>/maps` Schema
+
+Every row inside a process's `maps` file follows a strict six-column format:
+
+```
+  address           perms offset  dev   inode      pathname
+00010000-00011000   r-xp  000000  08:01 1234567    /home/pi/high_cpu
+  ▲                   ▲     ▲       ▲     ▲          ▲
+  │                   │     │       │     │          └─ Backing file on disk (or [heap], [stack])
+  │                   │     │       │     └─ Inode number of the backing file
+  │                   │     │       └─ Device major:minor number (disk partition)
+  │                   │     └─ Offset within the backing file where the segment begins
+  │                   └─ Page permissions (read, write, execute, shared/private)
+  └─ Virtual memory range (Start Address - End Address)
+```
+
+#### Column Breakdown:
+1. **Virtual Address Range**: The start and end virtual addresses of the mapping, displayed in hexadecimal.
+2. **Permissions (`perms`)**:
+   * `r`: Readable.
+   * `w`: Writable.
+   * `x`: Executable.
+   * `p` / `s`: Private (Copy-on-Write) or Shared.
+3. **Offset**: The file offset (in bytes) where the mapping begins. If the region is not backed by a physical file on disk (e.g., heap or stack), this is `000000`.
+4. **Device (`dev`)**: The major and minor device numbers of the storage drive holding the backing file.
+5. **Inode**: The filesystem inode number of the backing file, used by the filesystem to locate the data.
+6. **Pathname**: The absolute file path of the library or executable backing the mapping. Special labels include `[heap]` (dynamic memory), `[stack]` (thread execution stack), and `[vdso]` (Virtual Dynamic Shared Object used to accelerate system calls).
+
+---
+
+## 5. Step-by-Step Execution: Inspecting a Real Process
+
+Let's write a C program, compile it, run it, and trace how its variables and structures appear in the live memory map.
+
+### Step 1: The C Code (`high_cpu.c`)
 ```c
 #include <stdio.h>
 #include <stdlib.h>
 
-int global_initialized = 42;          // lives in .data (initialized data section)
+int global_initialized = 42;          // Lives in .data
 
 int main() {
-    static long long sum = 0;         // static local: also lives in .data
-    int *heap_array = malloc(1000000 * sizeof(int)); // large heap allocation
+    static long long sum = 0;         // Lives in .data
+    int *heap_array = malloc(1000000 * sizeof(int)); // Allocate 4 MB on heap
 
     while (1) {
-        sum++;                        // infinite loop, so the process stays alive
+        sum++;                        // Keeps CPU busy and process running
     }
 
     return 0;
 }
 ```
 
-- `global_initialized` is a genuine global variable → lands in the initialized data section.
-- `sum`, despite being declared *inside* `main`, is `static` → it also lives in the data section (not the stack), because `static` locals persist across the entire program lifetime rather than being tied to one function call.
-- `heap_array` is a large `malloc`'d block → lands in the heap, deliberately sized (1 million integers) to make it easy to spot in the memory map.
-- The infinite loop keeps the process alive long enough to inspect while running.
+* `global_initialized` is an initialized global variable $\rightarrow$ mapped to `.data`.
+* `sum` is a static local $\rightarrow$ mapped to `.data` (its state persists across the program lifecycle).
+* `heap_array` allocates 4 MB on the heap $\rightarrow$ mapped to `[heap]`.
 
-> [!note] Why a static local variable is *not* on the stack
-> This is a common point of confusion: `static` changes a local variable's *storage duration*, not its *scope*. `sum` is still only accessible by name inside `main` (scope), but its memory is allocated once, in the data section, and persists for the entire life of the program — it does not get created and destroyed with each call to `main`, and it is not part of `main`'s stack frame.
-
----
-
-## 5. Step-by-Step Execution — Reading `/proc/<pid>/maps`
-
-**Step 1 — Find the running process:**
+### Step 2: Compiling and Running
+Compile the code and run it in the background:
 ```sh
-top
+gcc -o high_cpu high_cpu.c
+./high_cpu &
+# Output: [1] 13503  (Process runs in background with PID 13503)
 ```
-Locate the process by name (`high_cpu`) and note its PID (e.g., `13503`).
 
-**Step 2 — Dump its memory map:**
+### Step 3: Dumping the Maps File
+Read the dynamic mapping file using `cat`:
 ```sh
 cat /proc/13503/maps
 ```
 
-**Step 3 — Interpret each entry.** A typical `maps` output has lines shaped like:
+### Step 4: Interpreting the Output
 
-```
-<start_addr>-<end_addr> <perms> <offset> <dev> <inode> <pathname>
-```
-
-Walking through what the lecture's demo actually showed, entry by entry:
-
-### Entry 1 — The Text Segment
-```
-00010000-00011000  r-xp  ...  /home/pi/high_cpu
-```
-- **Permissions:** `r-xp` → read + execute, private, **not** writable. This is the machine code itself — the OS enforces that running code cannot be modified in memory, both for security (preventing code injection) and for performance (allowing the CPU to safely cache it as immutable).
-- **Size:** `0x11000 - 0x10000 = 0x1000` = 4 KB — the minimum unit of memory mapping on this system (one page).
-- **Mapped from:** the executable file itself on disk (`/home/pi/high_cpu`) — the code doesn't need to be "constructed" at runtime; it's mapped directly from the file.
-
-### Entry 2 — Read-only Data (Constants / `.rodata`)
-```
-00012000-00013000  r--p  ...  /home/pi/high_cpu
-```
-- **Permissions:** `r--p` → read-only, not executable, not writable. This is the `.rodata` portion of the data section — string literals and `const` values.
-- Also mapped directly from the same executable file, also exactly 4 KB (again, the minimum page granularity — even a single constant integer would still reserve a full page).
-
-### Entry 3 — Initialized Data Section
-```
-00014000-00015000  rw-p  ...  /home/pi/high_cpu
-```
-- **Permissions:** `rw-p` → read and write, but not executable. This is where `global_initialized` and the `static long long sum` both live.
-- Also mapped from the executable file (their initial values are stored in the file), and also 4 KB — even though the actual data used is only a handful of bytes, the OS's minimum mapping granularity (the **page size**, typically 4 KB) still applies. This same page-granularity constraint governs virtual memory generally, covered in depth in the next section.
-
-### Entry 4 — The Heap
-```
-00016000-00035000  rw-p  ...  [heap]
-```
-- **Permissions:** `rw-p` — readable and writable, and notice there is **no backing file path** (or it's explicitly labeled `[heap]`) — because heap memory doesn't exist on disk at all. It's constructed dynamically as the process runs, exactly as covered in Section 05.
-- **Size:** in the lecture's example, roughly 135 KB — consistent with having `malloc`'d space for 1,000,000 integers (~4 MB in a real scenario; the lecture's own demo used a smaller allocation, illustrating the same mapping principle at whatever scale was actually requested).
-
-### Entries 5+ — Shared Libraries (`libc`)
-```
-...  r-xp  ...  /lib/aarch64-linux-gnu/libc.so.6
-...  r--p  ...  /lib/aarch64-linux-gnu/libc.so.6
-...  rw-p  ...  /lib/aarch64-linux-gnu/libc.so.6
-```
-- Because the program uses standard library functions (`printf`, `malloc`, etc.) and was **dynamically linked**, the C standard library itself must be mapped into the process's address space at startup.
-- Notice the same three-way split appears again — a read+execute portion (the library's own code), a read-only portion (its constants), and a read-write portion (its own global/static data) — because a shared library is, internally, structured exactly like any other compiled program.
-- This directly connects back to the dynamic linking concepts from Section 01: the executable's `.dynamic` section records that it needs `libc.so.6`, the runtime linker (`ld.so`) locates it on disk at startup, and the kernel maps it into the process the same way it maps the process's own code.
-
-> [!warning] Security implication
-> Because shared libraries are located by *path* and mapped at runtime, an attacker who can replace the on-disk `libc` (or manipulate the library search path) before a program starts could cause the process to map a malicious version instead — a real, if difficult-to-execute, attack vector tied directly to how dynamic linking works.
-
-### The Stack
-```
-7fffffff0000-7ffffffff000  rw-p  ...  [stack]
-```
-- Also labeled explicitly, also `rw-p`, also with no backing file — like the heap, it's constructed and torn down dynamically, not loaded from disk.
-- In the lecture's demo, it measured similarly to the heap's size (~135 KB) — a coincidence of this particular program, not a general rule; the stack's default maximum size is configurable per-process (commonly via `ulimit -s`) and is independent of heap size.
-
----
-
-## Summary Table — What Each Region Looks Like in `/proc/<pid>/maps`
-
-| Region | Typical Permissions | Backed by a file? | Notes |
-|---|---|---|---|
-| Text (code) | `r-xp` | Yes — the executable | Never writable; enforced by the OS |
-| Read-only data (`.rodata`) | `r--p` | Yes — the executable | Constants, string literals |
-| Initialized data (`.data`) | `rw-p` | Yes — the executable | Global and static variables |
-| Heap | `rw-p` | No — labeled `[heap]` | Constructed dynamically at runtime |
-| Stack | `rw-p` | No — labeled `[stack]` | Constructed dynamically at runtime |
-| Shared libraries (e.g. `libc`) | Mixed `r-xp` / `r--p` / `rw-p` | Yes — the `.so` file | Same 3-way split as the main executable |
-
----
-
-## Real Implementation Notes
-
-- The minimum granularity for every single mapping is the OS **page size** (commonly 4 KB on most systems) — this is why even a single global integer or a single string constant still reserves a full 4 KB entry in the map. This ties directly into the upcoming Virtual Memory section, where paging is covered in depth.
-- `/proc/<pid>/maps` is one of the most useful tools for debugging real-world memory issues — spotting an unexpectedly large or rapidly growing `[heap]` entry over time is a classic way to catch a memory leak in production.
-- Tools like `pmap <pid>` present the same underlying information in a more human-readable, summarized form.
-
----
-
-## Interview Questions
-
-**Beginner**
-- Q: What is `/proc` and why doesn't it exist as real files on disk?
-  A: It's a kernel-generated pseudo-filesystem that exposes live, in-memory process and system state through a familiar file-reading interface — it's a presentation layer over kernel data structures, not actual persisted files.
-
-**Intermediate**
-- Q: Why do the heap and stack entries in `/proc/<pid>/maps` have no backing file, while the text and data sections do?
-  A: The text and data sections' *initial* contents come directly from the executable file on disk and are mapped from it. The heap and stack are constructed dynamically as the process runs — they have no corresponding on-disk representation.
-
-**Advanced**
-- Q: Why would even a single 4-byte global variable still result in a full 4 KB entry in the data section mapping?
-  A: The OS's virtual memory system operates in fixed-size pages (commonly 4 KB) as its minimum unit of mapping — you cannot map a partial page. Any allocation, however small, is rounded up to at least one full page.
-
----
-
-## Common Mistakes
-
-- **Mistake:** Assuming `/proc/<pid>/maps` shows physical RAM addresses.
-  **Why it's wrong:** These are **virtual** addresses, specific to that process's own address space — a completely different process could show overlapping or identical-looking address ranges that map to entirely different physical memory.
-- **Mistake:** Assuming a `static` local variable appears in the stack region of the memory map.
-  **Why it's wrong:** `static` locals are placed in the data section, not the stack, regardless of which function they're declared inside.
-
----
-
-## Revision Notes
-
-**Key Points**
-- `/proc/<pid>/maps` gives a direct, live view of everything covered theoretically in Sections 01–05: text, rodata, data, heap, stack, and shared library mappings.
-- Every mapping is a minimum of one page (commonly 4 KB), regardless of how little data actually lives there.
-- Text, rodata, and initialized data are all backed by the executable file on disk; heap and stack are not — they're purely runtime constructs.
-- Dynamically linked libraries appear in the map with the same three-way permission split as the main program itself.
-
-**Quick Revision**
-> `cat /proc/<pid>/maps` → see text (r-x), rodata (r--), data (rw-), heap ([heap], rw-), libraries, and stack ([stack], rw-) — every concept from this course, visible in one command.
-
-**Memory Trick**
-> "If it's on disk, it's mapped with a path. If it's not, it's `[heap]` or `[stack]`."
-
----
-
-## Image Suggestions
-
-- Annotated `/proc/<pid>/maps` output, labeling each region against the concepts it represents
-- Full process virtual address space diagram (text → rodata → data → heap → ... → stack), matched to real hex address ranges
-- Dynamic library mapping diagram showing `ld.so` resolving and mapping `libc.so`
-
-> **📷 Image Placeholder:** Annotated `/proc/<pid>/maps` Output
+```md
+> **📷 Image Placeholder: Process Maps Dump Comparison**
 >
-> <!-- IMAGE: proc-maps-annotated.png -->
+> <!-- IMAGE: proc-maps-dump-comparison.png -->
 >
-> This image should show a real `/proc/<pid>/maps` terminal output with each line's region (text, rodata, data, heap, libc, stack) labeled and color-coded, matching the address ranges to the memory layout diagram from Section 01.
+> This image should show the command terminal output of cat /proc/13503/maps. Lines corresponding to the main program text, rodata, data, heap, libc shared library, and stack should be highlighted and color-coded.
+```
+
+Here are the key mappings displayed by the command:
+
+#### 1. The Text Segment (Machine Code)
+```
+00010000-00011000  r-xp  000000  08:01  123456   /home/pi/high_cpu
+```
+* **Permissions**: `r-xp` (Read + Execute). The OS prevents this page from being writable to block code-injection exploits.
+* **Offset**: `000000` (mapped from the very beginning of the executable file).
+* **Size**: `0x11000 - 0x10000 = 0x1000` bytes (exactly **4 KB**, or one page).
+
+#### 2. The Read-Only Data (`.rodata`)
+```
+00012000-00013000  r--p  001000  08:01  123456   /home/pi/high_cpu
+```
+* **Permissions**: `r--p` (Read-Only). String constants and constant integers live here.
+* **Size**: 4 KB (even if the program only uses 4 bytes of constants, the OS must allocate a minimum of one page).
+
+#### 3. The Initialized Data Section (`.data`)
+```
+00014000-00015000  rw-p  002000  08:01  123456   /home/pi/high_cpu
+```
+* **Permissions**: `rw-p` (Read-Write).
+* This is where `global_initialized` and the static variable `sum` reside. They are loaded directly from the executable file at launch.
+
+#### 4. The Heap (`[heap]`)
+```
+00016000-00427000  rw-p  000000  00:00  0        [heap]
+```
+* **Permissions**: `rw-p` (Read-Write).
+* **Backing File**: None (inode `0`, device `00:00`). The memory is allocated dynamically at runtime, so it is not backed by an on-disk file.
+* **Size**: `0x427000 - 0x16000 = 0x411000` bytes (roughly **4.2 MB**). This matches our 4 MB `malloc` allocation plus heap allocator headers.
+
+#### 5. Shared C Libraries (`libc.so`)
+```
+7fb8f000-7fcc8000  r-xp  000000  08:01  234567   /lib/aarch64-linux-gnu/libc.so.6
+7fcc8000-7fcd8000  r--p  019000  08:01  234567   /lib/aarch64-linux-gnu/libc.so.6
+7fcd8000-7fcda000  rw-p  01a000  08:01  234567   /lib/aarch64-linux-gnu/libc.so.6
+```
+* Because our program was dynamically linked, the OS loader maps the shared C standard library (`libc.so`) into our address space.
+* Notice the same structure: `r-xp` (compiled library code), `r--p` (library constants), and `rw-p` (library global state).
+
+#### 6. The Stack (`[stack]`)
+```
+7ffffffdf000-7ffffffff000  rw-p  000000  00:00  0  [stack]
+```
+* **Permissions**: `rw-p` (Read-Write).
+* **Backing File**: Labeled `[stack]`.
+* Mapped at high memory addresses. This is where main's frame and the local variables (like `heap_array` pointer) are stored.
 
 ---
 
-*Next: Section 07 — Virtual Memory (paging, page tables, the MMU)*
+## 6. Real Implementation Notes
+
+### Linux VFS (Virtual File System)
+The files inside `/proc` do not exist as physical bytes on a disk. When you run `cat /proc/13503/maps`, the Virtual File System intercepts the read system call, matches it to the `/proc` filesystem driver, and invokes an internal kernel function (like `show_map()` inside the memory manager). This function reads the process's active `vm_area_struct` memory descriptors and formats them on-the-fly into ASCII text.
+
+### Virtual Memory Page Size Constraints
+Virtual memory is divided into fixed-size chunks called **Pages**. 
+* On most x86-64 and ARM systems, the default page size is **4 KB** (`4096 bytes`).
+* **HugePages**: High-performance database engines (like Oracle or PostgreSQL) often utilize Linux **HugePages** (commonly 2 MB or 1 GB in size). HugePages reduce the number of entries in the Page Tables, decreasing CPU translation overhead and minimizing Translation Lookaside Buffer (TLB) cache misses under massive memory workloads.
+
+---
+
+## 7. Comparison Tables
+
+### Virtual Memory Address vs. Physical RAM Pages
+
+| Aspect | Virtual Address Space (maps file) | Physical RAM Space (Hardware) |
+|:---|:---|:---|
+| **Scope** | Unique and private to each process | Shared globally by the hardware and kernel |
+| **Size Limit** | $2^{64}$ bytes (16 Exabytes) on 64-bit | Limited by physical RAM sticks (e.g., 16 GB) |
+| **Adjacency** | Mappings can look contiguous | Scattered across physical memory chips |
+| **Permissions** | Managed via page-table flags (`r-x`, `rw-`) | Raw hardware memory cells |
+| **Device Mapping** | Direct mapping to disk files | Virtual mappings resolved via MMU TLB cache |
+
+---
+
+## 8. Interview Questions
+
+### Beginner
+* **Q: Why does the `/proc` directory consume zero bytes of disk space?**
+  * **A:** `/proc` is a virtual pseudo-filesystem generated dynamically by the kernel VFS layer directly in RAM. It does not exist on any physical storage media. It functions as a presentation interface to read and write active kernel state tables using standard file commands.
+
+### Intermediate
+* **Q: Why are the permissions of the text (code) segment in `/proc/<pid>/maps` marked as `r-xp` (Read + Execute) rather than `rwxp` (Read + Write + Execute)?**
+  * **A:** This is a core security design known as **W^X (Write XOR Execute)**. By marking code pages as non-writable, the OS prevents self-modifying code and code-injection security vulnerabilities (e.g. buffer overflows attempting to write executable shellcode directly into memory). 
+
+### Advanced
+* **Q: What is a HugePage in Linux, and why would database administrators configure their systems to use them?**
+  * **A:** A HugePage increases the standard page size from 4 KB to 2 MB or 1 GB. Large memory systems (like database servers with hundreds of gigabytes of RAM) experience significant Translation Lookaside Buffer (TLB) cache miss overhead when translating millions of 4 KB pages. Using HugePages reduces the total page count, shrinks the page table memory footprint, and increases TLB cache hit rates, improving memory access speeds.
+
+---
+
+## 9. Common Mistakes
+
+* **Mistake: Thinking addresses in `/proc/<pid>/maps` are physical RAM addresses.**
+  * **Why it's wrong:** The maps file displays **virtual** addresses. The kernel maps these virtual addresses to physical locations dynamically via page tables. Multiple separate processes can display overlapping virtual address ranges, but they point to different physical memory cells.
+* **Mistake: Confusing `static` local variables with stack variables.**
+  * **Why it's wrong:** Even though a static variable (like `static int sum`) is declared inside a function, its storage duration is global. It is stored in the initialized data section (`rw-p`) rather than the stack frame (`[stack]`), ensuring its state persists across function calls.
+
+---
+
+## 10. Revision Notes
+
+### Key Points
+* `/proc/<pid>/maps` exposes the live virtual memory mapping of a running process.
+* The maps file columns detail address ranges, access permissions, offsets, and backing files.
+* Text (`r-x`), rodata (`r--`), and data (`rw-`) are mapped from files; heap and stack are constructed dynamically in RAM.
+* All virtual memory mappings operate in blocks called **Pages** (commonly 4 KB).
+* Shared libraries (`libc.so`) display the same split permissions as the main executable binary.
+
+### Important Definitions
+* **Pseudo-filesystem**: A virtual filesystem interface dynamically generated by the kernel.
+* **VFS (Virtual File System)**: An abstraction layer enabling standard file commands to read kernel states.
+* **VDSO**: A kernel-provided virtual shared library that speeds up select system calls.
+
+### Memory Tricks
+* **"File path = Code or Data; No path = Heap or Stack"**: Backed segments show files; dynamic structures show empty device descriptors or labels like `[heap]`.
+* **"W^X prevents the crash"**: If a page is writable, it must not be executable; if executable, it must not be writable.
+
+---
+
+## 11. Image Suggestions
+
+* **Process Map Layout Diagram**: Overlaying the `/proc/<pid>/maps` hex addresses onto the standard textbook memory segment diagram.
+* **VFS Translation Path**: Showing how a `cat /proc/13503/maps` command traverses VFS, calls `show_map()` in the kernel, and formats RAM data structures.
+* **HugePage vs. Standard Page Size Mapping**: Illustrating TLB translation page count reductions.
+* **Copy-On-Write Page Mapping**: Showing shared libc memory pages until modification occurs.

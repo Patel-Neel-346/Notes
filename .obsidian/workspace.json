@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "OS/Process/1-Program vs Process.md",
+                "file": "OS/Process/02-process-execution.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "1-Program vs Process"
+              "title": "02-process-execution"
             }
           }
         ]
@@ -195,10 +195,12 @@
   },
   "active": "10a5afa644871ebd",
   "lastOpenFiles": [
+    "OS/Process/03-stack-memory.md",
+    "OS/Process/02-process-execution.md",
+    "OS/Process/1-Program vs Process.md",
     "OS/img/memory_layout.webp",
     "OS/img/program_in_memory2.webp",
     "OS/img",
-    "OS/Process/1-Program vs Process.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
@@ -212,7 +214,6 @@
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide11-locks-vs-latches.jpg",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide19-clock-policy.jpg",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide21-sequential-flooding.jpg",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide24-lru-k.jpg",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img",
     "Database(CMU-lecture-wise)/img",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
@@ -240,7 +241,6 @@
     "Untitled 2.base",
     "Untitled 1.md",
     "Untitled.md",
-    "Sys Design/Microser Services Ptterns & principles.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas"
