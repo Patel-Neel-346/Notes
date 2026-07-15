@@ -7,36 +7,43 @@
 ## 1. The Core Distinction
 
 > [!info] The Core Question
-> Why do we need an operating system (OS)? In truth, you don't *absolutely* need one. You can write an application that talks directly to hardware. However, doing so is extremely difficult. The OS exists for **convenience** — it handles the complex orchestration of hardware, allowing developers to focus on application logic.
+> Why do we need an operating system (OS)? In truth, you don't *absolutely* need one. You can write an application that talks directly to hardware (bare-metal programming). However, doing so is extremely difficult. The OS exists for **abstraction and convenience** — it handles complex hardware orchestration, memory management, process isolation, and I/O operations, allowing developers to focus on application logic.
 
-People often use the terms "program" and "process" interchangeably, but they represent completely different states of execution:
+### Program vs Process: The Fundamental Difference
 
-- A **program** is a passive entity. It is a compiled, linked executable file sitting on persistent disk storage (e.g., an ELF binary on Linux or a `.exe` on Windows). It consumes only disk space, persists until deleted, and is static.
-- A **process** is an active entity. It is a **program in motion** — an active instance of a program loaded into RAM, executing instructions, and consuming CPU cycles, memory, and kernel resources.
-
-### Side-by-Side Comparison
-
-| Feature | Program | Process |
-|---------|---------|---------|
-| **State** | Passive — stored on disk | Active — running in RAM |
-| **Lifetime** | Persistent until explicitly deleted | Temporary — starts, runs, and terminates |
-| **Resources** | Consumes disk space only | Consumes RAM, CPU cycles, file descriptors, network ports |
-| **Uniqueness** | One physical file on disk | Many active instances can run simultaneously |
-| **Identity** | File path / file name | Process ID (PID) assigned by the kernel |
+| Aspect | Program | Process |
+|--------|---------|---------|
+| **Definition** | A passive, static executable file on disk | An active, running instance of a program in memory |
+| **State** | Passive — stored on persistent storage | Active — executing in RAM |
+| **Lifetime** | Persistent until explicitly deleted | Ephemeral — created, runs, and terminates |
+| **Resources Used** | Disk space only | RAM, CPU cycles, file descriptors, network ports, kernel resources |
+| **Instance Count** | One physical file on disk | Multiple identical processes can run simultaneously |
+| **Identity** | Identified by file path / filename | Identified by Process ID (PID) assigned by the kernel |
+| **Example** | `/usr/bin/python3`, `C:\Windows\System32\cmd.exe` | A running Python script with PID 1234, a cmd.exe instance with PID 5678 |
 
 > [!tip] Quick Check: Duplicate Processes
 > **Q:** If you run `node app.js` twice in two separate terminals, are they the same process?
-> **A:** **No.** They represent the same *program* (the `node` binary on disk), but they are two separate *processes*. Each gets its own unique PID, its own isolated memory layout (stack, heap, data), and its own Program Counter. Mutating state or variables in one process has absolutely zero impact on the other.
+> **A:** **No.** They are the same *program* (the `node` executable on disk), but they are two **distinct processes**. Each receives:
+> - A unique Process ID (PID)
+> - Its own isolated virtual memory space (separate stack, heap, data segments)
+> - Its own Program Counter (PC) and CPU register state
+> - Its own file descriptor table
+>
+> Therefore, mutating a variable in one process has **zero impact** on the other — they are completely isolated by the OS.
 
 ---
 
-## 2. How a Program Becomes a Process
+## 2. The Program-to-Process Lifecycle
 
-To transform source code on disk into an active process in memory, it must go through compilation, linking, and OS loading:
+Transforming source code into an active process involves a multi-stage pipeline:
 
 ```
-Source (.c) ──▶ Compiler ──▶ Object File (.o) ──▶ Linker ──▶ Executable (ELF/EXE) ──▶ OS Loader ──▶ Process in RAM
+Source Code (.c, .rs, .py) ──▶ Compiler ──▶ Object File (.o) ──▶ Linker ──▶ Executable (ELF/EXE) ──▶ OS Loader ──▶ Process in RAM
 ```
+
+> [!note] Key Insight
+> The **compiler** and **linker** run at **build time** (when you compile your program).
+> The **OS loader** runs at **runtime** (when you execute your program).
 
 ```
 📄 Screenshot this: program_in_memory2.webp
@@ -45,12 +52,23 @@ Shows: OS loading process from disk to RAM, mapping code and data sections.
 ```
 
 > ![program_in_memory2](../img/program_in_memory2.webp)
-> *Figure 1: OS loading process — copying the static executable program from disk and mapping it as an active process in memory.*
+> *Figure 1: OS loading process — the static executable is read from disk and mapped as an active process in virtual memory.*
 
-### The Loader Lifecycle
-1. **Compilation**: The compiler translates high-level code (e.g., C, Rust) into object files containing CPU-specific assembly instructions.
-2. **Linking**: The linker resolves symbol references and combines object files and external libraries into a single executable binary.
-3. **OS Loading**: When execution is triggered, the OS loader reads the executable off disk, maps its sections into virtual memory, sets up the execution stack and heap, and hands control to the entry point. The CPU then begins executing instructions.
+### The Loader Lifecycle (Detailed)
+
+| Stage | Actor | Input | Output | Description |
+|-------|-------|-------|--------|-------------|
+| 1 | **Compiler** | Source code (`main.c`) | Object file (`main.o`) | Translates high-level code into CPU-specific assembly/machine code. Handles syntax analysis, optimization, and code generation. |
+| 2 | **Linker** | Object files + Libraries | Executable binary (`a.out`, `.exe`) | Resolves symbol references, combines object files, links external libraries (static or dynamic) into a single executable. |
+| 3 | **OS Loader** | Executable binary | Running process in RAM | Kernel component that loads the executable into memory, sets up the process address space (stack, heap, data, text sections), initializes registers, and transfers control to the program's entry point. |
+
+> [!important] The Entry Point
+> When the OS loader finishes its work, the CPU does **not** start executing at `main()` directly. Instead:
+> 1. Control transfers to the **entry point** (e.g., `_start` in C, defined in `crt0.o`)
+> 2. The entry point performs runtime initialization (setting up `argc`, `argv`, environment variables)
+> 3. Finally, it calls `main()` — your program's actual starting point
+>
+> This is why C requires `main()` as the entry — it's a convention established by the linker and runtime.
 
 ---
 
