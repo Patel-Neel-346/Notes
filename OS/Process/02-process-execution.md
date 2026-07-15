@@ -27,6 +27,9 @@ Without the **Program Counter** and the **Fetch-Decode-Execute cycle**:
 
 The PC solves this by acting as a dedicated hardware register that holds the memory address of the next instruction. By updating the PC (either by incrementing it sequentially or overwriting it during a branch), the CPU gains the ability to traverse complex code paths.
 
+> [!note] Von Neumann Architecture
+> The Fetch-Decode-Execute loop is the practical implementation of the **Von Neumann Architecture** (1945), the theoretical design underlying virtually every general-purpose computer built since. The key insight: instructions and data share the same memory bus, so the CPU must *fetch* instructions from RAM just like any other data.
+
 ---
 
 ## 3. Core Concept
@@ -60,13 +63,32 @@ Let's explore the internal hardware mechanics that occur behind the scenes durin
 When you run an executable (e.g., an ELF binary on Linux), the process is bootstrapped as follows:
 
 ```
-[ Disk ELF Binary ] ──▶ [ OS Loader Maps Memory ] ──▶ [ ELF Header Entry Point Address ] ──▶ [ Write Address to PC ] ──▶ [ CPU Starts Fetch ]
+[ Disk ELF Binary ]
+        │
+        ▼
+[ OS Loader reads ELF Header → finds Entry Point address ]
+        │
+        ▼
+[ Kernel maps .text, .data, .bss pages into virtual memory ]
+        │
+        ▼
+[ Writes Entry Point address into CPU Program Counter (PC) ]
+        │
+        ▼
+[ CPU begins first Fetch cycle at [PC] ]
 ```
 
 1. The OS loader (kernel space) allocates virtual memory pages for the new process.
 2. The loader reads the **ELF Header** (or PE Header on Windows), which contains a specific metadata field called the **Entry Point** (typically pointing to the `_start` symbol in C).
 3. The loader performs a context switch to the new process, writing this entry point address directly into the CPU's **Program Counter (PC)**.
-4. The CPU transition from kernel mode to user mode, enabling the hardware clock to trigger the first Fetch cycle at the address now sitting in the PC.
+4. The CPU transitions from kernel mode to user mode, enabling the hardware clock to trigger the first Fetch cycle at the address now sitting in the PC.
+
+> [!tip] Inspect the Entry Point yourself (Linux)
+> ```sh
+> readelf -h /usr/bin/ls | grep "Entry point"
+> # Entry point address: 0x5980
+> ```
+> This shows the exact virtual address the OS loader writes into the PC when `ls` starts running.
 
 ### The Cycle in Detail
 
@@ -114,6 +136,19 @@ The relative speeds of memory components dictate why caching is vital to executi
 #### Cache Line Bursts (Spatial Locality)
 When the CPU fetches an instruction from address `0x1000` in RAM, it doesn't just read the 4 bytes it needs. The memory controller pulls a full **Cache Line** (typically **64 bytes**) into the L1 Instruction Cache. 
 Because code is stored sequentially, the next 15 instructions (`15 * 4 bytes = 60 bytes`) are preloaded into L1 cache for free. The first fetch pays the 100 ns RAM tax, but the subsequent 15 fetches are served from L1 at ~1 ns each.
+
+```
+First Fetch (RAM hit, ~100 ns):
+  Address 0x1000 ──▶ [64-byte cache line pulled into L1]
+  └── Inst @0x1000 ✔  └── Inst @0x1004 ✔  └── Inst @0x1008 ✔ ... (15 more)
+
+Subsequent Fetches (L1 cache hit, ~1 ns each):
+  Address 0x1004 ──▶ [Already in L1] ✔ free!
+  Address 0x1008 ──▶ [Already in L1] ✔ free!
+```
+
+> [!caution] The branch penalty
+> Sequential code enjoys this cache burst benefit. However, a **branch instruction** (`jmp`, `call`) causes the CPU to jump to a distant address, potentially evicting the cached burst and forcing a new ~100 ns RAM fetch — this is called a **branch penalty**. Minimising branches in hot code paths is one reason why low-level performance code prefers lookup tables and branchless arithmetic.
 
 ---
 
@@ -197,16 +232,44 @@ Clock Cycle:   1    2    3    4    5
 Inst 1:       [F]  [D]  [E]
 Inst 2:            [F]  [D]  [E]
 Inst 3:                 [F]  [D]  [E]
+
+Branch Flush scenario:
+Clock Cycle:   1    2    3    4    5    6
+Inst 1 (jmp): [F]  [D]  [E] ← branch taken!
+Inst 2:            [F]  [D]  ✖ FLUSHED
+Inst 3:                 [F]  ✖ FLUSHED
+Inst(target):               [F]  [D]  [E]  ← restart from jump target
 ```
 
 If a branch instruction occurs, the pipeline must be **flushed**, discarding the fetched instructions, which introduces a performance penalty.
 
+> [!note] Modern CPUs can have 14–20 stage pipelines
+> Intel's Skylake architecture has a 14-19 stage pipeline. A mispredicted branch on such a deep pipeline wastes up to 19 cycles of work — which at 3 GHz costs ~6 ns. This compounds dramatically in tight loops called millions of times per second.
+
 ### Out-of-Order Execution (OoOE) & Speculative Execution
 CPUs analyze the instruction stream and execute instructions out of order if they do not depend on each other. If a conditional branch is hit (e.g., `if (x > 0)`), the CPU uses a **Branch Predictor** to guess which way the code will branch and speculatively fetches and executes those instructions. If the guess was wrong, the CPU rolls back the register changes.
 
+> [!caution] Spectre & Meltdown (2018)
+> Speculative execution was the root cause of the **Spectre** and **Meltdown** CPU vulnerabilities discovered in 2018. Attackers could craft code that caused the CPU to speculatively read privileged kernel memory, then use timing side-channels to leak those speculatively-read values — even though the CPU rolled back the operation. The fix required expensive OS-level mitigations (`KPTI` on Linux) that slowed some workloads by 5–30%.
+
 ### Linux vs. Windows Process Bootstrapping
+
+```
+Linux (ELF):
+  execve() ──▶ kernel maps ELF ──▶ ld.so resolves libs ──▶ _start ──▶ __libc_start_main ──▶ main()
+
+Windows (PE):
+  CreateProcess() ──▶ loader maps PE ──▶ resolves IAT ──▶ mainCRTStartup ──▶ main()
+```
+
 * **Linux**: When `execve()` is called, the kernel maps the ELF binary into virtual memory, sets up the user-space stack, and jumps to the Entry Point address defined in the ELF header (typically pointing to the `_start` symbol provided by `glibc`, which calls `__libc_start_main` before jumping to `main`).
 * **Windows**: The OS loader maps the PE binary, resolves dynamic imports via the Import Address Table (IAT), and calls the entry point defined in the PE header (usually `mainCRTStartup` or `WinMainCRTStartup`), which handles runtime initialization before calling `main` or `WinMain`.
+
+> [!tip] See Linux process startup live
+> ```sh
+> strace -e trace=execve,mmap,read /usr/bin/ls 2>&1 | head -30
+> ```
+> This shows the exact system calls (`mmap`, `openat`) the kernel makes to map the ELF binary and its libraries into memory before `main()` gets control.
 
 ---
 
