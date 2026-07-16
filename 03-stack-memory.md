@@ -182,11 +182,6 @@ Notice that every unwind step (8, 9) lands on the exact same address, `0x1168` �
 > ```
 > Look for the `call` instruction inside `foo`'s own disassembly — that's the recursive call, jumping back to `foo`'s own address.
 
-> **🎬 Interactive Trace: Recursive `foo(-1)` — click through every instruction**
-> *(Switch to Reading View to see the interactive animation)*
-
-![[recursive_call_pc_lr_cache_trace.html]]
-
 ---
 
 ### Loops in Assembly: Backward Jumps, No New Frames
@@ -275,10 +270,13 @@ int main() {
 
 Assume our initial stack starts at memory address `1000`.
 
-> **🎬 Interactive Trace: `multiply(x, y)` Stack — click through every step**
-> *(Switch to Reading View to see the interactive animation)*
-
-![[multiply_stack_trace.html]]
+```md
+> **📷 Image Placeholder: Stack Frame Step-by-Step Transition**
+>
+> <!-- IMAGE: stack-frame-trace.png -->
+>
+> This diagram should display the stack memory layout vertically at each step of the trace, showing the values of SP and BP and labeling local variables (x, y, z, result), the saved BP, and the return address.
+```
 
 #### Step 1: `main` starts up
 The OS loader jumps to `main()`. The prologue for `main` executes:
