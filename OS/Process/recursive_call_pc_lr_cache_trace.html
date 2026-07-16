@@ -1,133 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<h2 class="sr-only">Interactive step-through: recursive foo(a) — PC, return address, call stack, L1 instruction cache hits/misses, and stack memory</h2>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-text,system-ui,sans-serif);font-size:12px;color:var(--text-normal,#ddd);line-height:1.4;padding:6px;background:transparent}
-.rc-row{display:flex;gap:6px;margin-bottom:5px}
-.rc-col{flex:1;min-width:0}
-.rc-lbl{font-size:9px;color:var(--text-muted,#888);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
-.rc-box{background:var(--background-secondary,#1e1e2e);border-radius:6px;padding:5px 7px;font-family:var(--font-mono,monospace);font-size:11px}
+*{box-sizing:border-box}
+body{font-family:var(--font-text,system-ui,-apple-system,BlinkMacSystemFont,sans-serif);font-size:13px;color:var(--text-normal,#ddd);line-height:1.5;margin:0;padding:8px;background:transparent}
+.rc-wrap{width:100%;max-width:850px;margin:0 auto}
+.rc-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-bottom:12px}
+.rc-panel{background:var(--background-secondary,#1e1e2e);border-radius:8px;padding:10px 14px;border:1px solid var(--background-modifier-border,#333)}
+.rc-label{font-size:11px;color:var(--text-muted,#888);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.rc-code{font-family:var(--font-mono,monospace);font-size:12px;white-space:pre;line-height:1.7}
+.rc-src-line{padding:1px 6px;border-radius:4px;display:block}
+.rc-src-active{background:var(--interactive-accent,#7c3aed)25;font-weight:600}
 
-/* Assembly - compact scrollable */
-.rc-asm{max-height:130px;overflow-y:auto;line-height:1.5}
-.rc-al{display:flex;gap:4px;padding:1px 3px;border-radius:2px;white-space:nowrap}
-.rc-al.on{background:var(--interactive-accent,#7c3aed)22;font-weight:600}
-.rc-aa{color:var(--text-muted,#888);width:38px;flex-shrink:0}
-.rc-ai{width:110px;flex-shrink:0}
-.rc-ac{color:var(--text-faint,#666);font-size:10px;overflow:hidden;text-overflow:ellipsis}
-.rc-foo{color:var(--interactive-accent,#a78bfa)}
-.rc-main{color:var(--text-muted,#aaa)}
+/* Assembly listing */
+.rc-asm-list{display:flex;flex-direction:column;gap:1px}
+.rc-asm-row{display:flex;gap:10px;padding:3px 8px;border-radius:4px;font-family:var(--font-mono,monospace);font-size:12px;line-height:1.6;align-items:center}
+.rc-asm-row.rc-active{background:var(--interactive-accent,#7c3aed)20;font-weight:600;border-left:3px solid var(--interactive-accent,#7c3aed)}
+.rc-asm-addr{color:var(--text-muted,#888);min-width:48px;flex-shrink:0}
+.rc-asm-inst{min-width:110px;flex-shrink:0}
+.rc-asm-comment{color:var(--text-faint,#666);font-size:11px}
+.rc-asm-foo{color:var(--text-accent,var(--interactive-accent,#a78bfa))}
+.rc-asm-main{color:var(--text-muted,#aaa)}
 
-/* Source - compact */
-.rc-src{line-height:1.5;font-size:11px;max-height:110px;overflow-y:auto}
-.rc-sl{padding:0 3px;border-radius:2px;display:block}
-.rc-sl.on{background:var(--interactive-accent,#7c3aed)18}
+/* Registers card layout */
+.rc-regs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.rc-reg{background:var(--background-secondary,#1e1e2e);border-radius:8px;padding:10px 12px;text-align:center;border:1px solid var(--background-modifier-border,#333)}
+.rc-reg-label{font-size:10px;color:var(--text-muted,#888);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.rc-reg-val{font-family:var(--font-mono,monospace);font-size:14px;font-weight:600}
+.rc-reg-changed{color:var(--interactive-accent,#7c3aed)}
 
-/* Registers - single row */
-.rc-regs{display:flex;gap:4px;margin-bottom:5px}
-.rc-rg{flex:1;background:var(--background-secondary,#1e1e2e);border-radius:5px;padding:3px 5px;text-align:center}
-.rc-rl{font-size:8px;color:var(--text-muted,#888);text-transform:uppercase}
-.rc-rv{font-family:var(--font-mono,monospace);font-size:12px;font-weight:600}
-.rc-rv.ch{color:var(--interactive-accent,#7c3aed)}
+/* Stack frames */
+.rc-stack-container{display:flex;flex-direction:column;gap:4px}
+.rc-frame-pill{font-family:var(--font-mono,monospace);font-size:12px;background:var(--background-secondary,#1e1e2e);border-radius:6px;padding:6px 12px;display:flex;justify-content:space-between;gap:10px;border:1px solid var(--background-modifier-border,#333)}
+.rc-frame-fn{font-weight:600;color:var(--text-normal,#ddd)}
+.rc-frame-ret{color:var(--text-muted,#888);font-size:11px}
 
-/* Stack + Cache */
-.rc-fp{font-family:var(--font-mono,monospace);font-size:10px;background:var(--background-secondary,#1e1e2e);border-radius:4px;padding:2px 6px;margin-bottom:2px;display:flex;justify-content:space-between}
-.rc-cb{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;display:inline-block}
-.rc-hit{background:#16a34a22;color:#22c55e}
-.rc-miss{background:#dc262622;color:#ef4444}
+/* Cache badge */
+.rc-cache-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rc-cache{font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;display:inline-block}
+.rc-cache-hit{background:#16a34a22;color:#22c55e}
+.rc-cache-miss{background:#dc262622;color:#ef4444}
 
 /* Note */
-.rc-note{font-size:11px;color:var(--text-muted,#aaa);line-height:1.4;padding:4px 6px;background:var(--background-secondary,#1e1e2e);border-radius:5px;border-left:2px solid var(--interactive-accent,#7c3aed);margin-bottom:5px;min-height:32px}
+.rc-note{font-size:13px;color:var(--text-normal,#ddd);line-height:1.55;padding:10px 14px;background:var(--background-secondary,#1e1e2e);border-radius:8px;border-left:4px solid var(--interactive-accent,#7c3aed);margin-bottom:12px;border:1px solid var(--background-modifier-border,#333);border-left-width:4px;min-height:54px}
 
 /* Controls */
-.rc-ctrl{display:flex;align-items:center;justify-content:center;gap:8px}
-.rc-ctrl button{font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid #444;background:var(--background-secondary,#1e1e2e);color:var(--text-normal,#ddd);cursor:pointer}
-.rc-ctrl button:disabled{opacity:.3}
-.rc-cl{font-size:10px;color:var(--text-muted,#888);min-width:80px;text-align:center}
+.rc-controls{display:flex;align-items:center;justify-content:center;gap:16px}
+.rc-controls button{font-size:13px;padding:6px 18px;border-radius:6px;border:1px solid var(--background-modifier-border,#444);background:var(--background-secondary,#1e1e2e);color:var(--text-normal,#ddd);cursor:pointer;font-weight:500;transition:background 0.2s}
+.rc-controls button:hover:not(:disabled){background:var(--interactive-accent,#7c3aed)25}
+.rc-controls button:disabled{opacity:.35;cursor:default}
+.rc-step-label{font-size:12px;color:var(--text-muted,#888);min-width:100px;text-align:center}
 </style>
+</head>
+<body>
 
-<div class="rc-row">
-  <div class="rc-col"><div class="rc-lbl">Assembly</div><div class="rc-box rc-asm" id="rcAsm"></div></div>
-  <div class="rc-col">
-    <div class="rc-lbl">C Source</div><div class="rc-box rc-src" id="rcSrc"></div>
-    <div class="rc-lbl" style="margin-top:4px">Call Stack</div>
-    <div id="rcStk"></div>
+<div class="rc-wrap">
+<div class="rc-grid">
+  <div>
+    <div class="rc-label">x86-64 Assembly (memory addresses)</div>
+    <div class="rc-panel rc-asm-list" id="rcAsm"></div>
+  </div>
+  <div>
+    <div class="rc-label">C Source Code</div>
+    <div class="rc-panel"><div class="rc-code" id="rcSrc"></div></div>
+    <div style="margin-top:14px">
+      <div class="rc-label">Call Stack (innermost on top)</div>
+      <div class="rc-stack-container" id="rcStack"></div>
+    </div>
   </div>
 </div>
+
 <div class="rc-regs" id="rcRegs"></div>
-<div style="margin-bottom:5px"><span class="rc-lbl">Cache </span><span id="rcCch" class="rc-cb">-</span></div>
+
+<div class="rc-cache-row">
+  <span class="rc-label" style="margin-bottom:0">Instruction Fetch:</span>
+  <span id="rcCache" class="rc-cache">-</span>
+</div>
+
 <div class="rc-note" id="rcNote"></div>
-<div class="rc-ctrl">
-  <button id="rcP" onclick="go(-1)">← Back</button>
-  <span class="rc-cl" id="rcLbl"></span>
-  <button id="rcN" onclick="go(1)">Next →</button>
+
+<div class="rc-controls">
+  <button id="rcPrev" onclick="rcStep(-1)">← Back</button>
+  <span class="rc-step-label" id="rcLabel"></span>
+  <button id="rcNext" onclick="rcStep(1)">Next →</button>
+</div>
 </div>
 
 <script>
-const A=[
-  [0x1149,'push rbp','save caller FP','f'],[0x114a,'mov rbp,rsp','anchor frame','f'],
-  [0x114d,'sub rsp,16','alloc locals','f'],[0x1151,'mov [rbp-4],edi','store a','f'],
-  [0x1154,'cmp [rbp-4],0','compare a to 0','f'],[0x1158,'jg 0x1170','a>0? → base','f'],
-  [0x115a,'mov eax,[rbp-4]','eax=a','f'],[0x115d,'add eax,1','eax=a+1','f'],
-  [0x1160,'mov edi,eax','set arg','f'],[0x1163,'call 0x1149','RECURSE','f'],
-  [0x1168,'jmp 0x1174','← resume here','f'],[0x1170,'mov eax,[rbp-4]','base: eax=a','f'],
-  [0x1174,'leave','SP=BP, pop BP','f'],[0x1175,'ret','pop ret→PC','f'],
-  [0x1180,'push rbp','','m'],[0x1181,'mov rbp,rsp','','m'],
-  [0x1184,'mov edi,-1','a = -1','m'],[0x1189,'call 0x1149','call foo(-1)','m'],
-  [0x118e,'mov ecx,eax','← result','m'],[0x1190,'mov eax,0','return 0','m'],
-  [0x1193,'pop rbp','','m'],[0x1194,'ret','','m']
+const ASM = [
+  {addr:0x1149,inst:'push  rbp',             comment:'save caller\'s frame pointer', blk:'foo'},
+  {addr:0x114a,inst:'mov   rbp, rsp',        comment:'anchor this frame',            blk:'foo'},
+  {addr:0x114d,inst:'sub   rsp, 16',         comment:'space for local copy of \'a\'',blk:'foo'},
+  {addr:0x1151,inst:'mov   [rbp-4], edi',    comment:'store parameter a',            blk:'foo'},
+  {addr:0x1154,inst:'cmp   [rbp-4], 0',      comment:'compare a to 0',               blk:'foo'},
+  {addr:0x1158,inst:'jg    0x1170',           comment:'if a > 0 → base case',         blk:'foo'},
+  {addr:0x115a,inst:'mov   eax, [rbp-4]',    comment:'eax = a',                       blk:'foo'},
+  {addr:0x115d,inst:'add   eax, 1',           comment:'eax = a + 1',                   blk:'foo'},
+  {addr:0x1160,inst:'mov   edi, eax',         comment:'set up argument',               blk:'foo'},
+  {addr:0x1163,inst:'call  0x1149',           comment:'RECURSE → push ret addr, jump', blk:'foo'},
+  {addr:0x1168,inst:'jmp   0x1174',           comment:'← resumes HERE after call',     blk:'foo'},
+  {addr:0x1170,inst:'mov   eax, [rbp-4]',    comment:'base case: eax = a',            blk:'foo'},
+  {addr:0x1174,inst:'leave',                  comment:'SP=BP, pop caller\'s BP',       blk:'foo'},
+  {addr:0x1175,inst:'ret',                    comment:'pop ret addr → jump back',      blk:'foo'},
+  {addr:0x1180,inst:'push  rbp',             comment:'main() setup',                   blk:'main'},
+  {addr:0x1181,inst:'mov   rbp, rsp',        comment:'anchor main frame',              blk:'main'},
+  {addr:0x1184,inst:'mov   edi, -1',         comment:'argument: a = -1',               blk:'main'},
+  {addr:0x1189,inst:'call  0x1149',          comment:'call foo(-1)',                    blk:'main'},
+  {addr:0x118e,inst:'mov   ecx, eax',        comment:'← result now in eax',            blk:'main'},
+  {addr:0x1190,inst:'mov   eax, 0',          comment:'return 0',                        blk:'main'},
+  {addr:0x1193,inst:'pop   rbp',             comment:'restore BP',                      blk:'main'},
+  {addr:0x1194,inst:'ret',                   comment:'exit program',                    blk:'main'}
 ];
-const S=['int foo(int a)','{','    if (a <= 0)','        return foo(a + 1);','    else','        return a;','}','','int main()','{','    foo(-1);','    return 0;','}'];
-const SH={0x1149:[0,1],0x114a:[0,1],0x114d:[0,1],0x1151:[0,1],0x1154:[2],0x1158:[2],0x115a:[3],0x115d:[3],0x1160:[3],0x1163:[3],0x1168:[3],0x1170:[5],0x1174:[6],0x1175:[6],0x1180:[8,9],0x1181:[8,9],0x1184:[10],0x1189:[10],0x118e:[11],0x1190:[11],0x1193:[12],0x1194:[12]};
-const hx=n=>'0x'+n.toString(16);
-const tc={f:false,m:false};
-const st=[];const sk=[];let sp=2000;
-function sn(){return sk.map(f=>({...f}))}
-function fe(addr,note){const b=addr>=0x1149&&addr<=0x1175?'f':'m';const c=tc[b]?'HIT':'MISS';tc[b]=true;const t=sk[sk.length-1]||{n:'main',a:null,r:null};st.push({addr,note,c,sk:sn(),a:t.a,r:t.r,sp})}
-sk.push({n:'main',a:null,r:null});
-fe(0x1180,"main() prologue — save BP, anchor frame.");
-fe(0x1184,"Load a = -1 into edi.");
-fe(0x1189,"main calls foo(-1): push ret addr 0x118e, jump to foo.");
-function ef(a,ra){sp-=16;sk.push({n:'foo',a,r:hx(ra)});const ft=!tc.f;
-fe(0x1149,`foo(${a}) entered — prologue.${ft?' FIRST fetch of foo → ~100ns RAM.':''}`);
-fe(0x1154,`Compare a(${a}) to 0.`);fe(0x1158,`Is ${a}>0?`);
-if(a<=0){fe(0x1163,`${a}<=0 → recurse: call foo(${a+1}), push ret 0x1168.`);ef(a+1,0x1168);
-fe(0x1168,`Back in foo(${a}) — resumed at 0x1168.`);fe(0x1174,'Epilogue: leave.');fe(0x1175,`ret → pop ${hx(ra)} into PC.`);
-}else{fe(0x1170,`${a}>0 — BASE CASE. eax = ${a}.`);fe(0x1174,'Epilogue: leave.');fe(0x1175,`ret → pop ${hx(ra)} into PC.`);}
-sk.pop();sp+=16;}
-ef(-1,0x118e);
-fe(0x118e,"main resumes — result of foo(-1) now in eax.");
-fe(0x1194,"main returns. Process ends.");
 
-let c=0;const e=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const SRC = [
+  'int foo(int a)',
+  '{',
+  '    if (a <= 0)',
+  '        return foo(a + 1);',
+  '    else',
+  '        return a;',
+  '}',
+  '',
+  'int main()',
+  '{',
+  '    foo(-1);',
+  '    return 0;',
+  '}'
+];
 
-function ren(){const s=st[c],p=c>0?st[c-1]:null;
-// Asm - auto-scroll to active
-const ai=A.findIndex(r=>r[0]===s.addr);
-document.getElementById('rcAsm').innerHTML=A.map((r,i)=>`<div class="rc-al${r[0]===s.addr?' on':''}">`+
-`<span class="rc-aa">${hx(r[0])}</span><span class="rc-ai rc-${r[3]==='f'?'foo':'main'}">${e(r[1])}</span>`+
-`<span class="rc-ac">${e(r[2])}</span></div>`).join('');
-const el=document.getElementById('rcAsm');const act=el.children[ai];if(act)act.scrollIntoView({block:'center',behavior:'smooth'});
+const SRC_HL = {
+  0x1149: [0,1], 0x114a: [0,1], 0x114d: [0,1], 0x1151: [0,1],
+  0x1154: [2], 0x1158: [2],
+  0x115a: [3], 0x115d: [3], 0x1160: [3], 0x1163: [3], 0x1168: [3],
+  0x1170: [5],
+  0x1174: [6], 0x1175: [6],
+  0x1180: [8,9], 0x1181: [8,9], 0x1184: [10], 0x1189: [10],
+  0x118e: [11], 0x1190: [11], 0x1193: [12], 0x1194: [12]
+};
 
-// Src
-const hl=new Set(SH[s.addr]||[]);
-document.getElementById('rcSrc').innerHTML=S.map((l,i)=>`<span class="rc-sl${hl.has(i)?' on':''}">${e(l)}</span>`).join('\n');
+const hex = n => '0x' + n.toString(16);
 
-// Regs
-const rg={PC:hx(s.addr),Ret:s.r||'-','a':s.a!==null&&s.a!==undefined?''+s.a:'-',SP:''+s.sp};
-const pr=p?{PC:hx(p.addr),Ret:p.r||'-','a':p.a!==null&&p.a!==undefined?''+p.a:'-',SP:''+p.sp}:null;
-document.getElementById('rcRegs').innerHTML=Object.entries(rg).map(([k,v])=>{const ch=pr&&pr[k]!==v;
-return`<div class="rc-rg"><div class="rc-rl">${k}</div><div class="rc-rv${ch?' ch':''}">${e(v)}</div></div>`}).join('');
+const touched = {foo:false, main:false};
+const steps = [];
+const stack = [];
+let sp = 2000;
 
-// Stack
-document.getElementById('rcStk').innerHTML=s.sk.slice().reverse().map(f=>
-`<div class="rc-fp"><span>${f.n}${f.a!==null&&f.a!==undefined?'('+f.a+')':'()'}</span><span style="color:#888">→${f.r||'OS'}</span></div>`).join('');
+function blkOf(a){ return (a >= 0x1149 && a <= 0x1175) ? 'foo' : 'main'; }
+function snap(){ return stack.map(f => ({...f})); }
+function fetch(addr, note){
+  const blk = blkOf(addr);
+  const cache = touched[blk] ? 'HIT' : 'MISS';
+  touched[blk] = true;
+  const top = stack[stack.length-1] || {fn:'main',a:null,ret:null};
+  steps.push({addr, note, cache, stack:snap(), a:top.a, ret:top.ret, sp});
+}
 
-// Cache
-const cb=document.getElementById('rcCch');
-cb.textContent=s.c==='HIT'?'L1 HIT ~1ns':'MISS ~100ns';cb.className='rc-cb '+(s.c==='HIT'?'rc-hit':'rc-miss');
+// main setup
+stack.push({fn:'main', a:null, ret:null});
+fetch(0x1180, "main() prologue begins — push rbp, set up frame.");
+fetch(0x1181, "Anchor main's frame: BP = SP.");
+fetch(0x1184, "Load argument a = -1 into register edi.");
+fetch(0x1189, "main calls foo(-1): push return address 0x118e onto the stack, jump to 0x1149.");
 
-document.getElementById('rcNote').textContent=s.note;
-document.getElementById('rcLbl').textContent=`${c+1}/${st.length}`;
-document.getElementById('rcP').disabled=c===0;document.getElementById('rcN').disabled=c===st.length-1;}
-function go(d){c=Math.max(0,Math.min(st.length-1,c+d));ren();}
-ren();
+function enterFoo(a, retAddr) {
+  sp -= 16;
+  stack.push({fn:'foo', a, ret:hex(retAddr)});
+  const firstTime = !touched.foo;
+  fetch(0x1149, `foo(a=${a}) entered — prologue saves caller's BP.${firstTime ? ' This is the CPU\'s FIRST fetch of foo\'s code → genuine ~100 ns RAM access.' : ''}`);
+  fetch(0x114a, `Anchor foo(a=${a})'s frame.`);
+  fetch(0x114d, `Allocate 16 bytes of stack space for locals.`);
+  fetch(0x1151, `Store parameter a = ${a} at [rbp-4].`);
+  fetch(0x1154, `Compare a (${a}) to 0.`);
+  fetch(0x1158, `Branch check: is ${a} > 0?`);
+
+  if (a <= 0) {
+    fetch(0x115a, `${a} <= 0 is true → preparing to recurse. eax = ${a}.`);
+    fetch(0x115d, `eax = ${a} + 1 = ${a+1}.`);
+    fetch(0x1160, `Set edi = ${a+1} — this becomes the argument for the recursive call.`);
+    fetch(0x1163, `call foo(${a+1}): push return address 0x1168, jump back to 0x1149.`);
+    enterFoo(a + 1, 0x1168);
+    fetch(0x1168, `Back in foo(a=${a}) — PC resumed at 0x1168, right after the recursive call returned.`);
+    fetch(0x1174, `Epilogue: leave — collapse frame (SP=BP), restore caller's BP.`);
+    fetch(0x1175, `ret: pop return address ${hex(retAddr)} into PC → jump back to caller.`);
+  } else {
+    fetch(0x1170, `${a} > 0 — BASE CASE reached. eax = ${a} — this is the return value.`);
+    fetch(0x1174, `Epilogue: leave — collapse frame.`);
+    fetch(0x1175, `ret: pop return address ${hex(retAddr)} into PC → jump back to caller.`);
+  }
+  stack.pop();
+  sp += 16;
+}
+
+enterFoo(-1, 0x118e);
+fetch(0x118e, "main resumes: PC at 0x118e. The result of foo(-1) is now in eax (= 1).");
+fetch(0x1190, "mov eax, 0 — main returns 0.");
+fetch(0x1193, "Restore loader's BP.");
+fetch(0x1194, "ret — control returns to the OS. Process terminates.");
+
+let cur = 0;
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function render() {
+  const st = steps[cur];
+  const prev = cur > 0 ? steps[cur-1] : null;
+
+  // Assembly
+  document.getElementById('rcAsm').innerHTML = ASM.map(row => {
+    const active = row.addr === st.addr;
+    return `<div class="rc-asm-row${active?' rc-active':''}"><span class="rc-asm-addr">${hex(row.addr)}</span><span class="rc-asm-inst rc-asm-${row.blk}">${escHtml(row.inst)}</span><span class="rc-asm-comment">${escHtml(row.comment)}</span>${active?'<span style="margin-left:auto;color:var(--interactive-accent,#7c3aed)">◀</span>':''}</div>`;
+  }).join('');
+
+  // Source
+  const hlSet = new Set(SRC_HL[st.addr] || []);
+  document.getElementById('rcSrc').innerHTML = SRC.map((line, i) => {
+    const cls = hlSet.has(i) ? ' rc-src-active' : '';
+    return `<span class="rc-src-line${cls}">${escHtml(line)}</span>`;
+  }).join('\n');
+
+  // Registers
+  const regs = {PC: hex(st.addr), 'Ret Addr': st.ret || '-', 'a (edi)': st.a !== null && st.a !== undefined ? String(st.a) : '-', SP: String(st.sp)};
+  const prevRegs = prev ? {PC: hex(prev.addr), 'Ret Addr': prev.ret || '-', 'a (edi)': prev.a !== null && prev.a !== undefined ? String(prev.a) : '-', SP: String(prev.sp)} : null;
+  document.getElementById('rcRegs').innerHTML = Object.entries(regs).map(([k,v]) => {
+    const changed = prevRegs && prevRegs[k] !== v;
+    return `<div class="rc-reg"><div class="rc-reg-label">${k}</div><div class="rc-reg-val${changed?' rc-reg-changed':''}">${escHtml(v)}</div></div>`;
+  }).join('');
+
+  // Stack
+  document.getElementById('rcStack').innerHTML = st.stack.slice().reverse().map(f =>
+    `<div class="rc-frame-pill"><span class="rc-frame-fn">${f.fn}${f.a !== null && f.a !== undefined ? '(a='+f.a+')' : '()'}</span><span class="rc-frame-ret">ret → ${f.ret || '-'}</span></div>`
+  ).join('');
+
+  // Cache
+  const badge = document.getElementById('rcCache');
+  badge.textContent = st.cache === 'HIT' ? 'L1 HIT — ~1-2 ns' : 'MISS — ~100 ns (cold fetch)';
+  badge.className = 'rc-cache ' + (st.cache === 'HIT' ? 'rc-cache-hit' : 'rc-cache-miss');
+
+  // Note
+  document.getElementById('rcNote').textContent = st.note;
+
+  // Label
+  document.getElementById('rcLabel').textContent = `Step ${cur+1} of ${steps.length}`;
+  document.getElementById('rcPrev').disabled = cur === 0;
+  document.getElementById('rcNext').disabled = cur === steps.length - 1;
+}
+
+function rcStep(d) {
+  cur = Math.max(0, Math.min(steps.length - 1, cur + d));
+  render();
+}
+
+render();
 </script>
+</body>
+</html>

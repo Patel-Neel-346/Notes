@@ -1,131 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<h2 class="sr-only">Interactive step-through: multiply(x, y) — stack frames, SP/BP, registers, and memory layout</h2>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-text,system-ui,sans-serif);font-size:12px;color:var(--text-normal,#ddd);line-height:1.4;padding:6px;background:transparent}
-.mt-row{display:flex;gap:6px;margin-bottom:5px}
-.mt-col{flex:1;min-width:0}
-.mt-lbl{font-size:9px;color:var(--text-muted,#888);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
-.mt-box{background:var(--background-secondary,#1e1e2e);border-radius:6px;padding:5px 7px;font-family:var(--font-mono,monospace);font-size:11px}
+*{box-sizing:border-box}
+body{font-family:var(--font-text,system-ui,-apple-system,BlinkMacSystemFont,sans-serif);font-size:13px;color:var(--text-normal,#ddd);line-height:1.5;margin:0;padding:8px;background:transparent}
+.mt-wrap{width:100%;max-width:850px;margin:0 auto}
+.mt-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:16px;margin-bottom:12px}
+.mt-panel{background:var(--background-secondary,#1e1e2e);border-radius:8px;padding:10px 14px;border:1px solid var(--background-modifier-border,#333)}
+.mt-label{font-size:11px;color:var(--text-muted,#888);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.mt-code{font-family:var(--font-mono,monospace);font-size:12px;white-space:pre;line-height:1.7}
+.mt-src-line{padding:1px 6px;border-radius:4px;display:block}
+.mt-src-active{background:var(--interactive-accent,#7c3aed)25;font-weight:600}
 
-/* Source */
-.mt-src{line-height:1.5;font-size:11px}
-.mt-sl{padding:0 3px;border-radius:2px;display:block}
-.mt-sl.on{background:var(--interactive-accent,#7c3aed)18}
+/* Stack memory table */
+.mt-mem{width:100%;border-collapse:collapse;font-family:var(--font-mono,monospace);font-size:11.5px}
+.mt-mem th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--background-modifier-border,#333);color:var(--text-muted,#888);font-weight:600;font-size:11px;text-transform:uppercase}
+.mt-mem td{padding:6px 8px;border-bottom:1px solid var(--background-modifier-border,#333)30}
+.mt-mem tr.mt-sp td{border-left:3px solid var(--interactive-accent,#7c3aed)}
+.mt-mem tr.mt-bp td{border-left:3px solid var(--text-success,#22c55e)}
+.mt-mem tr.mt-new{background:var(--interactive-accent,#7c3aed)15}
+.mt-mem tr.mt-freed{opacity:.35;text-decoration:line-through}
+.mt-ptr{font-size:10px;font-weight:700;margin-left:6px;padding:2px 6px;border-radius:4px}
+.mt-ptr-sp{background:#7c3aed22;color:#a78bfa}
+.mt-ptr-bp{background:#22c55e22;color:#86efac}
 
-/* Memory table */
-.mt-mem{width:100%;border-collapse:collapse;font-size:10px;line-height:1.4}
-.mt-mem th{text-align:left;padding:2px 4px;border-bottom:1px solid #333;color:var(--text-muted,#888);font-size:9px;font-weight:500}
-.mt-mem td{padding:2px 4px}
-.mt-mem tr.new{background:var(--interactive-accent,#7c3aed)12}
-.mt-mem tr.freed{opacity:.35;text-decoration:line-through}
-.mt-ptr{font-size:8px;font-weight:700;margin-left:2px}
-.sp-ptr{color:var(--interactive-accent,#7c3aed)}
-.bp-ptr{color:#22c55e}
-
-/* Registers */
-.mt-regs{display:flex;gap:4px;margin-bottom:5px}
-.mt-rg{flex:1;background:var(--background-secondary,#1e1e2e);border-radius:5px;padding:3px 5px;text-align:center}
-.mt-rl{font-size:8px;color:var(--text-muted,#888);text-transform:uppercase}
-.mt-rv{font-family:var(--font-mono,monospace);font-size:12px;font-weight:600}
-.mt-rv.ch{color:var(--interactive-accent,#7c3aed)}
+/* Registers row */
+.mt-regs{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.mt-reg{background:var(--background-secondary,#1e1e2e);border-radius:8px;padding:10px 12px;text-align:center;border:1px solid var(--background-modifier-border,#333)}
+.mt-reg-label{font-size:10px;color:var(--text-muted,#888);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.mt-reg-val{font-family:var(--font-mono,monospace);font-size:14px;font-weight:600}
+.mt-reg-changed{color:var(--interactive-accent,#7c3aed)}
 
 /* Phase badge */
-.mt-ph{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:3px;display:inline-block;margin-bottom:4px}
-.ph-p{background:#7c3aed22;color:#a78bfa}
-.ph-e{background:#3b82f622;color:#60a5fa}
-.ph-ep{background:#f59e0b22;color:#fbbf24}
-.ph-c{background:#10b98122;color:#34d399}
-
-/* Note */
-.mt-note{font-size:11px;color:var(--text-muted,#aaa);line-height:1.4;padding:4px 6px;background:var(--background-secondary,#1e1e2e);border-radius:5px;border-left:2px solid var(--interactive-accent,#7c3aed);margin-bottom:5px;min-height:28px}
+.mt-phase-row{margin-bottom:10px}
+.mt-phase{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;padding:4px 10px;border-radius:4px;display:inline-block}
+.mt-phase-prologue{background:#7c3aed22;color:#a78bfa}
+.mt-phase-execute{background:#3b82f622;color:#60a5fa}
+.mt-phase-epilogue{background:#f59e0b22;color:#fbbf24}
+.mt-phase-call{background:#10b98122;color:#34d399}
 
 /* Controls */
-.mt-ctrl{display:flex;align-items:center;justify-content:center;gap:8px}
-.mt-ctrl button{font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid #444;background:var(--background-secondary,#1e1e2e);color:var(--text-normal,#ddd);cursor:pointer}
-.mt-ctrl button:disabled{opacity:.3}
-.mt-cl{font-size:10px;color:var(--text-muted,#888);min-width:80px;text-align:center}
+.mt-controls{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px}
+.mt-controls button{font-size:13px;padding:6px 18px;border-radius:6px;border:1px solid var(--background-modifier-border,#444);background:var(--background-secondary,#1e1e2e);color:var(--text-normal,#ddd);cursor:pointer;font-weight:500;transition:background 0.2s}
+.mt-controls button:hover:not(:disabled){background:var(--interactive-accent,#7c3aed)25}
+.mt-controls button:disabled{opacity:.35;cursor:default}
+.mt-step-label{font-size:12px;color:var(--text-muted,#888);min-width:100px;text-align:center}
+.mt-note{font-size:13px;color:var(--text-normal,#ddd);line-height:1.55;padding:10px 14px;background:var(--background-secondary,#1e1e2e);border-radius:8px;border-left:4px solid var(--interactive-accent,#7c3aed);margin-bottom:12px;border:1px solid var(--background-modifier-border,#333);border-left-width:4px;min-height:54px}
 </style>
+</head>
+<body>
 
-<div id="mtPh"></div>
-<div class="mt-row">
-  <div class="mt-col"><div class="mt-lbl">C Source</div><div class="mt-box mt-src" id="mtSrc"></div></div>
-  <div class="mt-col"><div class="mt-lbl">Stack Memory (↓ low addr)</div><div class="mt-box"><table class="mt-mem" id="mtMem"></table></div></div>
+<div class="mt-wrap">
+<div class="mt-phase-row" id="mtPhase"></div>
+<div class="mt-grid">
+  <div>
+    <div class="mt-label">C source code</div>
+    <div class="mt-panel"><div class="mt-code" id="mtSrc"></div></div>
+  </div>
+  <div>
+    <div class="mt-label">Stack memory (grows ↓ toward low addresses)</div>
+    <div class="mt-panel"><table class="mt-mem" id="mtMem"></table></div>
+  </div>
 </div>
 <div class="mt-regs" id="mtRegs"></div>
 <div class="mt-note" id="mtNote"></div>
-<div class="mt-ctrl">
-  <button id="mtP" onclick="go(-1)">← Back</button>
-  <span class="mt-cl" id="mtLbl"></span>
-  <button id="mtN" onclick="go(1)">Next →</button>
+<div class="mt-controls">
+  <button id="mtPrev" onclick="mtStep(-1)">← Back</button>
+  <span class="mt-step-label" id="mtLabel"></span>
+  <button id="mtNext" onclick="mtStep(1)">Next →</button>
+</div>
 </div>
 
 <script>
-const SRC=['int multiply(int a, int b) {','    int result = a * b;','    return result;','}','','int main() {','    int x = 4;','    int y = 5;','    int z = multiply(x, y);','    return 0;','}'];
-const ST=[
-{ph:'p',pl:'main() Prologue',hl:[5],sp:996,bp:996,rg:{SP:'996',BP:'996',PC:'main+0',r0:'-'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved Loader BP',n:1}],
-note:"Loader jumps to main(). Prologue saves loader's BP (1200) and sets BP=996."},
-{ph:'e',pl:'int x = 4',hl:[6],sp:992,bp:996,rg:{SP:'992',BP:'996',PC:'main+4',r0:'-'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x (BP-4)',n:1}],
-note:"SP-=4, write x=4 at address 992."},
-{ph:'e',pl:'int y = 5',hl:[7],sp:988,bp:996,rg:{SP:'988',BP:'996',PC:'main+8',r0:'-'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y (BP-8)',n:1}],
-note:"SP-=4, write y=5 at address 988."},
-{ph:'e',pl:'allocate z',hl:[8],sp:984,bp:996,rg:{SP:'984',BP:'996',PC:'main+12',r0:'-'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y'},{a:984,v:'0',l:'z (BP-12) uninit',n:1}],
-note:"Space for z at BP-12. main's frame is fully set up."},
-{ph:'c',pl:'call multiply(x,y)',hl:[8],sp:980,bp:996,rg:{SP:'980',BP:'996',PC:'call…',r0:'4'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y'},{a:984,v:'0',l:'z'},{a:980,v:'0x52C',l:'Ret Addr → main',n:1}],
-note:"x→r0, y→r1. Push return address. Jump to multiply()."},
-{ph:'p',pl:'multiply() Prologue',hl:[0],sp:976,bp:976,rg:{SP:'976',BP:'976',PC:'mul+0',r0:'4'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y'},{a:984,v:'0',l:'z'},{a:980,v:'0x52C',l:'Ret Addr'},{a:976,v:'996',l:'Saved main BP',n:1}],
-note:"Push main's BP(996), set new BP=SP=976."},
-{ph:'e',pl:'result = a * b',hl:[1],sp:972,bp:976,rg:{SP:'972',BP:'976',PC:'mul+4',r0:'20'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y'},{a:984,v:'0',l:'z'},{a:980,v:'0x52C',l:'Ret Addr'},{a:976,v:'996',l:'Saved main BP'},{a:972,v:'20',l:'result = 4×5',n:1}],
-note:"ALU: 4×5=20. Written at 972 (BP-4). r0=20."},
-{ph:'e',pl:'return result',hl:[2],sp:972,bp:976,rg:{SP:'972',BP:'976',PC:'mul+8',r0:'20'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y'},{a:984,v:'0',l:'z'},{a:980,v:'0x52C',l:'Ret Addr'},{a:976,v:'996',l:'Saved main BP'},{a:972,v:'20',l:'result'}],
-note:"Return value 20 in r0. About to run epilogue."},
-{ph:'ep',pl:'epilogue: collapse',hl:[3],sp:976,bp:976,rg:{SP:'976',BP:'976',PC:'leave',r0:'20'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y'},{a:984,v:'0',l:'z'},{a:980,v:'0x52C',l:'Ret Addr'},{a:976,v:'996',l:'Saved main BP'},{a:972,v:'20',l:'(freed) result',f:1}],
-note:"SP=BP=976. 'result' at 972 is freed — bytes stay but are below SP."},
-{ph:'ep',pl:'epilogue: restore BP',hl:[3],sp:980,bp:996,rg:{SP:'980',BP:'996',PC:'pop rbp',r0:'20'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y'},{a:984,v:'0',l:'z'},{a:980,v:'0x52C',l:'Ret Addr'},{a:976,v:'996',l:'(freed) Saved BP',f:1}],
-note:"Pop saved BP(996) → BP register. BP restored to main's frame."},
-{ph:'ep',pl:'epilogue: ret',hl:[8],sp:984,bp:996,rg:{SP:'984',BP:'996',PC:'0x52C',r0:'20'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y'},{a:984,v:'0',l:'z'}],
-note:"Pop ret addr → PC. SP=984. Back in main(). multiply's frame is gone."},
-{ph:'e',pl:'z = 20 ✓',hl:[8],sp:984,bp:996,rg:{SP:'984',BP:'996',PC:'main+16',r0:'20'},
-mem:[{a:1000,v:'…',l:'(loader above)'},{a:996,v:'1200',l:'Saved BP'},{a:992,v:'4',l:'x'},{a:988,v:'5',l:'y'},{a:984,v:'20',l:'z = 20 ✓',n:1}],
-note:"r0 (20) written to z at 984 (BP-12). Result correct: 4×5=20."},
-{ph:'ep',pl:'main returns',hl:[9,10],sp:1000,bp:1200,rg:{SP:'1000',BP:'1200',PC:'(OS)',r0:'0'},
-mem:[{a:1000,v:'…',l:'(control → OS)'}],
-note:"main() returns 0. Epilogue restores loader BP. Process terminates."}
+const SRC_LINES = [
+  'int multiply(int a, int b) {',
+  '    int result = a * b;',
+  '    return result;',
+  '}',
+  '',
+  'int main() {',
+  '    int x = 4;',
+  '    int y = 5;',
+  '    int z = multiply(x, y);',
+  '    return 0;',
+  '}'
 ];
 
-const PC={p:'ph-p',e:'ph-e',ep:'ph-ep',c:'ph-c'};
-let c=0;const e=s=>(s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const STEPS = [
+  {
+    phase: 'prologue', phaseLabel: 'main() Prologue',
+    srcHL: [5],
+    sp: 996, bp: 996,
+    regs: {SP:'996', BP:'996', PC:'main+0', r0:'-', r1:'-'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:true}
+    ],
+    note: "The OS loader jumps to main(). The prologue saves the loader's Base Pointer (1200) onto the stack and sets BP = 996 to anchor main's frame."
+  },
+  {
+    phase: 'execute', phaseLabel: 'main() — int x = 4',
+    srcHL: [6],
+    sp: 992, bp: 996,
+    regs: {SP:'992', BP:'996', PC:'main+4', r0:'-', r1:'-'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x (BP-4)', isNew:true}
+    ],
+    note: "SP decrements by 4 to allocate space for x. The value 4 is written at address 992 (BP - 4)."
+  },
+  {
+    phase: 'execute', phaseLabel: 'main() — int y = 5',
+    srcHL: [7],
+    sp: 988, bp: 996,
+    regs: {SP:'988', BP:'996', PC:'main+8', r0:'-', r1:'-'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x (BP-4)', isNew:false},
+      {addr:988, val:'5', label:'y (BP-8)', isNew:true}
+    ],
+    note: "SP decrements by 4 again. y = 5 is written at address 988 (BP - 8)."
+  },
+  {
+    phase: 'execute', phaseLabel: 'main() — allocate z',
+    srcHL: [8],
+    sp: 984, bp: 996,
+    regs: {SP:'984', BP:'996', PC:'main+12', r0:'-', r1:'-'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x (BP-4)', isNew:false},
+      {addr:988, val:'5', label:'y (BP-8)', isNew:false},
+      {addr:984, val:'0', label:'z (BP-12) — uninitialized', isNew:true}
+    ],
+    note: "Space for z is allocated at BP-12 (address 984). It holds 0 (uninitialized). SP is now 984. The full main() frame is set up."
+  },
+  {
+    phase: 'call', phaseLabel: 'call multiply(x, y)',
+    srcHL: [8],
+    sp: 980, bp: 996,
+    regs: {SP:'980', BP:'996', PC:'call 0x…', r0:'4', r1:'5'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x (BP-4)', isNew:false},
+      {addr:988, val:'5', label:'y (BP-8)', isNew:false},
+      {addr:984, val:'0', label:'z (BP-12)', isNew:false},
+      {addr:980, val:'0x0040052C', label:'Return Address → main (assign z)', isNew:true}
+    ],
+    note: "x (4) and y (5) are loaded into argument registers r0 and r1. The CPU pushes the return address (the instruction in main that will assign z) onto the stack at address 980, then jumps to multiply()."
+  },
+  {
+    phase: 'prologue', phaseLabel: 'multiply() Prologue',
+    srcHL: [0],
+    sp: 976, bp: 976,
+    regs: {SP:'976', BP:'976', PC:'multiply+0', r0:'4', r1:'5'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x (BP-4 of main)', isNew:false},
+      {addr:988, val:'5', label:'y (BP-8 of main)', isNew:false},
+      {addr:984, val:'0', label:'z (BP-12 of main)', isNew:false},
+      {addr:980, val:'0x0040052C', label:'Return Address → main', isNew:false},
+      {addr:976, val:'996', label:'Saved main BP', isNew:true}
+    ],
+    note: "multiply()'s prologue pushes main's BP (996) onto the stack to preserve it, then sets the new BP = SP = 976. This anchors multiply's frame."
+  },
+  {
+    phase: 'execute', phaseLabel: 'multiply() — int result = a * b',
+    srcHL: [1],
+    sp: 972, bp: 976,
+    regs: {SP:'972', BP:'976', PC:'multiply+4', r0:'20', r1:'5'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x', isNew:false},
+      {addr:988, val:'5', label:'y', isNew:false},
+      {addr:984, val:'0', label:'z', isNew:false},
+      {addr:980, val:'0x0040052C', label:'Return Address → main', isNew:false},
+      {addr:976, val:'996', label:'Saved main BP', isNew:false},
+      {addr:972, val:'20', label:'result (BP-4) = 4 × 5', isNew:true}
+    ],
+    note: "The ALU computes a * b = 4 × 5 = 20. The result is written to address 972 (multiply's BP - 4). r0 now holds 20."
+  },
+  {
+    phase: 'execute', phaseLabel: 'multiply() — return result',
+    srcHL: [2],
+    sp: 972, bp: 976,
+    regs: {SP:'972', BP:'976', PC:'multiply+8', r0:'20', r1:'5'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x', isNew:false},
+      {addr:988, val:'5', label:'y', isNew:false},
+      {addr:984, val:'0', label:'z', isNew:false},
+      {addr:980, val:'0x0040052C', label:'Return Address → main', isNew:false},
+      {addr:976, val:'996', label:'Saved main BP', isNew:false},
+      {addr:972, val:'20', label:'result (BP-4)', isNew:false}
+    ],
+    note: "The return value (20) is placed in the return register r0. The CPU is about to begin the epilogue to tear down multiply's frame."
+  },
+  {
+    phase: 'epilogue', phaseLabel: 'multiply() Epilogue — collapse frame',
+    srcHL: [3],
+    sp: 976, bp: 976,
+    regs: {SP:'976', BP:'976', PC:'leave', r0:'20', r1:'-'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x', isNew:false},
+      {addr:988, val:'5', label:'y', isNew:false},
+      {addr:984, val:'0', label:'z', isNew:false},
+      {addr:980, val:'0x0040052C', label:'Return Address → main', isNew:false},
+      {addr:976, val:'996', label:'Saved main BP', isNew:false},
+      {addr:972, val:'20', label:'(freed) result — stale data', isNew:false, isFreed:true}
+    ],
+    note: "SP = BP = 976. The local variable 'result' at 972 is now logically freed — the bytes still sit in RAM but are below the stack pointer, meaning any new function call will overwrite them."
+  },
+  {
+    phase: 'epilogue', phaseLabel: 'multiply() Epilogue — restore BP',
+    srcHL: [3],
+    sp: 980, bp: 996,
+    regs: {SP:'980', BP:'996', PC:'pop rbp', r0:'20', r1:'-'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x', isNew:false},
+      {addr:988, val:'5', label:'y', isNew:false},
+      {addr:984, val:'0', label:'z', isNew:false},
+      {addr:980, val:'0x0040052C', label:'Return Address → main', isNew:false},
+      {addr:976, val:'996', label:'(freed) Saved main BP', isNew:false, isFreed:true},
+      {addr:972, val:'20', label:'(freed) result', isNew:false, isFreed:true}
+    ],
+    note: "The saved BP value (996) is popped from the stack back into the BP register. BP is now restored to 996 — pointing back into main's frame. SP moves to 980."
+  },
+  {
+    phase: 'epilogue', phaseLabel: 'multiply() Epilogue — ret',
+    srcHL: [8],
+    sp: 984, bp: 996,
+    regs: {SP:'984', BP:'996', PC:'0x0040052C', r0:'20', r1:'-'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x (BP-4)', isNew:false},
+      {addr:988, val:'5', label:'y (BP-8)', isNew:false},
+      {addr:984, val:'0', label:'z (BP-12)', isNew:false}
+    ],
+    note: "The return address (0x0040052C) is popped into the Program Counter. SP moves to 984. Execution resumes in main() at the instruction that assigns z. multiply's entire frame is now gone."
+  },
+  {
+    phase: 'execute', phaseLabel: 'main() — z = multiply(x, y)',
+    srcHL: [8],
+    sp: 984, bp: 996,
+    regs: {SP:'984', BP:'996', PC:'main+16', r0:'20', r1:'-'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame above)', isNew:false},
+      {addr:996, val:'1200', label:'Saved Loader BP', isNew:false},
+      {addr:992, val:'4', label:'x (BP-4)', isNew:false},
+      {addr:988, val:'5', label:'y (BP-8)', isNew:false},
+      {addr:984, val:'20', label:'z (BP-12) = 20 ✓', isNew:true}
+    ],
+    note: "The return register r0 (20) is written to z at address 984 (BP-12). z now holds the correct result: 4 × 5 = 20."
+  },
+  {
+    phase: 'epilogue', phaseLabel: "main() Epilogue — return 0",
+    srcHL: [9,10],
+    sp: 1000, bp: 1200,
+    regs: {SP:'1000', BP:'1200', PC:'(OS)', r0:'0', r1:'-'},
+    mem: [
+      {addr:1000, val:'...', label:'(loader frame — control returns to OS)', isNew:false}
+    ],
+    note: "main() returns 0. Its epilogue restores the loader's BP (1200) and pops the return address into PC. Control returns to the operating system. The process terminates."
+  }
+];
 
-function ren(){const s=ST[c],p=c>0?ST[c-1]:null;
-// Phase
-document.getElementById('mtPh').innerHTML=`<span class="mt-ph ${PC[s.ph]||''}">${s.pl}</span>`;
-// Src
-const hl=new Set(s.hl);
-document.getElementById('mtSrc').innerHTML=SRC.map((l,i)=>`<span class="mt-sl${hl.has(i)?' on':''}">${e(l)}</span>`).join('\n');
-// Mem
-let h='<thead><tr><th>Addr</th><th>Value</th><th>Label</th><th></th></tr></thead><tbody>';
-for(const r of s.mem){let cl=[];if(r.n)cl.push('new');if(r.f)cl.push('freed');let pt='';
-if(r.a===s.sp&&!r.f)pt+='<span class="mt-ptr sp-ptr">◀SP</span>';
-if(r.a===s.bp&&!r.f)pt+='<span class="mt-ptr bp-ptr">◀BP</span>';
-h+=`<tr class="${cl.join(' ')}"><td>${r.a}</td><td>${e(r.v)}</td><td>${e(r.l)}</td><td>${pt}</td></tr>`;}
-h+='</tbody>';document.getElementById('mtMem').innerHTML=h;
-// Regs
-const rg=s.rg,pr=p?p.rg:{};
-document.getElementById('mtRegs').innerHTML=Object.entries(rg).map(([k,v])=>{const ch=pr[k]&&pr[k]!==v;
-return`<div class="mt-rg"><div class="mt-rl">${k}</div><div class="mt-rv${ch?' ch':''}">${e(v)}</div></div>`}).join('');
-// Note
-document.getElementById('mtNote').textContent=s.note;
-document.getElementById('mtLbl').textContent=`${c+1}/${ST.length}`;
-document.getElementById('mtP').disabled=c===0;document.getElementById('mtN').disabled=c===ST.length-1;}
-function go(d){c=Math.max(0,Math.min(ST.length-1,c+d));ren();}
-ren();
+let cur = 0;
+
+function renderSrc(hlSet) {
+  return SRC_LINES.map((line, i) => {
+    const cls = hlSet.has(i) ? ' mt-src-active' : '';
+    return `<span class="mt-src-line${cls}">${escHtml(line)}</span>`;
+  }).join('\n');
+}
+function escHtml(s){ return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderMem(step) {
+  let h = '<thead><tr><th>Address</th><th>Value</th><th>Label</th><th></th></tr></thead><tbody>';
+  for (const row of step.mem) {
+    let cls = [];
+    if (row.isNew) cls.push('mt-new');
+    if (row.isFreed) cls.push('mt-freed');
+    if (row.addr === step.sp) cls.push('mt-sp');
+    if (row.addr === step.bp && !row.isFreed) cls.push('mt-bp');
+    let ptrs = '';
+    if (row.addr === step.sp) ptrs += '<span class="mt-ptr mt-ptr-sp">◀ SP</span> ';
+    if (row.addr === step.bp && !row.isFreed) ptrs += '<span class="mt-ptr mt-ptr-bp">◀ BP</span>';
+    h += `<tr class="${cls.join(' ')}"><td>${row.addr}</td><td>${escHtml(row.val)}</td><td>${escHtml(row.label)}</td><td>${ptrs}</td></tr>`;
+  }
+  h += '</tbody>';
+  return h;
+}
+
+function renderRegs(step, prev) {
+  const keys = ['SP','BP','PC','r0','r1'];
+  return keys.map(k => {
+    const v = step.regs[k] || '-';
+    const changed = prev && prev.regs[k] !== v;
+    return `<div class="mt-reg"><div class="mt-reg-label">${k}</div><div class="mt-reg-val${changed?' mt-reg-changed':''}">${escHtml(String(v))}</div></div>`;
+  }).join('');
+}
+
+const PHASE_CLS = {prologue:'mt-phase-prologue',execute:'mt-phase-execute',epilogue:'mt-phase-epilogue',call:'mt-phase-call'};
+
+function render() {
+  const step = STEPS[cur];
+  const prev = cur > 0 ? STEPS[cur-1] : null;
+  const hlSet = new Set(step.srcHL);
+
+  document.getElementById('mtPhase').innerHTML = `<span class="mt-phase ${PHASE_CLS[step.phase]||''}">${step.phaseLabel}</span>`;
+  document.getElementById('mtSrc').innerHTML = renderSrc(hlSet);
+  document.getElementById('mtMem').innerHTML = renderMem(step);
+  document.getElementById('mtRegs').innerHTML = renderRegs(step, prev);
+  document.getElementById('mtNote').textContent = step.note;
+  document.getElementById('mtLabel').textContent = `Step ${cur+1} of ${STEPS.length}`;
+  document.getElementById('mtPrev').disabled = cur === 0;
+  document.getElementById('mtNext').disabled = cur === STEPS.length - 1;
+}
+
+function mtStep(d) {
+  cur = Math.max(0, Math.min(STEPS.length - 1, cur + d));
+  render();
+}
+
+render();
 </script>
+</body>
+</html>
