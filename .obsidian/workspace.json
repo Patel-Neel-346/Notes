@@ -11,12 +11,14 @@
             "id": "10a5afa644871ebd",
             "type": "leaf",
             "state": {
-              "type": "html-view",
+              "type": "markdown",
               "state": {
-                "file": "OS/Process/recursive_call_pc_lr_cache_trace.html"
+                "file": "OS/Process/03-stack-memory.md",
+                "mode": "source",
+                "source": true
               },
-              "icon": "code-glyph",
-              "title": "recursive_call_pc_lr_cache_trace"
+              "icon": "lucide-file",
+              "title": "03-stack-memory"
             }
           }
         ]
@@ -193,6 +195,8 @@
   },
   "active": "10a5afa644871ebd",
   "lastOpenFiles": [
+    "OS/Process/recursive_call_pc_lr_cache_trace.html",
+    "recursive_call_pc_lr_cache_trace.html",
     "OS/Process/multiply_stack_trace.html",
     "OS/Process/03-stack-memory.md",
     "OS/Process/06-practical-process-memory-demo.md",
@@ -237,8 +241,6 @@
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
     "Untitled 8.base",
     "Untitled 9.base",
-    "Untitled 3.base",
-    "Untitled 2.base",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas"

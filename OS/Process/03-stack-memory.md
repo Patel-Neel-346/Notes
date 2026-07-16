@@ -185,7 +185,7 @@ Notice that every unwind step (8, 9) lands on the exact same address, `0x1168` �
 > **🎬 Interactive Trace: Recursive `foo(-1)` — click through every instruction**
 > *(Switch to Reading View to see the interactive animation)*
 
-![[recursive_call_pc_lr_cache_trace.html]]
+<iframe src="recursive_call_pc_lr_cache_trace.html" width="100%" height="400" style="width: 100%; height: 400px; border: none;"></iframe>
 
 ---
 
@@ -278,7 +278,7 @@ Assume our initial stack starts at memory address `1000`.
 > **🎬 Interactive Trace: `multiply(x, y)` Stack — click through every step**
 > *(Switch to Reading View to see the interactive animation)*
 
-![[multiply_stack_trace.html]]
+<iframe src="multiply_stack_trace.html" width="100%" height="360" style="width: 100%; height: 360px; border: none;"></iframe>
 
 #### Step 1: `main` starts up
 The OS loader jumps to `main()`. The prologue for `main` executes:
