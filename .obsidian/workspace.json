@@ -11,14 +11,12 @@
             "id": "10a5afa644871ebd",
             "type": "leaf",
             "state": {
-              "type": "markdown",
+              "type": "html-view",
               "state": {
-                "file": "OS/Process/06-practical-process-memory-demo.md",
-                "mode": "preview",
-                "source": true
+                "file": "OS/Process/recursive_call_pc_lr_cache_trace.html"
               },
-              "icon": "lucide-file",
-              "title": "06-practical-process-memory-demo"
+              "icon": "code-glyph",
+              "title": "recursive_call_pc_lr_cache_trace"
             }
           }
         ]
@@ -195,9 +193,11 @@
   },
   "active": "10a5afa644871ebd",
   "lastOpenFiles": [
+    "OS/Process/multiply_stack_trace.html",
+    "OS/Process/03-stack-memory.md",
+    "OS/Process/06-practical-process-memory-demo.md",
     "OS/Process/05-heap-memory.md",
     "OS/Process/04-data-section.md",
-    "OS/Process/03-stack-memory.md",
     "OS/Process/02-process-execution.md",
     "OS/Process/1-Program vs Process.md",
     "OS/img/heap-program-break.png",
@@ -237,8 +237,6 @@
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/index.md",
     "Untitled 8.base",
     "Untitled 9.base",
-    "WebRTC.md",
-    "Videos to watch.md",
     "Untitled 3.base",
     "Untitled 2.base",
     "Untitled.canvas",
