@@ -20,8 +20,19 @@
               "icon": "lucide-file",
               "title": "Consistency"
             }
+          },
+          {
+            "id": "64aa7eff65fd9929",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -185,11 +196,17 @@
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
-      "command-palette:Open command palette": false
+      "command-palette:Open command palette": false,
+      "pdf-plus:PDF++: Toggle auto-copy": false,
+      "pdf-plus:PDF++: Toggle auto-focus": false,
+      "pdf-plus:PDF++: Toggle auto-paste": false,
+      "code-files:Create Code File": false,
+      "obsidian-shellcommands:Shell commands: Custom variables": false
     }
   },
-  "active": "10a5afa644871ebd",
+  "active": "64aa7eff65fd9929",
   "lastOpenFiles": [
+    "Database/ACID/Consistency.md",
     "Database/ACID/Durability.md",
     "Database/ACID/Eventual_Consistency.md",
     "Database/ACID/Isolation.md",
@@ -220,7 +237,6 @@
     "Sys Design/arpit bhayani/Database-02/common_questions/must_look_questions.md",
     "Sys Design/arpit bhayani/Cache-03/what_is_cache-01.md",
     "Sys Design/arpit bhayani/Cache-03/Populating_and_scaling_cache-02.md",
-    "Sys Design/arpit bhayani/Cache-03/Caching_at_different_levels.md",
     "Sys Design/arpit bhayani/Cache-03",
     "OS/Process/start-os-server.vbs",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
