@@ -25,10 +25,14 @@
             "id": "64aa7eff65fd9929",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "Database/Database Internals/Storage & Indexing.md",
+                "mode": "preview",
+                "source": true
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "Storage & Indexing"
             }
           }
         ],
@@ -206,6 +210,11 @@
   },
   "active": "64aa7eff65fd9929",
   "lastOpenFiles": [
+    "Database/Database Internals/Row vs Column Oriented.md",
+    "Database/Database Internals/Primary Key vs Secondary Key.md",
+    "Database/B-tree And B+tree/B-tree.md",
+    "Database/B-tree And B+tree/B+tree.md",
+    "Database/Database Indexing/Index.md",
     "Database/ACID/Consistency.md",
     "Database/ACID/Durability.md",
     "Database/ACID/Eventual_Consistency.md",
@@ -213,8 +222,6 @@
     "Database/ACID/Transaction.md",
     "Database/Database Partitiong/Patitioning.md",
     "Database/Database Internals/Storage & Indexing.md",
-    "Database/Database Internals/Row vs Column Oriented.md",
-    "Database/Database Internals/Primary Key vs Secondary Key.md",
     "Database/ACID/Atomicity.md",
     "Sys Design/Beginners.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool.md",
@@ -234,9 +241,6 @@
     "Sys Design/arpit bhayani/Database-02/Isolations_02.md",
     "Sys Design/arpit bhayani/Database-02/How_to_choose_write_db.md",
     "Sys Design/arpit bhayani/Database-02/Database_scaling_03.md",
-    "Sys Design/arpit bhayani/Database-02/common_questions/must_look_questions.md",
-    "Sys Design/arpit bhayani/Cache-03/what_is_cache-01.md",
-    "Sys Design/arpit bhayani/Cache-03/Populating_and_scaling_cache-02.md",
     "Sys Design/arpit bhayani/Cache-03",
     "OS/Process/start-os-server.vbs",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-4/b-tree.html",
