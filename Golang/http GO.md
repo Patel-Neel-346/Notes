@@ -57,3 +57,6 @@ You are literally doing:
 ```go  
 http.DefaultServeMux.Handle("/", http.HandlerFunc(fn))  
 ```
+
+
+
