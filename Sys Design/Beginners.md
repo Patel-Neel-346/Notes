@@ -1,4 +1,4 @@
-### ACID properites 
+### ACID properites pravin
 #### Atomicity
 All the events within a transaction takes effect or none of them.
 No matter how many statements I ran in my transaction either all of them would be executed or none of them are going to execute.
