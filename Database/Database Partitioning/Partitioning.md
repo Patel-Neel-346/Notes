@@ -103,3 +103,4 @@ WHERE order_date >= '2026-02-01' AND order_date < '2026-03-01';
 | **Global Uniqueness** | Single-partition indexes cannot enforce uniqueness across other partitions without including partition key. | Composite primary key `(id, partition_key)`. |
 | **Over-Partitioning** | Creating thousands of tiny partitions bloats PostgreSQL catalog metadata and exhausts memory. | Aim for partitions between **10 GB and 100 GB** each; avoid partitions with $<1\text{ GB}$. |
 | **Dropping Old History** | Deleting 50M rows with `DELETE FROM orders WHERE date < ...` generates massive WAL and bloat. | Instant drop: `ALTER TABLE orders DETACH PARTITION orders_2024; DROP TABLE orders_2024;` |
+

@@ -2,7 +2,7 @@
 
 **Course:** Fundamentals of Operating Systems · Hussein Nasser
 
-[▶ Click to start server](file:///C:/Users/Practical5/Desktop/Neel/Extra/Notes/OS/Process/start-os-server.vbs)
+[▶ Click to start server](start-os-server.vbs)
 
 ---
 

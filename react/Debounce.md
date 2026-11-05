@@ -154,3 +154,4 @@ debouncedSearch("react performance"); // Only this one will execute after 300ms!
 | :--- | :--- | :--- |
 | **Inline Debounce in Render** | `const handle = debounce(fn, 300)` inside functional component creates a **brand new debounce instance on every render**. | Wrap with `useCallback` or `useMemo`: `useCallback(debounce(fn, 300), [])`. |
 | **Unmounted State Updates** | Debounce timer fires after user navigated away, setting state on an unmounted component. | Always clear the timer in `useEffect` cleanup function. |
+

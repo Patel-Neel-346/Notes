@@ -55,12 +55,12 @@ flowchart TD
 
 | Area | Key Vault Notes & Folders |
 | :--- | :--- |
-| **System Design** | [[Sys Design/arpit bhayani/Introduction-01/what is sys desgin_01\|Arpit Bhayani System Design]], [[Microservices]], [[Sys Design/Clean Architecture\|Clean Architecture]] |
-| **Databases** | [[Database/Database Indexing/Index\|Database Indexing]], [[Database/B-tree And B+tree/B-tree\|B-Trees]], [[Database/ACID/Transaction\|ACID & Transactions]], [[Postgres/postgres\|PostgreSQL]] |
-| **Messaging** | [[MessageBrokers/Kafka\|Kafka]], [[MessageBrokers/Rabbit MQ\|RabbitMQ]], [[Message Brokers and design patterns\|Broker Design Patterns]] |
-| **Networking & Realtime** | [[networking/OSI Model\|OSI Model]], [[concurrency and  networking\|Concurrency & Networking]], [[WebRTC]], [[nginx/nginx\|NGINX]] |
-| **OS & Memory** | [[03-stack-memory\|Stack Memory]], [[OS/Process\|Processes & Threads]] |
-| **Task Management** | [[TODO & Info]], [[pending things]] |
+| **System Design** | [[Sys Design/arpit bhayani/Introduction-01/what is sys desgin_01|Arpit Bhayani System Design]], [[Sys Design/Microservices|Microservices]], [[Sys Design/Clean Architecture|Clean Architecture]] |
+| **Databases** | [[Database/Database Indexing/Index|Database Indexing]], [[Database/B-tree And B+tree/B-tree|B-Trees]], [[Database/ACID/Transaction|ACID & Transactions]], [[Postgres/postgres|PostgreSQL]] |
+| **Messaging** | [[MessageBrokers/Kafka|Kafka]], [[MessageBrokers/Rabbit MQ|RabbitMQ]], [[MessageBrokers/Message Brokers and design patterns|Broker Design Patterns]] |
+| **Networking & Realtime** | [[networking/OSI Model|OSI Model]], [[networking/concurrency and networking|Concurrency & Networking]], [[networking/WebRTC|WebRTC]], [[nginx/nginx|NGINX]] |
+| **OS & Memory** | [[OS/Process/03-stack-memory|Stack Memory]], [[OS/Process|Processes & Threads]] |
+| **Task Management** | [[Roadmaps & Trackers/TODO & Info|TODO & Info]], [[Roadmaps & Trackers/pending things|pending things]] |
 
 ---
 
@@ -87,7 +87,7 @@ flowchart TD
 - [ ] **Node.js Internals & Event Loop**: Libuv thread pool, microtask vs. macrotask queue, phases (timers, I/O callbacks, idle/prepare, poll, check, close callbacks)
 - [ ] **V8 Engine Fundamentals**: JIT compilation (Ignition & TurboFan), hidden classes, inline caching
 - [ ] **Asynchronous Programming**: Promises, async/await, event emitters, handling unhandled rejections
-- [ ] **Streams and Buffers**: Readable, Writable, Duplex, Transform streams, backpressure management (see [[Streams Node.js]])
+- [ ] **Streams and Buffers**: Readable, Writable, Duplex, Transform streams, backpressure management (see [[Backend-engineering/Streams Node.js|Streams Node.js]])
 - [ ] **Concurrency & Scalability**: Worker threads, child processes, clustering, IPC
 - [ ] **Memory Management & GC**: Heap vs. stack, V8 garbage collection (Scavenge/Semi-space, Mark-Sweep-Compact), memory leak debugging (heap snapshots, clinics)
 - [ ] **Backend Architecture & Design Patterns**: Clean Architecture, Dependency Injection, Repository and Service layers (see [[Sys Design/Clean Architecture|Clean Architecture]])
@@ -183,7 +183,7 @@ flowchart TD
 ### 4. Realtime Backend Systems and NGINX
 
 > [!TIP] **Related Vault Notes**
-> Check out [[nginx/nginx|NGINX Notes]] and [[WebRTC]].
+> Check out [[nginx/nginx|NGINX Notes]] and [[networking/WebRTC|WebRTC]].
 
 #### 📺 Video Courses
 - [ ] Hussein Nasser – *Realtime Backend Systems*
@@ -286,7 +286,7 @@ flowchart TD
 ### 7. Message Queues and Distributed Messaging
 
 > [!TIP] **Related Vault Notes**
-> Check out [[MessageBrokers/Kafka|Kafka Notes]], [[MessageBrokers/Rabbit MQ|RabbitMQ Notes]], and [[Message Brokers and design patterns|Patterns & Exercises]].
+> Check out [[MessageBrokers/Kafka|Kafka Notes]], [[MessageBrokers/Rabbit MQ|RabbitMQ Notes]], and [[MessageBrokers/Message Brokers and design patterns|Patterns & Exercises]].
 
 #### 📺 Video Courses & Resources
 - [ ] Kafka fundamentals and advanced concepts
@@ -318,7 +318,7 @@ flowchart TD
 ### 8. WebRTC Fundamentals
 
 > [!NOTE] **Secondary Focus**
-> Study WebRTC after completing foundational networking, sockets, and real-time backend systems. See [[WebRTC]] for your current notes.
+> Study WebRTC after completing foundational networking, sockets, and real-time backend systems. See [[networking/WebRTC|WebRTC]] for your current notes.
 
 #### 🧠 Topics to Study
 - [ ] **WebRTC Architecture**: Peer-to-peer mesh vs. SFU (Selective Forwarding Unit) vs. MCU (Multipoint Control Unit)
@@ -346,11 +346,11 @@ flowchart TD
 | **#3** | **Computer Networking: A Top-Down Approach** | Kurose & Ross | Complete cover-to-cover | [[networking/OSI Model\|OSI Model]] | ⏳ Queue |
 | **#4** | **Network Warrior** | Gary A. Donahue | Complete selected chapters | [[networking/OSI Model\|Networking]] | ⏳ Queue |
 | **#5** | **Database Design and Implementation** | Edward Sciore | Complete | [[Database/Database Indexing/Index\|Database]] | ⏳ Queue |
-| **#6** | **Operating Systems: Three Easy Pieces (OSTEP)** | Remzi & Andrea Arpaci-Dusseau | Complete cover-to-cover | [[03-stack-memory\|Stack Memory]] | ⏳ Queue |
-| **#7** | **Kafka: The Definitive Guide** | Neha Narkhede, Gwen Shapira, Todd Palino | Complete relevant chapters | [[MessageBrokers/Kafka\|Kafka Notes]] | ⏳ Queue |
-| **#8** | **RabbitMQ in Depth** | Gavin M. Roy | Complete relevant chapters | [[MessageBrokers/Rabbit MQ\|RabbitMQ Notes]] | ⏳ Queue |
-| **#9** | **Domain-Driven Design** | Eric Evans | Complete | [[Sys Design/Clean Architecture\|Architecture]] | ⏳ Queue |
-| **#10** | **Node.js Design Patterns** | Mario Casciaro & Luciano Mammino | Read alongside Node.js courses | [[Streams Node.js\|Streams]] | ⏳ Queue |
+| **#6** | **Operating Systems: Three Easy Pieces (OSTEP)** | Remzi & Andrea Arpaci-Dusseau | Complete cover-to-cover | [[OS/Process/03-stack-memory|Stack Memory]] | ⏳ Queue |
+| **#7** | **Kafka: The Definitive Guide** | Neha Narkhede, Gwen Shapira, Todd Palino | Complete relevant chapters | [[MessageBrokers/Kafka|Kafka Notes]] | ⏳ Queue |
+| **#8** | **RabbitMQ in Depth** | Gavin M. Roy | Complete relevant chapters | [[MessageBrokers/Rabbit MQ|RabbitMQ Notes]] | ⏳ Queue |
+| **#9** | **Domain-Driven Design** | Eric Evans | Complete | [[Sys Design/Clean Architecture|Architecture]] | ⏳ Queue |
+| **#10** | **Node.js Design Patterns** | Mario Casciaro & Luciano Mammino | Read alongside Node.js courses | [[Backend-engineering/Streams Node.js|Streams]] | ⏳ Queue |
 
 > [!TIP] **Supplementary Book**
 > - *Implementing Domain-Driven Design* – Vaughn Vernon *(Optional, study after completing Eric Evans).*
@@ -435,18 +435,18 @@ flowchart TD
 
 | Week / Step | Subject Track | Core Video Focus | Main Book Reading | Practical Milestone | Vault Target |
 | :---: | :--- | :--- | :--- | :--- | :--- |
-| **01** | **Node.js Internals** | Namaste JS + Advanced Node.js | *Node.js Design Patterns* | Event loop & GC profiling | [[Streams Node.js]] |
-| **02** | **Networking Basics** | Hussein Nasser Networking | *Computer Networking: Top-Down* | Wireshark TLS/TCP capture | [[networking/OSI Model\|OSI Model]] |
-| **03** | **DB Fundamentals** | HN Database Fundamentals | *DDIA* (Ch 1–3) + *Petrov* | Index scan benchmarks in Postgres | [[Database/Database Indexing/Index\|DB Indexing]] |
-| **04** | **Realtime & NGINX** | HN Realtime + NGINX | *DDIA* (Ch 4) | Clustered WebSockets + NGINX | [[nginx/nginx\|NGINX]] |
-| **05** | **Operating Systems** | Linux system calls & memory | *OSTEP* (Three Easy Pieces) | CPU scheduling & memory leaks | [[03-stack-memory\|Stack Memory]] |
-| **06** | **System Design I** | Arpit Bhayani SD Part 1 | *DDIA* (Ch 5–6: Replication & Sharding) | URL Shortener + Rate Limiter | [[Sys Design/arpit bhayani/Introduction-01/what is sys desgin_01\|Sys Design Intro]] |
-| **07** | **Redis Internals** | Arpit Bhayani Redis Internals | *DDIA* (Caching sections) | Sliding window rate limiter in Lua | [[Sys Design/arpit bhayani/Cache-03/what_is_cache-01\|Cache Notes]] |
-| **08** | **Kafka & Streaming** | Kafka Deep Dive | *Kafka: The Definitive Guide* + *DDIA* (Ch 10–11) | Multi-broker cluster with EOS | [[MessageBrokers/Kafka\|Kafka Notes]] |
-| **09** | **RabbitMQ & Tasks** | RabbitMQ Architecture | *RabbitMQ in Depth* | Dead-letter retry task pipeline | [[MessageBrokers/Rabbit MQ\|RabbitMQ Notes]] |
-| **10** | **DB Internals & CMU** | CMU 15-445 / HN Advanced DB | *Database Internals* (Alex Petrov) | Buffer pool & B+ Tree simulation | [[Database/B-tree And B+tree/B-tree\|B-Trees]] |
-| **11** | **WebRTC & Media** | WebRTC signaling & STUN/TURN | WebRTC specs & MDN | P2P Video calling app | [[WebRTC]] |
-| **12** | **System Design II & Synthesis** | Arpit Bhayani SD Part 2 | *DDIA* (Pass 3: Final Synthesis) | Full-scale distributed payment engine | [[Message Brokers and design patterns\|Broker Patterns]] |
+| **01** | **Node.js Internals** | Namaste JS + Advanced Node.js | *Node.js Design Patterns* | Event loop & GC profiling | [[Backend-engineering/Streams Node.js|Streams Node.js]] |
+| **02** | **Networking Basics** | Hussein Nasser Networking | *Computer Networking: Top-Down* | Wireshark TLS/TCP capture | [[networking/OSI Model|OSI Model]] |
+| **03** | **DB Fundamentals** | HN Database Fundamentals | *DDIA* (Ch 1–3) + *Petrov* | Index scan benchmarks in Postgres | [[Database/Database Indexing/Index|DB Indexing]] |
+| **04** | **Realtime & NGINX** | HN Realtime + NGINX | *DDIA* (Ch 4) | Clustered WebSockets + NGINX | [[nginx/nginx|NGINX]] |
+| **05** | **Operating Systems** | Linux system calls & memory | *OSTEP* (Three Easy Pieces) | CPU scheduling & memory leaks | [[OS/Process/03-stack-memory|Stack Memory]] |
+| **06** | **System Design I** | Arpit Bhayani SD Part 1 | *DDIA* (Ch 5–6: Replication & Sharding) | URL Shortener + Rate Limiter | [[Sys Design/arpit bhayani/Introduction-01/what is sys desgin_01|Sys Design Intro]] |
+| **07** | **Redis Internals** | Arpit Bhayani Redis Internals | *DDIA* (Caching sections) | Sliding window rate limiter in Lua | [[Sys Design/arpit bhayani/Cache-03/what_is_cache-01|Cache Notes]] |
+| **08** | **Kafka & Streaming** | Kafka Deep Dive | *Kafka: The Definitive Guide* + *DDIA* (Ch 10–11) | Multi-broker cluster with EOS | [[MessageBrokers/Kafka|Kafka Notes]] |
+| **09** | **RabbitMQ & Tasks** | RabbitMQ Architecture | *RabbitMQ in Depth* | Dead-letter retry task pipeline | [[MessageBrokers/Rabbit MQ|RabbitMQ Notes]] |
+| **10** | **DB Internals & CMU** | CMU 15-445 / HN Advanced DB | *Database Internals* (Alex Petrov) | Buffer pool & B+ Tree simulation | [[Database/B-tree And B+tree/B-tree|B-Trees]] |
+| **11** | **WebRTC & Media** | WebRTC signaling & STUN/TURN | WebRTC specs & MDN | P2P Video calling app | [[networking/WebRTC|WebRTC]] |
+| **12** | **System Design II & Synthesis** | Arpit Bhayani SD Part 2 | *DDIA* (Pass 3: Final Synthesis) | Full-scale distributed payment engine | [[MessageBrokers/Message Brokers and design patterns|Broker Patterns]] |
 
 ---
 
@@ -472,3 +472,4 @@ flowchart TD
 > - Explain exactly what happens from the OS kernel and network card up to the application runtime.
 > - Design resilient, scalable distributed systems that gracefully survive network partitions, broker crashes, and database failovers.
 > - Make rock-solid, pragmatic engineering trade-offs backed by data, benchmarks, and first principles.
+

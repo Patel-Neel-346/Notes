@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Things that i need to do in 3 month.md",
-                "mode": "preview",
+                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
+                "mode": "source",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Things that i need to do in 3 month"
+              "title": "Chapter-2"
             }
           }
         ],
@@ -227,6 +227,21 @@
   },
   "active": "1e4672bafb47d36f",
   "lastOpenFiles": [
+    "Things that i need to do in 3 month.md",
+    "Roadmaps & Trackers/Notes.md",
+    "Roadmaps & Trackers/Videos to watch.md",
+    "Roadmaps & Trackers/Blogs to read.md",
+    "Roadmaps & Trackers/TODO & Info.md",
+    "Roadmaps & Trackers/pending things.md",
+    "Roadmaps & Trackers/Things that i need to do in 3 month.md",
+    "kubernetes/Nodes and Pods.md",
+    "Golang/Servers in GO.md",
+    "Sys Design/Microservices.md",
+    "MessageBrokers/Message Brokers and design patterns.md",
+    "networking/WebRTC.md",
+    "networking/concurrency and networking.md",
+    "Backend-engineering/Streams Node.js.md",
+    "Roadmaps & Trackers",
     "Database/Database Partitioning/Partitioning.md",
     "react/Debounce.md",
     "Sys Design/Microservice Patterns & Principles.md",
@@ -257,22 +272,7 @@
     "Untitled 9.base",
     "Untitled 8.base",
     "Untitled 7.base",
-    "Untitled 6.base",
     "Untitled 1.md",
-    "Sys Design/arpit bhayani/Database-02/common_questions/must_look_questions.md",
-    "Sys Design/arpit bhayani/Database-02/Relational_database_01.md",
-    "Sys Design/arpit bhayani/Database-02/Non_relational_database_04.md",
-    "Sys Design/arpit bhayani/Database-02/Isolations_02.md",
-    "Sys Design/arpit bhayani/Database-02/How_to_choose_write_db.md",
-    "Sys Design/arpit bhayani/Database-02/Database_scaling_03.md",
-    "Sys Design/arpit bhayani/Introduction-01/what is sys desgin_01.md",
-    "Sys Design/arpit bhayani/Introduction-01/How to evaluate that you have built a good sys design_03.md",
-    "Sys Design/arpit bhayani/Introduction-01/how to approch sys design_02.md",
-    "Sys Design/arpit bhayani/Cache-03/Populating_and_scaling_cache-02.md",
-    "Sys Design/arpit bhayani/Cache-03/what_is_cache-01.md",
-    "Sys Design/arpit bhayani/Cache-03/Caching_at_different_levels.md",
-    "OS/Process/1-Program vs Process.md",
-    "OS/Process/06-practical-process-memory-demo.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas"

@@ -95,3 +95,4 @@ graph TD
 
 - **Example**: `AddItemToCart` aggregates data from `Product Catalog`, `Pricing Service`, and `Inventory Service` before responding.
 - **Resilience Best Practice**: Set individual strict timeouts on every downstream call; if `Pricing Service` fails, return the base price with a warning rather than failing the entire aggregated response.
+
