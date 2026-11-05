@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
-                "mode": "source",
+                "file": "Things that i need to do in 3 month.md",
+                "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Chapter-2"
+              "title": "Things that i need to do in 3 month"
             }
           }
         ],
@@ -227,8 +227,12 @@
   },
   "active": "1e4672bafb47d36f",
   "lastOpenFiles": [
-    "conflict-files-obsidian-git.md",
+    "Database/Database Partitioning/Partitioning.md",
+    "react/Debounce.md",
+    "Sys Design/Microservice Patterns & Principles.md",
+    "concurrency and networking.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
+    "conflict-files-obsidian-git.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide6-disk-oriented-dbms-large.jpg",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide42-prefetching-index.jpg",
@@ -269,10 +273,6 @@
     "Sys Design/arpit bhayani/Cache-03/Caching_at_different_levels.md",
     "OS/Process/1-Program vs Process.md",
     "OS/Process/06-practical-process-memory-demo.md",
-    "OS/Process/05-heap-memory.md",
-    "OS/Process/04-data-section.md",
-    "OS/Process/03-stack-memory.md",
-    "OS/Process/02-process-execution.md",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas"
