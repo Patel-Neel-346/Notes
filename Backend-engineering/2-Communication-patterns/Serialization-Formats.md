@@ -10,7 +10,7 @@ tags:
 type: technical-note
 status: active
 source: Rotational (Go), OneUptime, MessagePack GitHub
-related: "[[2.Request-respone]]"
+related: "[[Request-Response]]"
 ---
 
 # 🗜️ Serialization Formats — JSON vs Protobuf vs MessagePack

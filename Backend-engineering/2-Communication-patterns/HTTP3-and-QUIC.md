@@ -9,7 +9,7 @@ tags:
 type: technical-note
 status: active
 source: MDN, APNIC, Red Hat, HTTP Toolkit, System Design Space
-related: "[[2.Request-respone]]"
+related: "[[Request-Response]]"
 ---
 
 # 🚀 HTTP/3, QUIC & Head-of-Line Blocking

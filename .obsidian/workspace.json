@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Backend-engineering/2-Communication-patterns/2.Request-respone.md",
+                "file": "Backend-engineering/2-Communication-patterns/Serialization-Formats.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "2.Request-respone"
+              "title": "Serialization-Formats"
             }
           }
         ],
@@ -227,10 +227,19 @@
   },
   "active": "1e4672bafb47d36f",
   "lastOpenFiles": [
+    "Backend-engineering/2-Communication-patterns/Serialization-Formats.md",
+    "Backend-engineering/2-Communication-patterns/Request-Response.md",
+    "Backend-engineering/2-Communication-patterns/File-Upload-Architecture.md",
+    "Database/Database Internal Book version/1-Storage Engine/Chapter-1 Introduction/Chapter-1.md",
+    "Backend-engineering/2-Communication-patterns/2.Request-respone.md",
+    "Backend-engineering/2-Communication-patterns/Polling-SSE-WebSockets.md",
+    "Backend-engineering/2-Communication-patterns/GraphQL-DataLoader.md",
+    "Backend-engineering/2-Communication-patterns/HTTP3-and-QUIC.md",
+    "Backend-engineering/2-Communication-patterns/2e.Polling-SSE-WebSockets.md",
+    "Backend-engineering/2-Communication-patterns/2d.GraphQL-DataLoader.md",
     "Backend-engineering/2-Communication-patterns/2c.Serialization-Formats.md",
     "Backend-engineering/2-Communication-patterns/2b.File-Upload-Architecture.md",
     "Backend-engineering/2-Communication-patterns/2a.HTTP3-and-QUIC.md",
-    "Database/Database Internal Book version/1-Storage Engine/Chapter-1 Introduction/Chapter-1.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/FileFormat.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/img/figure 3-9.png",
@@ -248,21 +257,12 @@
     "Database/ACID/Durability.md",
     "Database/ACID/Consistency.md",
     "Database/ACID/Atomicity.md",
-    "Backend-engineering/2-Communication-patterns/2.Request-respone.md",
     "Backend-engineering/2-Communication-patterns/1/2.Request-respone.md",
     "Backend-engineering/1/2.Request-respone.md",
     "Backend-engineering/1",
     "Backend-engineering/Streams Node.js.md",
     "Backend-engineering/2-Communication-patterns/1",
     "Backend-engineering/2-Communication-patterns",
-    "Sys Design/arpit bhayani/Asynchronous_programming-04/01_Message_brokers_&_Queues.md",
-    "Things that i need to do in 3 month.md",
-    "Roadmaps & Trackers/Notes.md",
-    "Roadmaps & Trackers/Videos to watch.md",
-    "Roadmaps & Trackers/Blogs to read.md",
-    "Roadmaps & Trackers/TODO & Info.md",
-    "Roadmaps & Trackers/pending things.md",
-    "Roadmaps & Trackers/Things that i need to do in 3 month.md",
     "Roadmaps & Trackers",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/seed(#02 data)/seed.js",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img/slide6-disk-oriented-dbms-large.jpg",

@@ -1,5 +1,5 @@
-﻿---
-title: Requestâ€“Response Communication Pattern
+---
+title: Request–Response Communication Pattern
 tags:
   - backend-engineering
   - http
@@ -10,38 +10,38 @@ tags:
   - serialization
 type: technical-note
 status: active
-source: Hussein Nasser â€” Backend Engineering Course
+source: Hussein Nasser — Backend Engineering Course
 ---
 
-# ðŸ”„ Requestâ€“Response Communication Pattern
+# 🔄 Request–Response Communication Pattern
 
-### The Big Picture â€” Why Communication Patterns Matter
+### The Big Picture — Why Communication Patterns Matter
 
 Backend applications never work in isolation. Everything communicates:
 
-- **Browser â†” Backend API** â€” user-facing apps
-- **Mobile App â†” Server** â€” REST or GraphQL
-- **Backend â†” Database** â€” SQL over TCP
-- **Microservice â†” Microservice** â€” RPC, HTTP, message queues
-- **Notification service â†” Connected clients** â€” push, polling, SSO
+- **Browser ↔ Backend API** — user-facing apps
+- **Mobile App ↔ Server** — REST or GraphQL
+- **Backend ↔ Database** — SQL over TCP
+- **Microservice ↔ Microservice** — RPC, HTTP, message queues
+- **Notification service ↔ Connected clients** — push, polling, SSO
 
 Understanding the **first principles** behind communication patterns is what separates engineers who *use* frameworks from engineers who can *design* systems.
 
 | Pattern | Core Concept |
 | :--- | :--- |
-| **Requestâ€“Response** | Client sends a request; server responds |
+| **Request–Response** | Client sends a request; server responds |
 | **Synchronous** | Caller waits for the result |
 | **Asynchronous** | Work continues independently |
 | **Push** | Server sends data to clients without a request |
 | **Pull** | Client polls/fetches data on demand |
 | **Long Polling** | Server holds a request until data is available |
-| **Pubâ€“Sub** | Publishers produce events; subscribers consume them |
+| **Pub–Sub** | Publishers produce events; subscribers consume them |
 | **Multiplexing** | Multiple logical streams share one connection |
 | **Demultiplexing** | Incoming bytes are separated into the correct streams |
 
 ---
 
-## 1. What is Requestâ€“Response?
+## 1. What is Request–Response?
 
 The simplest and most widespread communication pattern. Five steps, always:
 
@@ -50,7 +50,7 @@ The simplest and most widespread communication pattern. Five steps, always:
 2. Server receives the request
 3. Server parses it (understands structure/boundaries)
 4. Server processes it (executes business logic)
-5. Server sends a response â†’ Client receives it
+5. Server sends a response → Client receives it
 ```
 
 ```mermaid
@@ -59,14 +59,14 @@ sequenceDiagram
     participant S as Server (Backend API)
 
     C->>S: HTTP GET /api/users/101
-    Note over S: Parse â†’ Validate â†’ DB Query
+    Note over S: Parse → Validate → DB Query
     S-->>C: 200 OK { id: 101, name: "Neel" }
 ```
 
-> [!note] Parsing â‰  Processing
+> [!note] Parsing ≠ Processing
 > These are two **distinct** operations the server must do:
-> - **Parsing** â€” Where does the request start/end? What is the method, URL, headers, body format?
-> - **Processing** â€” Actually executing the requested operation (DB queries, business logic, etc.)
+> - **Parsing** — Where does the request start/end? What is the method, URL, headers, body format?
+> - **Processing** — Actually executing the requested operation (DB queries, business logic, etc.)
 >
 > A slow API could be slow at *either* stage. Never assume it's always the DB.
 
@@ -88,7 +88,7 @@ Read 2:  [...REQUEST 2 continued] + [REQUEST 3 complete]
 
 | Mechanism | How It Works |
 | :--- | :--- |
-| **Request line** | `GET /path HTTP/1.1\r\n` â€” signals start |
+| **Request line** | `GET /path HTTP/1.1\r\n` — signals start |
 | **Headers + empty line** | `\r\n\r\n` signals the end of headers |
 | **`Content-Length`** | Tells receiver exactly how many body bytes to read |
 | **`Transfer-Encoding: chunked`** | Body arrives in size-prefixed chunks, ending with `0\r\n\r\n` |
@@ -97,12 +97,12 @@ Read 2:  [...REQUEST 2 continued] + [REQUEST 3 complete]
 ```
 POST /upload HTTP/1.1
 Host: example.com
-Content-Length: 10        â† server reads exactly 10 bytes of body
+Content-Length: 10        ← server reads exactly 10 bytes of body
 
 HelloWorld
 ```
 
-> [!caution] TCP packets â‰  HTTP requests
+> [!caution] TCP packets ≠ HTTP requests
 > A single HTTP request can span **many TCP segments**. Multiple HTTP requests can share **one TCP connection** (HTTP keep-alive). Never conflate the two layers.
 
 > [!tip] 📚 Resources — TCP Message Framing
@@ -113,7 +113,7 @@ HelloWorld
 ## 3. Serialization & Deserialization
 
 **Serialization** converts an in-memory application object into a transmittable format.
-**Deserialization** is the reverse â€” received bytes â†’ usable application object.
+**Deserialization** is the reverse — received bytes → usable application object.
 
 ```mermaid
 flowchart LR
@@ -126,13 +126,13 @@ flowchart LR
 
 | Format | Human Readable | Size | Parse Speed | Schema Required | Use Case |
 | :--- | :---: | :--- | :--- | :---: | :--- |
-| **JSON** | âœ… | Medium | Fast (native in JS) | âŒ | Web APIs, REST |
-| **XML / SOAP** | âœ… | Large (verbose) | Slow (string parsing) | Optional | Legacy enterprise |
-| **Protocol Buffers** | âŒ | Small (binary) | Very fast | âœ… | gRPC, internal services |
-| **MessagePack** | âŒ | Small (binary) | Fast | âŒ | High-throughput APIs |
+| **JSON** | ✅ | Medium | Fast (native in JS) | ❌ | Web APIs, REST |
+| **XML / SOAP** | ✅ | Large (verbose) | Slow (string parsing) | Optional | Legacy enterprise |
+| **Protocol Buffers** | ❌ | Small (binary) | Very fast | ✅ | gRPC, internal services |
+| **MessagePack** | ❌ | Small (binary) | Fast | ❌ | High-throughput APIs |
 
 ```proto
-// protobuf schema â€” field names are NOT transmitted, only field numbers
+// protobuf schema — field names are NOT transmitted, only field numbers
 syntax = "proto3";
 message User {
   int32  id     = 1;
@@ -147,67 +147,68 @@ message User {
 > In Node.js, `JSON.parse` / `JSON.stringify` are native and usually fast enough.
 > Measure first, optimize second.
 
-**Why did the industry move from SOAP/XML â†’ REST/JSON?**
-XML is verbose â€” more bytes to transmit, more characters to parse. JSON maps naturally to JavaScript objects and is simpler to work with in web environments.
+**Why did the industry move from SOAP/XML → REST/JSON?**
+XML is verbose — more bytes to transmit, more characters to parse. JSON maps naturally to JavaScript objects and is simpler to work with in web environments.
 
 > [!tip] 📚 Resources — Serialization Formats
+> → Full deep-dive: [[Serialization-Formats|Serialization Formats — JSON vs Protobuf vs MessagePack]]
 > - [Choosing Serialization Formats in Go — Rotational](https://rotational.io/blog/go-serialization-formats/)
 > - [Serialization Performance Issues — OneUptime](https://oneuptime.com/blog/post/2026-01-24-serialization-performance/view)
 > - [MessagePack Overview — GitHub](https://github.com/techishthoughts-org/java_serialization_frameworks/blob/main/docs/frameworks/msgpack.md)
 
 ---
 
-## 4. Where is Requestâ€“Response Used?
+## 4. Where is Request–Response Used?
 
 ### 4.1 HTTP
 
-The backbone of the web. Every browser request is Requestâ€“Response.
+The backbone of the web. Every browser request is Request–Response.
 
 **Internal lifecycle of one HTTP request:**
 
 ```
-1. DNS resolution       â†’ hostname â†’ IP address
-2. TCP handshake        â†’ establish connection (SYN / SYN-ACK / ACK)
-3. TLS handshake        â†’ (HTTPS only) negotiate cipher, exchange keys
-4. HTTP request sent    â†’ headers + optional body
-5. Server parses        â†’ identifies method, path, headers, body
-6. Server executes      â†’ business logic, DB queries, external calls
-7. HTTP response sent   â†’ status line + headers + body
-8. Client parses        â†’ deserialize body, update UI
+1. DNS resolution       → hostname → IP address
+2. TCP handshake        → establish connection (SYN / SYN-ACK / ACK)
+3. TLS handshake        → (HTTPS only) negotiate cipher, exchange keys
+4. HTTP request sent    → headers + optional body
+5. Server parses        → identifies method, path, headers, body
+6. Server executes      → business logic, DB queries, external calls
+7. HTTP response sent   → status line + headers + body
+8. Client parses        → deserialize body, update UI
 ```
 
 > [!note] HTTP Version Transport Differences
-> - **HTTP/1.1** â†’ TCP (one request per connection, or pipelined with ordering constraints)
-> - **HTTP/2** â†’ TCP with multiplexed streams (many requests per connection)
-> - **HTTP/3** â†’ QUIC over UDP (stream-level loss recovery, no TCP HOL blocking)
+> - **HTTP/1.1** → TCP (one request per connection, or pipelined with ordering constraints)
+> - **HTTP/2** → TCP with multiplexed streams (many requests per connection)
+> - **HTTP/3** → QUIC over UDP (stream-level loss recovery, no TCP HOL blocking)
 
 > [!tip] 📚 Resources — HTTP Messages
 > - [MDN — HTTP Messages: Anatomy, Requests & Responses](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages)
 
 ---
 
-### 4.2 DNS â€” Requestâ€“Response Over UDP
+### 4.2 DNS — Request–Response Over UDP
 
-DNS is a pure Requestâ€“Response protocol. The client asks for a name â†’ server returns an IP.
+DNS is a pure Request–Response protocol. The client asks for a name → server returns an IP.
 
 ```mermaid
 flowchart TD
     A["Client: What is google.com?"] --> B["Recursive Resolver\n(checks cache)"]
     B --> C["Root DNS Server\n(directs to .com TLD)"]
-    C --> D["TLD Server\n(.com â†’ google's NS)"]
+    C --> D["TLD Server\n(.com → google's NS)"]
     D --> E["Authoritative Server\n(google.com NS)"]
     E --> B
     B --> A2["Client: 142.250.x.x"]
 ```
 
-> [!important] DNS Query ID â€” Never Assume Response Order
-> DNS sends multiple queries concurrently. Each query gets a **Transaction ID**. Responses can arrive **out of order** â€” the client uses the ID to match them.
+> [!important] DNS Query ID — Never Assume Response Order
+> DNS sends multiple queries concurrently. Each query gets a **Transaction ID**. Responses can arrive **out of order** — the client uses the ID to match them.
 >
 > | Query ID | Question | Response Arrives |
 > | :--- | :--- | :--- |
 > | 1001 | google.com | 2nd |
 > | 1002 | youtube.com | 3rd |
-> | 1003 | github.com | 1st âœ… |
+> | 1003 | github.com | 1st ✅ |
 >
 > **Lesson:** Never assume network responses arrive in request order. Always correlate with IDs.
 
@@ -215,12 +216,12 @@ flowchart TD
 
 ---
 
-### 4.3 RPC â€” Remote Procedure Call
+### 4.3 RPC — Remote Procedure Call
 
 RPC makes a network call **look like a local function call**.
 
 ```javascript
-// Looks local â€” but executes on a remote machine
+// Looks local — but executes on a remote machine
 const user = await userService.getUser(101);
 ```
 
@@ -235,16 +236,16 @@ sequenceDiagram
     participant SA as Server App
 
     CA->>CS: userService.getUser(101)
-    CS->>N: Serialize method name + args â†’ bytes
+    CS->>N: Serialize method name + args → bytes
     N->>SS: Transmit bytes
-    SS->>SA: Deserialize â†’ call getUser(101)
+    SS->>SA: Deserialize → call getUser(101)
     SA-->>SS: Return User object
     SS->>N: Serialize response
     N->>CS: Transmit response bytes
-    CS->>CA: Deserialize â†’ return User
+    CS->>CA: Deserialize → return User
 ```
 
-> [!warning] Leaky Abstraction â€” RPC's Hidden Danger
+> [!warning] Leaky Abstraction — RPC's Hidden Danger
 > The abstraction hides network reality. A "local" function call takes **microseconds**. The same call over RPC can take **hundreds of milliseconds** and can fail because:
 > - The network is unavailable
 > - The remote server is down
@@ -255,9 +256,9 @@ sequenceDiagram
 
 ---
 
-### 4.4 SQL â€” Database as Requestâ€“Response
+### 4.4 SQL — Database as Request–Response
 
-Every SQL query is a requestâ€“response exchange over a TCP connection.
+Every SQL query is a request–response exchange over a TCP connection.
 
 ```sql
 SELECT * FROM users WHERE id = 101;
@@ -267,42 +268,42 @@ SELECT * FROM users WHERE id = 101;
 
 ```
 1. Receive query bytes over TCP
-2. Parse SQL syntax â†’ AST (Abstract Syntax Tree)
-3. Semantic check â†’ resolve table names, columns, permissions
-4. Query planner â†’ build an execution plan
-5. Optimizer â†’ choose access strategy (index scan? full scan?)
-6. Execute â†’ retrieve rows
-7. Serialize result set â†’ send back over TCP
+2. Parse SQL syntax → AST (Abstract Syntax Tree)
+3. Semantic check → resolve table names, columns, permissions
+4. Query planner → build an execution plan
+5. Optimizer → choose access strategy (index scan? full scan?)
+6. Execute → retrieve rows
+7. Serialize result set → send back over TCP
 ```
 
 | Access Strategy | When Used | Performance |
 | :--- | :--- | :--- |
-| **Index Scan** | Selective predicate on indexed column | Fast â€” $O(\log n)$ lookup |
-| **Index-Only Scan** | All needed data is in the index itself | Fastest â€” no heap access |
+| **Index Scan** | Selective predicate on indexed column | Fast — $O(\log n)$ lookup |
+| **Index-Only Scan** | All needed data is in the index itself | Fastest — no heap access |
 | **Bitmap Index Scan** | Multiple conditions combined | Good for moderate selectivity |
-| **Full Table Scan (Seq Scan)** | No useful index, or most rows needed | Expected $O(n)$ â€” not always bad |
+| **Full Table Scan (Seq Scan)** | No useful index, or most rows needed | Expected $O(n)$ — not always bad |
 
 ---
 
 ### 4.5 REST APIs
 
-**REST (Representational State Transfer)** â€” an architectural style, not a protocol. Uses HTTP + JSON by convention.
+**REST (Representational State Transfer)** — an architectural style, not a protocol. Uses HTTP + JSON by convention.
 
 ```
-GET    /api/users/101    â†’ fetch user
-POST   /api/users        â†’ create user
-PUT    /api/users/101    â†’ replace user
-PATCH  /api/users/101    â†’ partial update
-DELETE /api/users/101    â†’ delete user
+GET    /api/users/101    → fetch user
+POST   /api/users        → create user
+PUT    /api/users/101    → replace user
+PATCH  /api/users/101    → partial update
+DELETE /api/users/101    → delete user
 ```
 
-Each HTTP method maps to a CRUD operation on a resource. Every interaction is Requestâ€“Response.
+Each HTTP method maps to a CRUD operation on a resource. Every interaction is Request–Response.
 
 ---
 
 ### 4.6 SOAP APIs
 
-**SOAP (Simple Object Access Protocol)** â€” XML-based messaging, common in enterprise systems.
+**SOAP (Simple Object Access Protocol)** — XML-based messaging, common in enterprise systems.
 
 ```xml
 <soap:Envelope>
@@ -321,7 +322,7 @@ Each HTTP method maps to a CRUD operation on a resource. Every interaction is Re
 
 ### 4.7 GraphQL
 
-GraphQL solves the **N+1 request problem** in REST â€” the client needed to make multiple round trips to fetch related data.
+GraphQL solves the **N+1 request problem** in REST — the client needed to make multiple round trips to fetch related data.
 
 ```graphql
 # One request fetches everything the client needs
@@ -343,17 +344,18 @@ flowchart TD
     A["Client sends 1 GraphQL query"] --> B["Server parses query"]
     B --> C["Schema validation"]
     C --> D["Execute resolvers"]
-    D --> E["User resolver â†’ DB query 1"]
-    D --> F["Comments resolver â†’ DB query 2, 3, 4..."]
+    D --> E["User resolver → DB query 1"]
+    D --> F["Comments resolver → DB query 2, 3, 4..."]
     E --> G["Merge results"]
     F --> G
     G --> H["Return 1 JSON response"]
 ```
 
-> [!warning] GraphQL â‰  Fewer DB Queries
-> One GraphQL request can trigger **many SQL queries** internally. The N+1 problem moves from clientâ†’server to resolverâ†’database. Use the **DataLoader pattern** (request batching + caching) to prevent this.
+> [!warning] GraphQL ≠ Fewer DB Queries
+> One GraphQL request can trigger **many SQL queries** internally. The N+1 problem moves from client→server to resolver→database. Use the **DataLoader pattern** (request batching + caching) to prevent this.
 
 > [!tip] 📚 Resources — GraphQL & DataLoader
+> → Full deep-dive: [[GraphQL-DataLoader|GraphQL DataLoader — Solving the N+1 Problem]]
 > - [GraphQL N+1 Problem & DataLoader — Official graphql-js docs](https://www.graphql-js.org/docs/n1-dataloader/)
 > - [DataLoader Batching — Chillicream Hot Chocolate](https://chillicream.com/docs/hotchocolate/fetching-data/batching/dataloader)
 > - [GraphQL DataLoader Example Repository — GitHub](https://github.com/nickqweaver/graphql-dataloader-example)
@@ -367,12 +369,12 @@ Both client and server must agree on the **protocol** (communication rules) and 
 ### HTTP/1.1 Request Structure
 
 ```
-GET /users/101 HTTP/1.1\r\n         â† Request line: method + path + version
-Host: example.com\r\n               â† Required header (HTTP/1.1)
+GET /users/101 HTTP/1.1\r\n         ← Request line: method + path + version
+Host: example.com\r\n               ← Required header (HTTP/1.1)
 User-Agent: curl/8.5.0\r\n
 Accept: application/json\r\n
-\r\n                                â† Empty line = end of headers
-                                    â† (no body for GET)
+\r\n                                ← Empty line = end of headers
+                                    ← (no body for GET)
 ```
 
 | Component | Meaning |
@@ -383,7 +385,7 @@ Accept: application/json\r\n
 | `Host` | Virtual host routing (required) |
 | `User-Agent` | Client identification |
 | `Accept` | MIME types the client can handle |
-| `\r\n\r\n` | Header terminator â€” signals start of body |
+| `\r\n\r\n` | Header terminator — signals start of body |
 
 ### HTTP/1.1 Response Structure
 
@@ -397,10 +399,10 @@ Content-Length: 35\r\n
 
 ### Who Actually Parses This?
 
-You don't write HTTP parsing code â€” the **HTTP library** does it for you.
+You don't write HTTP parsing code — the **HTTP library** does it for you.
 
 ```javascript
-// Node.js built-in HTTP server â€” handles TCP + HTTP parsing
+// Node.js built-in HTTP server — handles TCP + HTTP parsing
 const http = require("node:http");
 
 const server = http.createServer((req, res) => {
@@ -415,47 +417,47 @@ server.listen(3000);
 ```
 
 ```javascript
-// Express wraps Node's HTTP â€” adds routing + middleware
+// Express wraps Node's HTTP — adds routing + middleware
 const express = require("express");
 const app = express();
 
-app.use(express.json()); // â† deserializes JSON body for you
+app.use(express.json()); // ← deserializes JSON body for you
 
 app.post("/users", (req, res) => {
-  console.log(req.body); // â† already a JS object, not raw bytes
+  console.log(req.body); // ← already a JS object, not raw bytes
   res.status(201).json({ id: 1, ...req.body });
 });
 
 app.listen(3000);
 ```
 
-> [!note] The work is still happening â€” libraries just hide it
+> [!note] The work is still happening — libraries just hide it
 > `express.json()` reads the raw body stream, checks `Content-Type`, calls `JSON.parse()`, and assigns the result to `req.body`. Every byte still gets processed.
 
 ---
 
-## 6. Image Upload â€” Single vs Chunked
+## 6. Image Upload — Single vs Chunked
 
-A concrete example of how the Requestâ€“Response pattern handles large data.
+A concrete example of how the Request–Response pattern handles large data.
 
 ### 6.1 Approach 1: Single-Request Upload
 
 ```
 POST /upload HTTP/1.1
 Content-Type: image/jpeg
-Content-Length: 5242880     â† 5 MB
+Content-Length: 5242880     ← 5 MB
 
 [raw binary image bytes...]
 ```
 
-| âœ… Pros | âŒ Cons |
+| ✅ Pros | ❌ Cons |
 | :--- | :--- |
-| Simple â€” one request | Server size limits may reject large files |
+| Simple — one request | Server size limits may reject large files |
 | No chunk tracking needed | Network interruption = restart from zero |
 | Easy error handling | High memory pressure on server |
 
 > [!note] Streaming vs Buffering
-> Sending an image in one request does **not** mean loading it all into RAM. Node.js can process the request body as a **readable stream** â€” bytes flow through without being buffered entirely.
+> Sending an image in one request does **not** mean loading it all into RAM. Node.js can process the request body as a **readable stream** — bytes flow through without being buffered entirely.
 
 **Node.js + Express (Multer) implementation:**
 
@@ -501,11 +503,11 @@ For large files (e.g. 700 MB), split the file into smaller pieces and send each 
 
 ```
 Original: 700 MB
-â†’ Chunk 0: 100 MB  â†’ POST /upload/abc123/chunk  { chunkNumber: 0, totalChunks: 7 }
-â†’ Chunk 1: 100 MB  â†’ POST /upload/abc123/chunk  { chunkNumber: 1, totalChunks: 7 }
-â†’ ...
-â†’ Chunk 6: 100 MB  â†’ POST /upload/abc123/chunk  { chunkNumber: 6, totalChunks: 7 }
-â†’ Assemble         â†’ POST /upload/abc123/complete
+→ Chunk 0: 100 MB  → POST /upload/abc123/chunk  { chunkNumber: 0, totalChunks: 7 }
+→ Chunk 1: 100 MB  → POST /upload/abc123/chunk  { chunkNumber: 1, totalChunks: 7 }
+→ ...
+→ Chunk 6: 100 MB  → POST /upload/abc123/chunk  { chunkNumber: 6, totalChunks: 7 }
+→ Assemble         → POST /upload/abc123/complete
 ```
 
 ```mermaid
@@ -519,8 +521,8 @@ sequenceDiagram
     S-->>C: 200 { received: 1 }
     C->>S: POST /upload/abc123/chunk (chunk 2)
     S-->>C: 200 { received: 2 }
-    Note over C: âš ï¸ Connection Lost
-    Note over C: ðŸ”„ Reconnects
+    Note over C: ⚠️ Connection Lost
+    Note over C: 🔄 Reconnects
     C->>S: GET /upload/abc123/status
     S-->>C: { uploadedChunks: [0, 1, 2] }
     C->>S: POST /upload/abc123/chunk (chunk 3)
@@ -669,7 +671,7 @@ async function uploadWithResume() {
     form.append("totalChunks", String(totalChunks));
 
     await axios.post(`${BASE_URL}/upload/${UPLOAD_ID}/chunk`, form, { headers: form.getHeaders() });
-    console.log(`âœ… Chunk ${i + 1}/${totalChunks}`);
+    console.log(`✅ Chunk ${i + 1}/${totalChunks}`);
   }
 
   // 3. Tell server to assemble
@@ -678,7 +680,7 @@ async function uploadWithResume() {
     filename: path.basename(FILE)
   });
 
-  console.log("ðŸŽ‰ Upload complete!");
+  console.log("🎉 Upload complete!");
 }
 
 uploadWithResume().catch(console.error);
@@ -686,6 +688,7 @@ uploadWithResume().catch(console.error);
 
 
 > [!note] 📚 Resources — File Upload Architecture
+> → Full deep-dive: [[File-Upload-Architecture|File Upload Architecture — Single, Chunked, Multipart & S3]]
 > - [AWS S3 Multipart Upload Guide](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpu-upload-object.html)
 > - [AWS S3 Multipart Upload Overview](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html)
 > - [AWS Multipart Upload — AWS Blog](https://aws.amazon.com/blogs/aws/amazon-s3-multipart-upload/)
@@ -695,13 +698,13 @@ uploadWithResume().catch(console.error);
 > - [File Upload Pipeline: Presigned URLs, Chunked Uploads & S3 at Scale](https://letsbuildsolutions.com/blog/system-design/designing-a-file-upload-pipeline-presigned-urls-chunked-uploads-and-processing-at-scale/)
 ---
 
-## 7. Limitations of Requestâ€“Response
+## 7. Limitations of Request–Response
 
 ### 7.1 The Notification Problem (Polling)
 
-Requestâ€“Response requires the **client to initiate** every exchange. But what if the **server** needs to notify clients about events (new message, login alert, video upload)?
+Request–Response requires the **client to initiate** every exchange. But what if the **server** needs to notify clients about events (new message, login alert, video upload)?
 
-**Naive solution â€” Polling:**
+**Naive solution — Polling:**
 
 ```javascript
 // Client asks every 5 seconds: "Any notifications?"
@@ -716,17 +719,18 @@ setInterval(async () => {
 
 $$\text{RPS} = \frac{\text{Clients}}{\text{Interval (seconds)}} = \frac{100{,}000}{5} = 20{,}000 \text{ req/s}$$
 
-20,000 requests per second â€” even when **nothing has changed**.
+20,000 requests per second — even when **nothing has changed**.
 
 | Problem | Impact |
 | :--- | :--- |
 | Empty responses are wasted work | CPU + network overhead |
 | Latency = polling interval | 5s poll = up to 5s delay for notifications |
-| Does not scale | 100k clients Ã— frequent polls = huge server load |
+| Does not scale | 100k clients × frequent polls = huge server load |
 
 **Better alternatives:** Long Polling, WebSockets, Server-Sent Events (SSE), Push notifications.
 
 > [!tip] 📚 Resources — Polling & Real-Time Communication
+> → Full deep-dive: [[Polling-SSE-WebSockets|Polling, Long Polling, SSE & WebSockets — Full Comparison]]
 > - [Polling, Long Polling, SSE & WebSockets — Technical Analysis](https://ssup2.github.io/blog-software/en/docs/theory-analysis/web-polling-long-polling-server-sent-events-websocket/)
 > - [Long Polling vs WebSockets vs SSE — Medium System Design Blog](https://medium.com/system-design-blog/long-polling-vs-websockets-vs-server-sent-events-5a2d1c9e8d1f)
 
@@ -735,27 +739,27 @@ $$\text{RPS} = \frac{\text{Clients}}{\text{Interval (seconds)}} = \frac{100{,}00
 ### 7.2 Long-Running Requests
 
 ```
-POST /api/generate-report   â†’ server takes 2 minutes
+POST /api/generate-report   → server takes 2 minutes
 ```
 
 The client holds the connection open, waiting. What happens if it disconnects?
 
 ```
-Client sends request  â†’  Server starts processing (2 min job)
-      â†“
+Client sends request  →  Server starts processing (2 min job)
+      ↓
 Client loses internet connection
-      â†“
-Server finishes the job, sends response â€” to nobody
-      â†“
-Client reconnects â€” has NO idea if the job succeeded
+      ↓
+Server finishes the job, sends response — to nobody
+      ↓
+Client reconnects — has NO idea if the job succeeded
 ```
 
-**Questions that have no good answers with naive Requestâ€“Response:**
+**Questions that have no good answers with naive Request–Response:**
 - Did the server finish?
 - Should I retry? Could retrying cause duplicates?
 - Is the job still running?
 
-**Solution â€” Async Job Pattern:**
+**Solution — Async Job Pattern:**
 
 ```javascript
 // 1. Accept the job, return immediately with a job ID
@@ -788,27 +792,27 @@ app.get("/api/reports/:jobId", async (req, res) => {
 | **Execution model** | Sequential by default | Can overlap / interleave |
 | **Best for** | Dependent sequential steps | I/O, background jobs, parallel fetches |
 
-**Sync â€” sequential, one waits for the previous:**
+**Sync — sequential, one waits for the previous:**
 
 ```javascript
 const user   = await getUser(101);    // wait...
 const orders = await getOrders(101);  // wait again...
-// Total time â‰ˆ getUser + getOrders
+// Total time ≈ getUser + getOrders
 ```
 
-**Async â€” concurrent, both in flight simultaneously:**
+**Async — concurrent, both in flight simultaneously:**
 
 ```javascript
 const [user, orders] = await Promise.all([getUser(101), getOrders(101)]);
-// Total time â‰ˆ max(getUser, getOrders) â€” not the sum
+// Total time ≈ max(getUser, getOrders) — not the sum
 ```
 
-> [!note] Async â‰  Parallel (in Node.js)
-> Node.js runs JS on a **single thread**. `Promise.all` doesn't create new threads â€” it fires off multiple I/O operations and lets the event loop handle them. For CPU-heavy parallel work, use `worker_threads`.
+> [!note] Async ≠ Parallel (in Node.js)
+> Node.js runs JS on a **single thread**. `Promise.all` doesn't create new threads — it fires off multiple I/O operations and lets the event loop handle them. For CPU-heavy parallel work, use `worker_threads`.
 
 ---
 
-## 9. Requestâ€“Response Full Lifecycle & Latency Model
+## 9. Request–Response Full Lifecycle & Latency Model
 
 One of the most important mental models for backend engineers. A request is not just one arrow on a diagram.
 
@@ -819,29 +823,29 @@ sequenceDiagram
     participant S as Server
 
     Note over C: T-2: Serialize data (JSON.stringify)
-    C->>N: T0: Send bytes (TCP segments â†’ IP packets)
+    C->>N: T0: Send bytes (TCP segments → IP packets)
     Note over N: Routing, queuing, retransmission
-    N->>S: T2: Bytes arrive â€” HTTP parsing begins
-    Note over S: T2â†’T30: Auth, DB queries, business logic
+    N->>S: T2: Bytes arrive — HTTP parsing begins
+    Note over S: T2→T30: Auth, DB queries, business logic
     S->>N: T30: Serialize response, flush to TCP
-    N->>C: T32: Bytes arrive â€” JSON.parse, update state
+    N->>C: T32: Bytes arrive — JSON.parse, update state
 ```
 
 $$T_{\text{total}} = T_{\text{serialize}} + T_{\text{network\_out}} + T_{\text{server}} + T_{\text{network\_back}} + T_{\text{deserialize}}$$
 
 | Phase | What's Happening | Common Bottlenecks |
 | :--- | :--- | :--- |
-| **T-2 â†’ T0** | Serialize request, write to socket | Large payloads, slow JSON.stringify |
-| **T0 â†’ T2** | TCP segmentation, IP routing, delivery | Geographic distance, packet loss, congestion |
-| **T2 â†’ T30** | Parse HTTP, auth, DB queries, business logic | N+1 queries, missing indexes, external API calls |
-| **T30 â†’ T32** | Serialize response, transmit, parse at client | Large response bodies, slow JSON.parse |
+| **T-2 → T0** | Serialize request, write to socket | Large payloads, slow JSON.stringify |
+| **T0 → T2** | TCP segmentation, IP routing, delivery | Geographic distance, packet loss, congestion |
+| **T2 → T30** | Parse HTTP, auth, DB queries, business logic | N+1 queries, missing indexes, external API calls |
+| **T30 → T32** | Serialize response, transmit, parse at client | Large response bodies, slow JSON.parse |
 
-> [!important] Slow API â‰  Slow Database
+> [!important] Slow API ≠ Slow Database
 > The bottleneck can be at **any phase**. Profile all phases before optimizing. A `200ms` API response might be `5ms` DB + `195ms` JSON serialization of a huge payload.
 
 ---
 
-## 10. curl Experiment â€” HTTP Internals in Practice
+## 10. curl Experiment — HTTP Internals in Practice
 
 Understanding what happens when you run:
 
@@ -857,7 +861,7 @@ curl --trace trace.txt http://youtube.com
 == Info: IPv4: 192.178.174.91, ...
 ```
 
-curl resolved `youtube.com` â†’ got both IPv4 and IPv6 addresses back. This is the DNS Requestâ€“Response from Section 4.2 happening in practice.
+curl resolved `youtube.com` → got both IPv4 and IPv6 addresses back. This is the DNS Request–Response from Section 4.2 happening in practice.
 
 ### TCP Connection
 
@@ -868,7 +872,7 @@ curl resolved `youtube.com` â†’ got both IPv4 and IPv6 addresses back. This
 
 curl preferred IPv6, connected on port 80 (plain HTTP). TCP 3-way handshake completed before any HTTP bytes were sent.
 
-### The Actual HTTP Request â€” Raw Bytes
+### The Actual HTTP Request — Raw Bytes
 
 ```
 => Send header, 74 bytes (0x4a)
@@ -884,7 +888,7 @@ GET / HTTP/1.1\r\n
 Host: youtube.com\r\n
 User-Agent: curl/8.5.0\r\n
 Accept: */*\r\n
-\r\n                    â† end of headers, no body (GET request)
+\r\n                    ← end of headers, no body (GET request)
 ```
 
 | Hex | ASCII | Role |
@@ -892,7 +896,7 @@ Accept: */*\r\n
 | `47 45 54` | `GET` | HTTP method |
 | `20` | ` ` | Space separator |
 | `2F` | `/` | Request path |
-| `0D 0A` | `\r\n` | CRLF â€” HTTP line terminator |
+| `0D 0A` | `\r\n` | CRLF — HTTP line terminator |
 | `0D 0A 0D 0A` | `\r\n\r\n` | Double CRLF = end of headers |
 
 ### The 301 Redirect Response
@@ -907,7 +911,7 @@ Accept: */*\r\n
 | :--- | :--- |
 | `301 Moved Permanently` | Resource has a new permanent location |
 | `Location: https://...` | Go here instead |
-| `Content-Length: 0` | No body â€” just a redirect instruction |
+| `Content-Length: 0` | No body — just a redirect instruction |
 | `Cache-Control: no-cache` | Don't cache this redirect response |
 | `X-Content-Type-Options: nosniff` | Prevents MIME-type sniffing attacks |
 
@@ -923,7 +927,7 @@ curl -i https://example.com         # show both response headers + body
 ```
 
 > [!note] `=> Send` vs `<= Recv` in curl trace
-> `=>` = data your client **sent**. `<=` = data your client **received**. This is the Requestâ€“Response arrows made visible at byte level.
+> `=>` = data your client **sent**. `<=` = data your client **received**. This is the Request–Response arrows made visible at byte level.
 
 ---
 
@@ -934,12 +938,12 @@ curl -i https://example.com         # show both response headers + body
 Allows sending multiple requests without waiting for each response:
 
 ```
-Client â†’ Request 1
-Client â†’ Request 2    (without waiting for Response 1)
-Client â†’ Request 3
-Server â† Response 1
-Server â† Response 2   (must be in order!)
-Server â† Response 3
+Client → Request 1
+Client → Request 2    (without waiting for Response 1)
+Client → Request 3
+Server ← Response 1
+Server ← Response 2   (must be in order!)
+Server ← Response 3
 ```
 
 **The problem:** HTTP/1.1 requires responses **in request order**. If Request 1 takes 10 seconds, Responses 2 and 3 (which are ready in 20ms and 50ms) are blocked behind it.
@@ -948,16 +952,16 @@ This is **Head-of-Line (HOL) Blocking** at the application layer.
 
 | Version | Transport | HOL Blocking | Solution |
 | :--- | :--- | :--- | :--- |
-| **HTTP/1.1** | TCP | âœ… Application-level (pipelining order) | Multiple connections (browsers open 6) |
-| **HTTP/2** | TCP | âš ï¸ Transport-level (packet loss) | Multiplexed streams â€” interleaved frames |
-| **HTTP/3** | QUIC (UDP) | âœ… Eliminated | Independent stream delivery in QUIC |
+| **HTTP/1.1** | TCP | ✅ Application-level (pipelining order) | Multiple connections (browsers open 6) |
+| **HTTP/2** | TCP | ⚠️ Transport-level (packet loss) | Multiplexed streams — interleaved frames |
+| **HTTP/3** | QUIC (UDP) | ✅ Eliminated | Independent stream delivery in QUIC |
 
 ```mermaid
 flowchart LR
-    subgraph HTTP2["HTTP/2 â€” One TCP Connection"]
+    subgraph HTTP2["HTTP/2 — One TCP Connection"]
         direction LR
         S1["Stream 1\n(large response)"]
-        S2["Stream 2\n(fast response âœ…)"]
+        S2["Stream 2\n(fast response ✅)"]
         S3["Stream 3\n(medium response)"]
     end
     C["Client"] --> HTTP2
@@ -967,9 +971,10 @@ flowchart LR
 > HTTP/2 breaks requests and responses into **frames** that can be interleaved on a single TCP connection. Stream 2's response doesn't wait for Stream 1 to finish.
 
 > [!note] HTTP/3 & QUIC
-> HTTP/3 runs over **QUIC** (which uses UDP internally). QUIC implements reliable delivery **per stream** â€” a lost packet for Stream 1 doesn't stall Streams 2 and 3.
+> HTTP/3 runs over **QUIC** (which uses UDP internally). QUIC implements reliable delivery **per stream** — a lost packet for Stream 1 doesn't stall Streams 2 and 3.
 
 > [!tip] 📚 Resources — Head-of-Line Blocking & HTTP/3
+> → Full deep-dive: [[HTTP3-and-QUIC|HTTP/3, QUIC & Head-of-Line Blocking]]
 > - [MDN — Head-of-Line Blocking](https://developer.mozilla.org/en-US/docs/Glossary/Head_of_line_blocking)
 > - [HTTP/3 & QUIC: Prioritization & HOL Blocking — APNIC](https://blog.apnic.net/2022/11/30/http-3-and-quic-prioritization-and-head-of-line-blocking/)
 > - [HTTP/3 Facts — Red Hat](https://www.redhat.com/zh-tw/blog/http3)
@@ -981,16 +986,16 @@ flowchart LR
 
 ## 12. Key Engineering Takeaways
 
-1. **TCP is a byte stream** â€” protocols must define their own message boundaries (`Content-Length`, `\r\n\r\n`, chunked encoding).
-2. **Parsing â‰  Processing** â€” always two distinct costs; both contribute to latency.
-3. **Serialization is not free** â€” large payloads + frequent serialization = measurable CPU overhead.
-4. **Never assume response order** â€” use correlation IDs, job IDs, DNS transaction IDs.
-5. **Requestâ€“Response isn't always enough** â€” notifications, real-time data, and long jobs need better patterns.
-6. **Leaky abstractions kill you** â€” RPC looks local but fails like a network. Know what's under your abstractions.
-7. **GraphQL reduces client requests, not DB queries** â€” use DataLoader to solve resolver N+1.
-8. **Chunked uploads = resilience** â€” if a single-request upload dies, you restart from zero. Chunks let you resume.
-9. **Async job pattern for long work** â€” return a job ID immediately (`202 Accepted`), let the client poll or subscribe for completion.
-10. **Total latency = all phases** â€” serialize + network\_out + server + network\_back + deserialize. Profile all of them.
+1. **TCP is a byte stream** — protocols must define their own message boundaries (`Content-Length`, `\r\n\r\n`, chunked encoding).
+2. **Parsing ≠ Processing** — always two distinct costs; both contribute to latency.
+3. **Serialization is not free** — large payloads + frequent serialization = measurable CPU overhead.
+4. **Never assume response order** — use correlation IDs, job IDs, DNS transaction IDs.
+5. **Request–Response isn't always enough** — notifications, real-time data, and long jobs need better patterns.
+6. **Leaky abstractions kill you** — RPC looks local but fails like a network. Know what's under your abstractions.
+7. **GraphQL reduces client requests, not DB queries** — use DataLoader to solve resolver N+1.
+8. **Chunked uploads = resilience** — if a single-request upload dies, you restart from zero. Chunks let you resume.
+9. **Async job pattern for long work** — return a job ID immediately (`202 Accepted`), let the client poll or subscribe for completion.
+10. **Total latency = all phases** — serialize + network\_out + server + network\_back + deserialize. Profile all of them.
 
 ---
 
@@ -998,10 +1003,10 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    A["âœ… Requestâ€“Response"] --> B["Sync vs Async Execution"]
+    A["✅ Request–Response"] --> B["Sync vs Async Execution"]
     B --> C["Polling vs Long Polling"]
     C --> D["Push vs Pull"]
-    D --> E["Pubâ€“Sub Pattern"]
+    D --> E["Pub–Sub Pattern"]
     E --> F["Multiplexing & Demultiplexing"]
     F --> G["WebSockets & SSE"]
     G --> H["Message Queues & Background Jobs"]

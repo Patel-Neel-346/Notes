@@ -9,7 +9,7 @@ tags:
 type: technical-note
 status: active
 source: AWS Docs, Filestack, Codelit, LetsBuildsolutions, AWS Amplify
-related: "[[2.Request-respone]]"
+related: "[[Request-Response]]"
 ---
 
 # 📁 File Upload Architecture
