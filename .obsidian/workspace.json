@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Backend-engineering/Streams Node.js.md",
+                "file": "Backend-engineering/2-Communication-patterns/2.Request-respone.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Streams Node.js"
+              "title": "2.Request-respone"
             }
           }
         ],
@@ -228,6 +228,10 @@
   "active": "1e4672bafb47d36f",
   "lastOpenFiles": [
     "Backend-engineering/2-Communication-patterns/1/2.Request-respone.md",
+    "Backend-engineering/2-Communication-patterns/2.Request-respone.md",
+    "Backend-engineering/1/2.Request-respone.md",
+    "Backend-engineering/1",
+    "Backend-engineering/Streams Node.js.md",
     "Backend-engineering/2-Communication-patterns/1",
     "Backend-engineering/2-Communication-patterns",
     "Sys Design/arpit bhayani/Asynchronous_programming-04/01_Message_brokers_&_Queues.md",
@@ -245,7 +249,6 @@
     "MessageBrokers/Message Brokers and design patterns.md",
     "networking/WebRTC.md",
     "networking/concurrency and networking.md",
-    "Backend-engineering/Streams Node.js.md",
     "Roadmaps & Trackers",
     "Database/Database Partitioning/Partitioning.md",
     "react/Debounce.md",
@@ -267,12 +270,9 @@
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/img",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#04 - Buffer Pool.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#03 - Database Storage.md",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#02 - Modern SQL.md",
-    "Database(CMU-lecture-wise)/CMU Intro to Database Systems/#01 - Relational Model & Algebra.md",
     "Database(CMU-lecture-wise)/CMU Intro to Database Systems",
     "Database(CMU-lecture-wise)",
     "recursive_call_pc_lr_cache_trace.html",
-    "Untitled 9.base",
     "Untitled.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas"
