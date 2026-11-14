@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Backend-engineering/2-Communication-patterns/Serialization-Formats.md",
+                "file": "Backend-engineering/2-Communication-patterns/2-Async-and-Sync-Execution/1.Async-Sync-Execution.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "Serialization-Formats"
+              "title": "1.Async-Sync-Execution"
             }
           }
         ],
