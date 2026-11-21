@@ -13,11 +13,11 @@ In a food-delivery app, placing an order triggers many downstream tasks: payment
 
 ```mermaid
 flowchart LR
-    Producer --> Queue[(RabbitMQ Queue)]
+    Producer --> Queue[("RabbitMQ Queue")]
     Queue --> WorkerA[Worker A]
     Queue --> WorkerB[Worker B]
 
-    Producer --> Topic[(Kafka Topic (log))]
+    Producer --> Topic[("Kafka Topic (log)")]
     Topic --> ConsumerA[Consumer A]
     Topic --> ConsumerB[Consumer B]
 ```

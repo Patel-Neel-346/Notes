@@ -114,7 +114,7 @@ sequenceDiagram
     T2->>DB: BEGIN TRANSACTION
     T2->>DB: INSERT INTO sales VALUES (3, 10, 1)
     T2->>DB: COMMIT
-    Note over DB: New row: Product 3, qty 10, price $1
+    Note over DB: New row - Product 3, qty 10, price 1 USD
 
     T1->>DB: SELECT SUM(quantity * price) FROM sales
     DB->>T1: $140 (includes the phantom row!)

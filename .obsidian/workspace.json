@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Backend-engineering/2-Communication-patterns/8-Communication-patterns/5.Pub-Sub-Pattern.md",
+                "file": "Database/ACID/Isolation.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "5.Pub-Sub-Pattern"
+              "title": "Isolation"
             }
           }
         ],
@@ -227,12 +227,17 @@
   },
   "active": "1e4672bafb47d36f",
   "lastOpenFiles": [
+    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/6.Multiplexing-Demultiplexing.md",
+    "Backend-engineering/2-Communication-patterns/5-Polling-Push-SSE-WebSockets/1.Polling-SSE-WebSockets.md",
+    "Backend-engineering/2-Communication-patterns/4-File-Upload/1.File-Upload-Architecture.md",
+    "Backend-engineering/2-Communication-patterns/3-Serialization-Formats/1.Serialization-Formats.md",
+    "Backend-engineering/2-Communication-patterns/2-Async-and-Sync-Execution/1.Async-Sync-Execution.md",
+    "Backend-engineering/2-Communication-patterns/1-Request-Response/1.Request-Response.md",
+    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/1.Push-Model.md",
+    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/2.Short-Polling.md",
+    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/3.Long-Polling.md",
     "Backend-engineering/2-Communication-patterns/8-Communication-patterns/4.Server-Sent-Events.md",
     "Backend-engineering/2-Communication-patterns/8-Communication-patterns/5.Pub-Sub-Pattern.md",
-    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/3.Long-Polling.md",
-    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/2.Short-Polling.md",
-    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/1.Push-Model.md",
-    "Backend-engineering/2-Communication-patterns/2-Async-and-Sync-Execution/1.Async-Sync-Execution.md",
     "Backend-engineering/2-Communication-patterns/Serialization-Formats.md",
     "Backend-engineering/2-Communication-patterns/Request-Response.md",
     "Backend-engineering/2-Communication-patterns/File-Upload-Architecture.md",
@@ -255,11 +260,6 @@
     "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/img/figure 3-5.png",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-3 File Formats/img/Figure 3-4.png",
     "Database/Database Internal Book version/Book/_OceanofPDF.com_Database_Internals_-_Alex_Petrov.pdf",
-    "Database/Database Internal Book version/1-Storage Engine/Storage Engine.md",
-    "Database/B-tree And B+tree/B-tree.md",
-    "Database/ACID/Isolation.md",
-    "Database/ACID/Transaction.md",
-    "Database/ACID/Eventual_Consistency.md",
     "Backend-engineering/1",
     "Backend-engineering/2-Communication-patterns/1",
     "Backend-engineering/2-Communication-patterns",

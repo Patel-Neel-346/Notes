@@ -406,7 +406,7 @@ sequenceDiagram
     Q->>Heap: Fetch Page 333
     Note over Heap: 1 IO
     Heap->>Q: Row 1000 (all columns)
-    Note over Q: Total: ~2-4 IOs ⚡ vs 333 IOs 💀
+    Note over Q: Total - ~2-4 IOs ⚡ vs 333 IOs 💀
 ```
 
 ##### Important Facts About Indexes

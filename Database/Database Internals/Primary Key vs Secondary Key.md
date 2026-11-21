@@ -80,12 +80,12 @@ sequenceDiagram
 
     App->>DB: INSERT id=2
 
-    Note over Heap: Current order: [1, 8, ...]
+    Note over Heap: Current order - [1, 8, ...]
     Note over DB: id=2 must go BETWEEN 1 and 8
 
     DB->>Heap: Find correct page
     DB->>Heap: Insert id=2, shift id=8 down
-    Note over Heap: New order: [1, 2, 8, ...]
+    Note over Heap: New order - [1, 2, 8, ...]
 ```
 
 - Databases are smart — they leave **gaps** in pages for future inserts
@@ -128,7 +128,7 @@ sequenceDiagram
 
     Q->>Heap: Fetch page 2 → get row 1004
     Heap->>Q: id=3, name=Alice, title=Analyst
-    Note over Q: Had to do 2 jumps: index + heap
+    Note over Q: Had to do 2 jumps - index + heap
 ```
 
 - The index only stores the **indexed column + row ID** — not all columns
