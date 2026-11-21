@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Backend-engineering/2-Communication-patterns/2-Async-and-Sync-Execution/1.Async-Sync-Execution.md",
+                "file": "Backend-engineering/2-Communication-patterns/8-Communication-patterns/1.Push-Model.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "1.Async-Sync-Execution"
+              "title": "1.Push-Model"
             }
           }
         ],
@@ -227,6 +227,8 @@
   },
   "active": "1e4672bafb47d36f",
   "lastOpenFiles": [
+    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/2.Short-Polling.md",
+    "Backend-engineering/2-Communication-patterns/2-Async-and-Sync-Execution/1.Async-Sync-Execution.md",
     "Backend-engineering/2-Communication-patterns/Serialization-Formats.md",
     "Backend-engineering/2-Communication-patterns/Request-Response.md",
     "Backend-engineering/2-Communication-patterns/File-Upload-Architecture.md",
@@ -258,9 +260,7 @@
     "Database/ACID/Consistency.md",
     "Database/ACID/Atomicity.md",
     "Backend-engineering/2-Communication-patterns/1/2.Request-respone.md",
-    "Backend-engineering/1/2.Request-respone.md",
     "Backend-engineering/1",
-    "Backend-engineering/Streams Node.js.md",
     "Backend-engineering/2-Communication-patterns/1",
     "Backend-engineering/2-Communication-patterns",
     "Roadmaps & Trackers",
