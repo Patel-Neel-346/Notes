@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Backend-engineering/2-Communication-patterns/8-Communication-patterns/3.Long-Polling.md",
+                "file": "Backend-engineering/2-Communication-patterns/8-Communication-patterns/5.Pub-Sub-Pattern.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "3.Long-Polling"
+              "title": "5.Pub-Sub-Pattern"
             }
           }
         ],
@@ -227,8 +227,10 @@
   },
   "active": "1e4672bafb47d36f",
   "lastOpenFiles": [
-    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/2.Short-Polling.md",
+    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/4.Server-Sent-Events.md",
+    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/5.Pub-Sub-Pattern.md",
     "Backend-engineering/2-Communication-patterns/8-Communication-patterns/3.Long-Polling.md",
+    "Backend-engineering/2-Communication-patterns/8-Communication-patterns/2.Short-Polling.md",
     "Backend-engineering/2-Communication-patterns/8-Communication-patterns/1.Push-Model.md",
     "Backend-engineering/2-Communication-patterns/2-Async-and-Sync-Execution/1.Async-Sync-Execution.md",
     "Backend-engineering/2-Communication-patterns/Serialization-Formats.md",
@@ -258,8 +260,6 @@
     "Database/ACID/Isolation.md",
     "Database/ACID/Transaction.md",
     "Database/ACID/Eventual_Consistency.md",
-    "Database/ACID/Durability.md",
-    "Database/ACID/Consistency.md",
     "Backend-engineering/1",
     "Backend-engineering/2-Communication-patterns/1",
     "Backend-engineering/2-Communication-patterns",
