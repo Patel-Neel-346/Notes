@@ -54,9 +54,14 @@ source: Hussein Nasser — Backend Engineering Course · OSI Model
 | §9 | Encapsulation & Decapsulation | How does data travel end-to-end? |
 | §10 | PDU at Each Layer | What is the data unit at each layer? |
 | §11 | OSI vs TCP/IP Model | How do the two models compare? |
-| §12 | Real-World Communication | How does HTTPS POST work across layers? |
+| §12 | Real-World Communication | How does HTTPS POST work across layers? (Course Slides) |
 | §13 | Protocol → Layer Mapping | Which protocol belongs where? |
 | §14 | Networking Devices by Layer | Switch vs Router vs Firewall vs CDN? |
+| §15 | Memory Aids | How to easily memorize the 7 layers? |
+| §16 | Interview Questions & Answers | Key questions tested in engineering interviews |
+| §17 | Glossary | Essential networking definitions |
+| §18 | References & Further Reading | Authoritative RFCs, books, and articles |
+| §19 | Topics for Further Investigation | Advanced systems networking topics |
 
 ---
 
@@ -101,8 +106,11 @@ Electrical/optical signals travel  → Layer 1 (Physical)
 | Data Link | 2 | Frame | **Local Delivery** |
 | Physical | 1 | Bits | **Signals** |
 
-**Memory aid (top → bottom):** **A**ll **P**eople **S**eem **T**o **N**eed **D**ata **P**rocessing  
-**Memory aid (bottom → top):** **P**lease **D**o **N**ot **T**hrow **S**ausage **P**izza **A**way
+![The Seven Layers of the OSI Model](images/osi-7-layers-overview.jpg)
+*Figure 1: The 7 Layers of the OSI Model — responsibilities and protocol examples.*
+
+![OSI Model Cheat Sheet — Functions, PDUs, and Protocols](images/osi-cheat-sheet.jpg)
+*Figure 2: OSI Model Reference Cheat Sheet — Layer numbering, data units, and device mapping.*
 
 ---
 
@@ -113,6 +121,9 @@ Electrical/optical signals travel  → Layer 1 (Physical)
 The Physical Layer is responsible for **transmitting raw bits (0s and 1s)** through a physical communication medium.
 
 It deals with the actual physical signals used to transfer data between devices — electrical, optical, or radio.
+
+![Layer 1 — Physical Layer Signaling, Bits, and Hardware](images/layer1-physical.jpg)
+*Figure 3: Layer 1 Physical Layer — raw bit transmission, signaling, and physical media.*
 
 **Main responsibilities:**
 - Transmitting raw bits over a medium
@@ -160,6 +171,9 @@ Sender                         Receiver
 > OSI Layer 2 | PDU: **Frame**
 
 The Data Link Layer is responsible for **communication between devices on the same local network link**. It takes Network Layer packets and wraps them into frames for local delivery.
+
+![Layer 2 — Data Link Layer Framing, MAC Addresses, and Local Delivery](images/layer2-datalink.jpg)
+*Figure 4: Layer 2 Data Link Layer — local network delivery, framing, and MAC addressing.*
 
 **Main responsibilities:**
 - **Framing** — wrapping data in frames with start/end delimiters
@@ -236,6 +250,9 @@ Your PC builds Ethernet frame with Dst MAC = AA:BB:CC:DD:EE:FF
 
 The Network Layer is responsible for **routing data between different networks**. Its most important function is determining how packets travel from source to destination across potentially many routers.
 
+![Layer 3 — Network Layer Routing and Packet Forwarding](images/layer3-network-routing.jpg)
+*Figure 5: Layer 3 Network Layer — logical IP addressing, packet routing, and forwarding across networks.*
+
 **Main responsibilities:**
 - **IP addressing** — assigning logical addresses to identify hosts
 - **Routing** — determining the best path to the destination
@@ -301,6 +318,9 @@ A router operates at Layer 3. It:
 > OSI Layer 4 | PDU: **Segment (TCP) / Datagram (UDP)** | ⚠️ Most important for backend developers
 
 The Transport Layer provides **end-to-end communication between applications** on different hosts. This is where TCP and UDP live.
+
+![Layer 4 — Transport Layer End-to-End Delivery (TCP vs UDP)](images/layer4-transport.jpg)
+*Figure 6: Layer 4 Transport Layer — TCP reliable streams vs UDP datagrams and port addressing.*
 
 **Main responsibilities:**
 - **Segmentation and reassembly** — splitting application data into segments
@@ -409,6 +429,9 @@ The Session Layer is responsible for **establishing, managing, and terminating c
 
 Think of it as managing the logical "conversation" — when does it start, how long does it last, how is it re-established after interruption.
 
+![Layer 5 — Session Layer Dialog Control and Session Management](images/layer5-session.jpg)
+*Figure 7: Layer 5 Session Layer — dialog control, checkpointing, and session synchronization.*
+
 **Main responsibilities:**
 - Establishing sessions
 - Maintaining sessions (keeping them alive)
@@ -446,6 +469,9 @@ Application A              Application B
 > OSI Layer 6 | PDU: **Data**
 
 The Presentation Layer is responsible for **ensuring data is in a format the receiving application can understand**. It is the translation layer between the network and the application.
+
+![Layer 6 — Presentation Layer Data Formatting, Encoding, and Encryption](images/layer6-presentation.jpg)
+*Figure 8: Layer 6 Presentation Layer — serialization, character encoding, compression, and TLS encryption.*
 
 **Main responsibilities:**
 - **Data encoding** — character sets (UTF-8, ASCII)
@@ -502,6 +528,9 @@ Application (HTTP) → TLS (Encryption) → TCP (Transport) → IP → Ethernet
 
 The Application Layer provides **network communication services directly to applications**. This is the layer where your backend code operates.
 
+![Layer 7 — Application Layer Protocols and Services](images/layer7-application.jpg)
+*Figure 9: Layer 7 Application Layer — end-user and application protocols (HTTP, DNS, SMTP, gRPC).*
+
 > [!important] Layer 7 ≠ Your App's UI
 > The Application Layer means the **network protocol** your application uses, not the UI itself. HTTP, DNS, SMTP — these are Layer 7 protocols. Your Express.js or Django app speaks these protocols.
 
@@ -551,6 +580,12 @@ This is the most important mechanical concept of the OSI model.
 
 **Decapsulation (Receiver):** Data travels **up** from Layer 1 → Layer 7, with each layer reading and removing its header.
 
+![Encapsulation and Decapsulation Process Across the OSI Stack](images/osi-encapsulation-decapsulation.jpg)
+*Figure 10: Encapsulation (Layer 7 → 1) and Decapsulation (Layer 1 → 7) across the communication stack.*
+
+![OSI Model Through a Cybersecurity Lens — Security at Each Layer](images/osi-cybersecurity-lens.jpg)
+*Figure 11: The OSI model through a cybersecurity lens — security mechanisms and attack surfaces per layer.*
+
 ```mermaid
 flowchart TD
     subgraph Sender["📤 SENDER — Encapsulation (L7 → L1)"]
@@ -598,6 +633,9 @@ Layer 1: 0101011001010011...  (transmitted as electrical/light/radio)
 
 Each layer wraps data in its own container. The name of that container is the **PDU**.
 
+![Protocol Data Units (PDU) Across the 7 OSI Layers](images/osi-pdu-protocol-data-units.jpg)
+*Figure 12: Protocol Data Units (PDUs) from Bits to Application Data.*
+
 | Layer | Layer Name | PDU Name | Contains |
 | :---: | :--- | :--- | :--- |
 | 7 | Application | **Data** | Application payload (HTTP body, DNS query) |
@@ -622,6 +660,9 @@ Data → Segment → Packet → Frame → Bits
 ## 11. OSI Model vs TCP/IP Model
 
 The OSI model has 7 layers. The **TCP/IP model** (the actual architecture of the internet) uses **4 layers** by collapsing some OSI layers.
+
+![OSI Model vs TCP/IP Model Architecture Comparison by ByteByteGo](images/osi-vs-tcpip-bytebytego.jpg)
+*Figure 13: Architecture comparison between the 7-Layer OSI Model and 4-Layer TCP/IP Model (Alex Xu / ByteByteGo).*
 
 ```mermaid
 flowchart LR
@@ -667,15 +708,16 @@ flowchart LR
 
 ---
 
-## 12. Real-World Communication — HTTPS POST Across Layers
+## 12. Real-World Communication — HTTPS POST Across Layers (Course Slides)
 
-This is where the theory becomes practical. The images below are from Hussein Nasser's Backend Engineering course — they show exactly what happens at each layer when your app sends an HTTPS POST request.
+This is where the theory becomes practical. The images below are from Hussein Nasser's Backend Engineering course slides — they show exactly what happens at each layer when your app sends an HTTPS POST request.
 
 ### 12.1 OSI Layers on a Single Machine (HTTPS POST)
 
 > *Page 89 from the course PDF — "Client sends an HTTPS POST request"*
 
 ![OSI layers for HTTPS POST request — Client and Server side](images/osi-layers-https-request.jpg)
+*Figure 14: Client sends an HTTPS POST request — single machine down-and-up stack view.*
 
 **What this diagram shows:**
 - The **client** (left) starts at Layer 7 (Application — the HTTPS request) and passes data **down** to Layer 1 (Physical — the raw signal)
@@ -700,6 +742,7 @@ L1 Physical   ~~~~signal~~~~~~~~~~~~~~~~ L1 Physical
 > *Page 90 from the course PDF — Header fields at Layers 2, 3, and 4*
 
 ![OSI layers showing SPORT, DPORT, SIP, DIP, SMAC, DMAC headers](images/osi-layers-headers-sport-dport.jpg)
+*Figure 15: Header fields added at Layer 4 (SPORT/DPORT), Layer 3 (SIP/DIP), and Layer 2 (SMAC/DMAC).*
 
 **What this diagram shows:**
 
@@ -734,6 +777,7 @@ Layer 1: Electrical signal transmitted
 > *Page 91 from the course PDF — "Across networks" with Switch and Router*
 
 ![OSI across networks showing Switch operating at L2 and Router at L3](images/osi-across-networks-switch-router.jpg)
+*Figure 16: OSI Across Networks — Layer 2 Switch vs Layer 3 Router packet inspection boundaries.*
 
 **What this diagram shows:**
 
@@ -776,6 +820,7 @@ Client          Switch          Router         Server
 > *Page 92 from the course PDF — "Across networks" with Layer 4 Proxy/Firewall and Layer 7 Load Balancer/CDN*
 
 ![OSI layers showing Layer 4 Proxy/Firewall and Layer 7 Load Balancer/CDN](images/osi-layer4-proxy-layer7-load-balancer.jpg)
+*Figure 17: OSI Across Networks with Layer 4 Proxy/Firewall and Layer 7 Load Balancer/CDN.*
 
 **What this diagram shows:**
 
@@ -915,6 +960,9 @@ Examples:   Nginx, HAProxy (L7 mode), AWS ALB, Cloudflare, Fastly
 | **S** | 5 — Session |
 | **P** | 6 — Presentation |
 | **A** | 7 — Application |
+
+![OSI Model Mnemonic — Please Do Not Throw Sausage Pizza Away](images/osi-mnemonic-sausage-pizza.jpg)
+*Figure 18: OSI Model Mnemonics — Remembering the 7 layers from top-to-bottom and bottom-to-top.*
 
 ### PDU Memory (Bottom → Top)
 > **B**ig **F**at **P**eople **S**it **D**own **D**aily
