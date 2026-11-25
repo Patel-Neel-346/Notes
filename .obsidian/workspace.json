@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model.md",
+                "file": "Backend-engineering/2-Communication-patterns/7-Communication-patterns/6.Multiplexing-Demultiplexing.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "1-OSI-Model"
+              "title": "6.Multiplexing-Demultiplexing"
             }
           }
         ],
@@ -213,6 +213,7 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model.md",
     "Backend-engineering/3-Protocol/1-Protocol-and-Properties/1.Protocols-and-Properties.md",
     "Backend-engineering/3-Protocol/2-OSI-Model/images/osi-cybersecurity-lens.jpg",
     "Backend-engineering/3-Protocol/2-OSI-Model/images/osi-cheat-sheet.jpg",
@@ -225,7 +226,6 @@
     "Backend-engineering/3-Protocol/2-OSI-Model/images/layer4-transport.jpg",
     "Backend-engineering/3-Protocol/2-OSI-Model/images/layer3-network-routing.jpg",
     "Backend-engineering/3-Protocol/2-OSI-Model/images",
-    "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model.md",
     "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model",
     "Backend-engineering/3-Protocol/2-OSI-Model",
     "Backend-engineering/2-Communication-patterns/2-Async-and-Sync-Execution/1.Async-Sync-Execution.md",
