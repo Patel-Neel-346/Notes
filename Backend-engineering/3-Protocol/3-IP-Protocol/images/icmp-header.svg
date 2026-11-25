@@ -15,7 +15,8 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
-   sodipodi:docname="ICMP header - General-en.svg">
+   sodipodi:docname="ICMP header - General-en.svg" style="background-color:#ffffff; padding:12px; border-radius:8px;">
+  <rect id="obsidian-white-bg" x="-100%" y="-100%" width="300%" height="300%" fill="#ffffff"/>
   <defs
      id="defs2" />
   <sodipodi:namedview
