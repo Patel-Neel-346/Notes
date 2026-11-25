@@ -27,16 +27,15 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Backend-engineering/2-Communication-patterns/7-Communication-patterns/8.Sidecar-Pattern.md",
+                "file": "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "8.Sidecar-Pattern"
+              "title": "1-OSI-Model"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -211,11 +210,12 @@
       "obsidian-shellcommands:Shell commands: Custom variables": false
     }
   },
-  "active": "a96504618f299398",
+  "active": "a3ec600eb5f98e44",
   "lastOpenFiles": [
+    "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model.md",
+    "Backend-engineering/2-Communication-patterns/7-Communication-patterns/8.Sidecar-Pattern.md",
     "Backend-engineering/2-Communication-patterns/7-Communication-patterns/7.Stateless-vs-Stateful.md",
     "Backend-engineering/2-Communication-patterns/7-Communication-patterns/6.Multiplexing-Demultiplexing.md",
-    "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model.md",
     "Backend-engineering/3-Protocol/1-Protocol-and-Properties/1.Protocols-and-Properties.md",
     "Backend-engineering/3-Protocol/2-OSI-Model/images/osi-cybersecurity-lens.jpg",
     "Backend-engineering/3-Protocol/2-OSI-Model/images/osi-cheat-sheet.jpg",
@@ -237,7 +237,6 @@
     "Backend-engineering/2-Communication-patterns/5-GraphQL/1.GraphQL-DataLoader.md",
     "Backend-engineering/2-Communication-patterns/6-HTTP3-and-QUIC/1.HTTP3-and-QUIC.md",
     "Backend-engineering/2-Communication-patterns/7-Communication-patterns/3.Long-Polling.md",
-    "Backend-engineering/2-Communication-patterns/7-Communication-patterns/8.Sidecar-Pattern.md",
     "Database/Database Internal Book version/1-Storage Engine/Chapter-2 B-Tree/Chapter-2.md",
     "Backend-engineering/2-Communication-patterns/8-Communication-patterns/8.Sidecar-Pattern.md",
     "Backend-engineering/2-Communication-patterns/7-Communication-patterns/5.Pub-Sub-Pattern.md",
