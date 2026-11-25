@@ -35,7 +35,8 @@
               "title": "1-OSI-Model"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -94,7 +95,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "a93dce0b73208406",
@@ -210,8 +212,9 @@
       "obsidian-shellcommands:Shell commands: Custom variables": false
     }
   },
-  "active": "a3ec600eb5f98e44",
+  "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Sys Design/Beginners.md",
     "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model.md",
     "Backend-engineering/2-Communication-patterns/7-Communication-patterns/8.Sidecar-Pattern.md",
     "Backend-engineering/2-Communication-patterns/7-Communication-patterns/7.Stateless-vs-Stateful.md",
