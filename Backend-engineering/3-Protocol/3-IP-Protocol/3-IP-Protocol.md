@@ -166,8 +166,8 @@ Border routers on the internet can have interfaces connected to hundreds of netw
 
 As backend engineers, it's tempting to imagine an IP packet like a simple Matryoshka ("Petrushka") doll: `[Src IP] [Data] [Dst IP]`. On the wire, the actual **IPv4 packet** consists of a **Header** (20 bytes default, up to 60 bytes with Options) followed by **Data** (up to ~64 KB total).
 
-![IPv4 Packet Header Format](images/ipv4-packet-header.svg)
-*Figure 1: Official IPv4 Header layout (RFC 791) — 32 bits (4 bytes) wide per row × 5 rows = 20 bytes.*
+![Actual IPv4 Packet Header Format](images/actual-ip-packet.jpg)
+*Figure 1: Actual IPv4 Packet layout (Course Slide) — 32 bits (4 octets/bytes) wide per row × 5 rows = 20 bytes default (`Options` if `IHL > 5`). References: [RFC 791](https://datatracker.ietf.org/doc/html/rfc791) · [Wikipedia — IPv4](https://en.wikipedia.org/wiki/IPv4).*
 
 ### Why Header Overhead Matters (Nagle's Algorithm)
 - Every single IPv4 packet adds **at least 20 bytes** of IP header (plus **20 bytes** of TCP header = **40 bytes of overhead**).
