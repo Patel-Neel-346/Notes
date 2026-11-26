@@ -167,31 +167,55 @@ Border routers on the internet can have interfaces connected to hundreds of netw
 As backend engineers, it's tempting to imagine an IP packet like a simple Matryoshka ("Petrushka") doll: `[Src IP] [Data] [Dst IP]`. On the wire, the actual **IPv4 packet** consists of a **Header** (20 bytes default, up to 60 bytes with Options) followed by **Data** (up to ~64 KB total).
 
 ![Actual IPv4 Packet Header Format](images/actual-ip-packet.jpg)
-*Figure 1: Actual IPv4 Packet layout (Course Slide) — 32 bits (4 octets/bytes) wide per row × 5 rows = 20 bytes default (`Options` if `IHL > 5`). References: [RFC 791](https://datatracker.ietf.org/doc/html/rfc791) · [Wikipedia — IPv4](https://en.wikipedia.org/wiki/IPv4).*
+*Figure 1: Actual IPv4 Packet layout (Course Slide) — 32 bits (4 octets/bytes) wide per row × 5 mandatory rows = 20 bytes default (`Options` if `IHL > 5`). References: [RFC 791](https://datatracker.ietf.org/doc/html/rfc791) · [Wikipedia — IPv4](https://en.wikipedia.org/wiki/IPv4).*
+
+### How to Read This Packet Diagram
+- **Columns (`Octet 0–3` / `Bit 0–31`):** Each horizontal row is **32 bits = 4 octets (4 bytes)** wide.
+- **Left Margin (`Offsets`):** Tracks the byte (`Octet`) and bit (`Bit`) position where each row starts (`0, 4, 8, 12, 16, 20...56` bytes).
+- **Mandatory Header (Rows 1–5):** The first 5 rows (`5 × 4 = 20 bytes`) are **always** present in every IPv4 packet.
+- **Optional Header + Data:** Row 6 (`Options`) only exists when `IHL > 5`, followed by the `Data` payload.
 
 ### Why Header Overhead Matters (Nagle's Algorithm)
 - Every single IPv4 packet adds **at least 20 bytes** of IP header (plus **20 bytes** of TCP header = **40 bytes of overhead**).
 - Sending **1 byte** of user data (like a single keystroke in SSH) with 40 bytes of headers is a massive waste of bandwidth and router CPU!
 - That is why TCP uses optimizations like **Nagle's Algorithm** and **Delayed Acknowledgments** to batch small writes together before wrapping them in IP packets.
 
-### Every IPv4 Header Field Explained
+### Section-by-Section Breakdown of the IPv4 Packet
 
-| Field | Size | What It Does & Why It Exists |
-| :--- | :--- | :--- |
-| **Version** | 4 bits | IP version (`4` for IPv4, `6` for IPv6). 4 bits can represent 0–15, though only 4 and 6 are used. |
-| **IHL** *(Internet Header Length)* | 4 bits | Number of 32-bit (4-byte) rows in the header. Default is **`5`** ($5 \times 4 = 20\text{ bytes}$). Max is `15` ($15 \times 4 = 60\text{ bytes}$) when Options are added. |
-| **DSCP** *(Differentiated Services)* | 6 bits | Priority/QoS marking (e.g., prioritizing real-time voice/video over background downloads). |
-| **ECN** *(Explicit Congestion Notification)* | 2 bits | Lets routers warn TCP of buffer congestion **without dropping packets** (explained below!). |
-| **Total Length** | 16 bits | Entire packet size (Header + Data). Max = $2^{16} - 1 = \mathbf{65,535\text{ bytes}}$. |
-| **Identification** | 16 bits | Unique ID shared by all fragments belonging to the same original packet. |
-| **Flags** | 3 bits | Bit 0: Reserved (`0`). Bit 1: **`DF` (Don't Fragment)**. Bit 2: **`MF` (More Fragments)**. |
-| **Fragment Offset** | 13 bits | Tells the receiver where this fragment fits when reassembling the original packet. |
-| **TTL** *(Time To Live)* | 8 bits | Hop counter (e.g., `64` or `128`). Decremented by 1 at each router; dropped at `0`. |
-| **Protocol** | 8 bits | Identifies the payload protocol inside Data (`1` = ICMP, `6` = TCP, `17` = UDP; up to 255). |
-| **Header Checksum** | 16 bits | Verifies the IPv4 header wasn't corrupted in transit (recalculated at each hop since TTL changes!). |
-| **Source IP** | 32 bits | IPv4 address of the original sender (unless rewritten by NAT). |
-| **Destination IP** | 32 bits | IPv4 address of the final receiver. |
-| **Options** | 0–40 bytes | Optional extensible fields (rarely used — many internet routers drop packets with IP Options for security). |
+#### Row 1 (`Octet 0`, Bits `0–31`) — Version, IHL, DSCP, ECN & Total Length
+- **Version (`4 bits`, Bits `0–3`):** Specifies the IP protocol version (`4` for IPv4, `6` for IPv6). Four bits allow values `0–15`, though only `4` and `6` are used.
+- **IHL — Internet Header Length (`4 bits`, Bits `4–7`):** Counts how many 32-bit (4-byte) rows make up the IPv4 header.
+  - Default value is **`5`** ($5 \times 4 = \mathbf{20\text{ bytes}}$).
+  - Maximum value is **`15`** ($15 \times 4 = \mathbf{60\text{ bytes}}$) when Options are included.
+- **DSCP — Differentiated Services Code Point (`6 bits`, Bits `8–13`):** Marks packet priority / Quality of Service (QoS), allowing routers to prioritize latency-sensitive traffic (like live voice/video) over background downloads.
+- **ECN — Explicit Congestion Notification (`2 bits`, Bits `14–15`):** Allows routers to signal buffer congestion to TCP **without dropping the packet** (explained below).
+- **Total Length (`16 bits`, Bits `16–31`):** Total size of the entire IPv4 packet (**Header + Data**) in bytes. Max = $2^{16} - 1 = \mathbf{65,535\text{ bytes}}$ (~64 KB).
+
+#### Row 2 (`Octet 4`, Bits `32–63`) — Identification, Flags & Fragment Offset
+Used when a large IP packet must be split (**fragmented**) to fit across a smaller link MTU:
+- **Identification (`16 bits`):** A unique ID shared by every fragment belonging to the same original packet so the receiver knows which pieces belong together.
+- **Flags (`3 bits`):**
+  - Bit `0`: Reserved (always `0`).
+  - Bit `1`: **`DF` (Don't Fragment)** — if `1`, routers **must not** split this packet; if it's too big for the link MTU, they drop it and reply with ICMP.
+  - Bit `2`: **`MF` (More Fragments)** — `1` on all fragments except the final one (`0`).
+- **Fragment Offset (`13 bits`):** Tells the receiver the exact byte position (in 8-byte blocks) where this fragment fits during reassembly.
+
+#### Row 3 (`Octet 8`, Bits `64–95`) — Time To Live (TTL), Protocol & Header Checksum
+- **Time To Live / TTL (`8 bits`):** Hop counter (commonly initialized to `64` or `128`). Every Layer 3 router decrements TTL by `1`; if it hits `0`, the router drops the packet and sends `ICMP Time Exceeded` back (stopping infinite routing loops and powering `traceroute`).
+- **Protocol (`8 bits`, `0–255`):** Tells the router and OS kernel **what protocol is inside the `Data` section** (`1` = ICMP, `6` = TCP, `17` = UDP) so they don't have to parse the payload.
+- **Header Checksum (`16 bits`):** Error-detection checksum covering **only the IPv4 header** (not `Data`). Because `TTL` changes at every hop, every router must recalculate this checksum!
+
+#### Row 4 (`Octet 12`, Bits `96–127`) — Source IP Address
+- **Source IP Address (`32 bits` / 4 bytes):** The IPv4 address of the sender (where replies are sent). Can be rewritten by NAT at gateways; ISPs block forged/spoofed source IPs.
+
+#### Row 5 (`Octet 16`, Bits `128–159`) — Destination IP Address
+- **Destination IP Address (`32 bits` / 4 bytes):** The IPv4 address of the final target machine. Every router reads this field to decide the next hop.
+
+#### Section 6 (`Octet 20–56`, Bits `160–448+`) — Options (`if IHL > 5`, `0–40 bytes`)
+- **Options (`0–40 bytes`):** Optional extra header fields for extensions (such as timestamps or source routing) when `IHL > 5`. Since max `IHL = 15` (60 bytes), Options can add up to `40 bytes` (`Octet 20` through `Octet 56`). Many modern internet routers drop packets containing IP Options for security reasons.
+
+#### Section 7 — Data (Payload, up to ~64 KB)
+- **Data:** Everything carried *inside* the IP packet! At Layer 3, routers treat this entire block as opaque bytes — inside it sits your **TCP segment** (with `SPORT`/`DPORT`), **UDP datagram**, **ICMP message**, **TLS encrypted stream**, **HTTP request**, or **PostgreSQL query**.
 
 ### Why `Protocol` (8 bits) Is Genius Metadata
 Why waste 8 bits telling the router whether the Data is TCP (`6`), UDP (`17`), or ICMP (`1`)?
