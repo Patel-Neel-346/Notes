@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Backend-engineering/3-Protocol/3-IP-Protocol/3-IP-Protocol.md",
+                "file": "How-to-Build-Your-Own-LLM/Lecture 1 - Building LLMs from scratch - Series introduction/1.Series-Introduction.md",
                 "mode": "preview",
                 "source": true
               },
               "icon": "lucide-file",
-              "title": "3-IP-Protocol"
+              "title": "1.Series-Introduction"
             }
           }
         ],
@@ -95,7 +95,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 603.2000122070312
   },
   "right": {
     "id": "a93dce0b73208406",
@@ -213,9 +213,9 @@
   },
   "active": "a96504618f299398",
   "lastOpenFiles": [
+    "Backend-engineering/3-Protocol/3-IP-Protocol/3-IP-Protocol.md",
     "Backend-engineering/3-Protocol/3-IP-Protocol/images/ipv4-packet-header.svg",
     "Backend-engineering/3-Protocol/3-IP-Protocol/images/ip-fragmentation.png",
-    "Backend-engineering/3-Protocol/3-IP-Protocol/3-IP-Protocol.md",
     "Sys Design/Beginners.md",
     "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model.md",
     "Backend-engineering/3-Protocol/3-IP-Protocol",
@@ -231,7 +231,6 @@
     "Backend-engineering/3-Protocol/2-OSI-Model/images/layer7-application.jpg",
     "Backend-engineering/3-Protocol/2-OSI-Model/images/layer6-presentation.jpg",
     "Backend-engineering/3-Protocol/2-OSI-Model/images/layer5-session.jpg",
-    "Backend-engineering/3-Protocol/2-OSI-Model/images/layer4-transport.jpg",
     "Backend-engineering/3-Protocol/2-OSI-Model/images",
     "Backend-engineering/3-Protocol/2-OSI-Model/1-OSI-Model",
     "Backend-engineering/3-Protocol/2-OSI-Model",
